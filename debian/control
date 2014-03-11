@@ -49,11 +49,12 @@ Description: Debugging symbols for libnftnl0
 Package: libnftnl-dev
 Section: libdevel
 Architecture: any
+Pre-Depends:
+ ${misc:Pre-Depends}
 Depends:
  libnftnl0 (= ${binary:Version}),
  pkg-config,
  ${misc:Depends},
- ${misc:Pre-Depends},
  ${shlibs:Depends}
 Description: Development files for libnftnl0
  libnftnl is the low-level library for Netfilter 4th generation
