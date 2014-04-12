@@ -10,7 +10,7 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 	dh $@ --with autoreconf
 
 override_dh_auto_configure:
-	./configure --prefix=/usr --libdir=/usr/lib/$(DEB_HOST_MULTIARCH) --with-xml-parsing --with-json-parsing
+	./configure --prefix=/usr --libdir=/usr/lib/$(DEB_HOST_MULTIARCH) --with-xml-parsing --with-json-parsing --disable-silent-rules
 
 override_dh_strip:
 	dh_strip --dbg-package=libnftnl0-dbg
