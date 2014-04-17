@@ -1,7 +1,9 @@
 libnftnl.so.0 libnftnl0 #MINVER#
  LIBNFTNL_1.0@LIBNFTNL_1.0 1.0.0
+ LIBNFTNL_1.1@LIBNFTNL_1.1 1.0.1
  nft_chain_alloc@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_get@LIBNFTNL_1.0 1.0.0
+ nft_chain_attr_get_data@LIBNFTNL_1.1 1.0.1
  nft_chain_attr_get_s32@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_get_str@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_get_u32@LIBNFTNL_1.0 1.0.0
@@ -9,6 +11,7 @@ libnftnl.so.0 libnftnl0 #MINVER#
  nft_chain_attr_get_u8@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_is_set@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_set@LIBNFTNL_1.0 1.0.0
+ nft_chain_attr_set_data@LIBNFTNL_1.1 1.0.1
  nft_chain_attr_set_s32@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_set_str@LIBNFTNL_1.0 1.0.0
  nft_chain_attr_set_u32@LIBNFTNL_1.0 1.0.0
@@ -39,12 +42,14 @@ libnftnl.so.0 libnftnl0 #MINVER#
  nft_rule_add_expr@LIBNFTNL_1.0 1.0.0
  nft_rule_alloc@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_get@LIBNFTNL_1.0 1.0.0
+ nft_rule_attr_get_data@LIBNFTNL_1.1 1.0.1
  nft_rule_attr_get_str@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_get_u32@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_get_u64@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_get_u8@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_is_set@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_set@LIBNFTNL_1.0 1.0.0
+ nft_rule_attr_set_data@LIBNFTNL_1.1 1.0.1
  nft_rule_attr_set_str@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_set_u32@LIBNFTNL_1.0 1.0.0
  nft_rule_attr_set_u64@LIBNFTNL_1.0 1.0.0
@@ -100,10 +105,12 @@ libnftnl.so.0 libnftnl0 #MINVER#
  nft_ruleset_snprintf@LIBNFTNL_1.0 1.0.0
  nft_set_alloc@LIBNFTNL_1.0 1.0.0
  nft_set_attr_get@LIBNFTNL_1.0 1.0.0
+ nft_set_attr_get_data@LIBNFTNL_1.1 1.0.1
  nft_set_attr_get_str@LIBNFTNL_1.0 1.0.0
  nft_set_attr_get_u32@LIBNFTNL_1.0 1.0.0
  nft_set_attr_is_set@LIBNFTNL_1.0 1.0.0
  nft_set_attr_set@LIBNFTNL_1.0 1.0.0
+ nft_set_attr_set_data@LIBNFTNL_1.1 1.0.1
  nft_set_attr_set_str@LIBNFTNL_1.0 1.0.0
  nft_set_attr_set_u32@LIBNFTNL_1.0 1.0.0
  nft_set_attr_unset@LIBNFTNL_1.0 1.0.0
@@ -148,11 +155,13 @@ libnftnl.so.0 libnftnl0 #MINVER#
  nft_set_snprintf@LIBNFTNL_1.0 1.0.0
  nft_table_alloc@LIBNFTNL_1.0 1.0.0
  nft_table_attr_get@LIBNFTNL_1.0 1.0.0
+ nft_table_attr_get_data@LIBNFTNL_1.1 1.0.1
  nft_table_attr_get_str@LIBNFTNL_1.0 1.0.0
  nft_table_attr_get_u32@LIBNFTNL_1.0 1.0.0
  nft_table_attr_get_u8@LIBNFTNL_1.0 1.0.0
  nft_table_attr_is_set@LIBNFTNL_1.0 1.0.0
  nft_table_attr_set@LIBNFTNL_1.0 1.0.0
+ nft_table_attr_set_data@LIBNFTNL_1.1 1.0.1
  nft_table_attr_set_str@LIBNFTNL_1.0 1.0.0
  nft_table_attr_set_u32@LIBNFTNL_1.0 1.0.0
  nft_table_attr_set_u8@LIBNFTNL_1.0 1.0.0
