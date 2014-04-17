@@ -42,6 +42,12 @@ EXPORT_SYMBOL(nft_set_elem_alloc);
 
 void nft_set_elem_free(struct nft_set_elem *s)
 {
+	if (s->flags & (1 << NFT_SET_ELEM_ATTR_CHAIN)) {
+		if (s->data.chain) {
+			xfree(s->data.chain);
+			s->data.chain = NULL;
+		}
+	}
 	xfree(s);
 }
 EXPORT_SYMBOL(nft_set_elem_free);
@@ -252,7 +258,11 @@ static int nft_set_elems_parse2(struct nft_set *s, const struct nlattr *nest)
 	if (e == NULL)
 		return -1;
 
-	mnl_attr_parse_nested(nest, nft_set_elem_parse_attr_cb, tb);
+	if (mnl_attr_parse_nested(nest, nft_set_elem_parse_attr_cb, tb) < 0) {
+		nft_set_elem_free(e);
+		return -1;
+	}
+
 	if (tb[NFTA_SET_ELEM_FLAGS]) {
 		e->set_elem_flags =
 			ntohl(mnl_attr_get_u32(tb[NFTA_SET_ELEM_FLAGS]));
@@ -287,7 +297,6 @@ static int nft_set_elems_parse2(struct nft_set *s, const struct nlattr *nest)
 
 	return ret;
 }
-EXPORT_SYMBOL(nft_set_elem_nlmsg_parse);
 
 static int
 nft_set_elem_list_parse_attr_cb(const struct nlattr *attr, void *data)
@@ -338,7 +347,10 @@ int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
 	int ret = 0;
 
-	mnl_attr_parse(nlh, sizeof(*nfg), nft_set_elem_list_parse_attr_cb, tb);
+	if (mnl_attr_parse(nlh, sizeof(*nfg),
+			   nft_set_elem_list_parse_attr_cb, tb) < 0)
+		return -1;
+
 	if (tb[NFTA_SET_ELEM_LIST_TABLE]) {
 		s->table =
 			strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_LIST_TABLE]));
@@ -351,6 +363,9 @@ int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
 	}
         if (tb[NFTA_SET_ELEM_LIST_ELEMENTS])
 	 	ret = nft_set_elems_parse(s, tb[NFTA_SET_ELEM_LIST_ELEMENTS]);
+
+	s->family = nfg->nfgen_family;
+	s->flags |= (1 << NFT_SET_ATTR_FAMILY);
 
 	return ret;
 }

@@ -17,7 +17,9 @@ enum {
 	NFT_SET_ATTR_DATA_TYPE,
 	NFT_SET_ATTR_DATA_LEN,
 	NFT_SET_ATTR_FAMILY,
+	__NFT_SET_ATTR_MAX
 };
+#define NFT_SET_ATTR_MAX (__NFT_SET_ATTR_MAX - 1)
 
 struct nft_set;
 
@@ -27,10 +29,14 @@ void nft_set_free(struct nft_set *s);
 bool nft_set_attr_is_set(const struct nft_set *s, uint16_t attr);
 void nft_set_attr_unset(struct nft_set *s, uint16_t attr);
 void nft_set_attr_set(struct nft_set *s, uint16_t attr, const void *data);
+void nft_set_attr_set_data(struct nft_set *s, uint16_t attr, const void *data,
+			   uint32_t data_len);
 void nft_set_attr_set_u32(struct nft_set *s, uint16_t attr, uint32_t val);
 void nft_set_attr_set_str(struct nft_set *s, uint16_t attr, const char *str);
 
 const void *nft_set_attr_get(struct nft_set *s, uint16_t attr);
+const void *nft_set_attr_get_data(struct nft_set *s, uint16_t attr,
+				  uint32_t *data_len);
 const char *nft_set_attr_get_str(struct nft_set *s, uint16_t attr);
 uint32_t nft_set_attr_get_u32(struct nft_set *s, uint16_t attr);
 
@@ -98,8 +104,6 @@ bool nft_set_elem_attr_is_set(const struct nft_set_elem *s, uint16_t attr);
 #define nft_set_elem_nlmsg_build_hdr	nft_nlmsg_build_hdr
 void nft_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s);
 void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set_elem *e);
-
-int nft_set_elem_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set_elem *s);
 
 int nft_set_elem_parse(struct nft_set_elem *e, enum nft_parse_type type,
 		       const char *data, struct nft_parse_err *err);

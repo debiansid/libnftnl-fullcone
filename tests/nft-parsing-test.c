@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <limits.h>
 #include <errno.h>
+#include <getopt.h>
 
 #include <libmnl/libmnl.h> /*nlmsghdr*/
 #include <libnftnl/ruleset.h>
@@ -16,6 +17,8 @@ enum {
 	TEST_XML_RULESET,
 	TEST_JSON_RULESET,
 };
+
+static bool update = false;
 
 static void print_detail_error(char *a, char *b)
 {
@@ -79,8 +82,24 @@ static int compare_test(uint32_t type, struct nft_ruleset *rs,
 	rewind(fp);
 	fgets(orig, sizeof(orig), fp);
 
-	if (strncmp(orig, out, strlen(out)) == 0)
+	if (strncmp(orig, out, strlen(out)) == 0) {
+		if (update)
+			printf("%s: No changes to update\n", filename);
 		return 0;
+	}
+	if (update) {
+		FILE *fout;
+		printf("%s: Updating test file\n", filename);
+		fout = fopen(filename, "w");
+		if (fout == NULL) {
+			printf("unable to open file %s: %s\n", filename,
+			strerror(errno));
+			return -1;
+		}
+		fprintf(fout, "%s\n", out);
+		fclose(fout);
+		return 0;
+	}
 
 	printf("validating %s: ", filename);
 	printf("\033[31mFAILED\e[0m\n");
@@ -161,7 +180,7 @@ failparsing:
 	return -1;
 }
 
-int main(int argc, char *argv[])
+static int execute_test(const char *dir_name)
 {
 	DIR *d;
 	struct dirent *dent;
@@ -169,12 +188,7 @@ int main(int argc, char *argv[])
 	int ret = 0, exit_code = 0;
 	struct nft_parse_err *err;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s <directory>\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
-	d = opendir(argv[1]);
+	d = opendir(dir_name);
 	if (d == NULL) {
 		perror("opendir");
 		exit(EXIT_FAILURE);
@@ -193,19 +207,25 @@ int main(int argc, char *argv[])
 		    strcmp(dent->d_name, "..") == 0)
 			continue;
 
-		snprintf(path, sizeof(path), "%s/%s", argv[1], dent->d_name);
+		snprintf(path, sizeof(path), "%s/%s", dir_name, dent->d_name);
 
 		if (strcmp(&dent->d_name[len-4], ".xml") == 0) {
 			if ((ret = test_xml(path, err)) == 0) {
-				printf("parsing and validating %s: ", path);
-				printf("\033[32mOK\e[0m\n");
+				if (!update) {
+					printf("parsing and validating %s: ",
+					       path);
+					printf("\033[32mOK\e[0m\n");
+				}
 			}
 			exit_code += ret;
 		}
 		if (strcmp(&dent->d_name[len-5], ".json") == 0) {
 			if ((ret = test_json(path, err)) == 0) {
-				printf("parsing and validating %s: ", path);
-				printf("\033[32mOK\e[0m\n");
+				if (!update) {
+					printf("parsing and validating %s: ",
+					       path);
+					printf("\033[32mOK\e[0m\n");
+				}
 			}
 			exit_code += ret;
 		}
@@ -218,4 +238,103 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 
 	return 0;
+}
+
+static int execute_test_file(const char *filename)
+{
+	char path[PATH_MAX];
+	int ret = 0;
+	struct nft_parse_err *err;
+
+	err = nft_parse_err_alloc();
+	if (err == NULL) {
+		perror("error");
+		exit(EXIT_FAILURE);
+	}
+
+	snprintf(path, sizeof(path), "%s", filename);
+
+	int len = strlen(filename);
+	if (strcmp(&filename[len-4], ".xml") == 0) {
+		if ((ret = test_xml(path, err)) == 0) {
+			if (!update) {
+				printf("parsing and validating %s: ",
+				       path);
+				printf("\033[32mOK\e[0m\n");
+			}
+		}
+		nft_parse_err_free(err);
+		exit(EXIT_FAILURE);
+	}
+	if (strcmp(&filename[len-5], ".json") == 0) {
+		if ((ret = test_json(path, err)) == 0) {
+			if (!update) {
+				printf("parsing and validating %s: ",
+				       path);
+				printf("\033[32mOK\e[0m\n");
+			}
+		}
+		nft_parse_err_free(err);
+		exit(EXIT_FAILURE);
+	}
+
+	nft_parse_err_free(err);
+
+	return 0;
+}
+
+static void show_help(const char *name)
+{
+	printf(
+"Usage: %s [option]\n"
+"\n"
+"Options:\n"
+"  -d/--dir <directory>		Check test files from <directory>.\n"
+"  -u/--update <directory>	Update test files from <directory>.\n"
+"  -f/--file <file>		Check test file <file>\n"
+"\n",
+	       name);
+}
+
+int main(int argc, char *argv[])
+{
+	int val;
+	int ret = 0;
+	int option_index = 0;
+	static struct option long_options[] = {
+		{ "dir", required_argument, 0, 'd' },
+		{ "update", required_argument, 0, 'u' },
+		{ "file", required_argument, 0, 'f' },
+		{ 0 }
+	};
+
+	if (argc != 3) {
+		show_help(argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	while (1) {
+		val = getopt_long(argc, argv, "d:u:f:", long_options,
+				  &option_index);
+
+		if (val == -1)
+			break;
+
+		switch (val) {
+		case 'd':
+			ret = execute_test(optarg);
+			break;
+		case 'u':
+			update = true;
+			ret = execute_test(optarg);
+			break;
+		case 'f':
+			ret = execute_test_file(optarg);
+			break;
+		default:
+			show_help(argv[0]);
+			break;
+		}
+	}
+	return ret;
 }
