@@ -1,8 +1,10 @@
-libnftnl (1.0.1-1) UNRELEASED; urgency=low
+libnftnl (1.0.1-1) unstable; urgency=low
 
   * [c84453e] d/rules: configure: disable silent rules
   * [54c5aa8] d/control: architecture is linux-any
   * [83a3229] Imported Upstream version 1.0.1
+  * [aae240c] d/changelog: target version is now 1.0.1-1
+  * [4d7789f] d/libnftnl0.symbols: add new symbols
 
  -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Thu, 17 Apr 2014 13:57:47 +0200
 
