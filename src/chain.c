@@ -34,7 +34,7 @@ struct nft_chain {
 	char		name[NFT_CHAIN_MAXNAMELEN];
 	const char	*type;
 	const char	*table;
-	uint8_t		family;
+	uint32_t	family;
 	uint32_t	policy;
 	uint32_t	hooknum;
 	int32_t		prio;
@@ -50,6 +50,7 @@ static const char *nft_hooknum2str(int family, int hooknum)
 	switch (family) {
 	case NFPROTO_IPV4:
 	case NFPROTO_IPV6:
+	case NFPROTO_INET:
 	case NFPROTO_BRIDGE:
 		switch (hooknum) {
 		case NF_INET_PRE_ROUTING:
@@ -139,8 +140,24 @@ void nft_chain_attr_unset(struct nft_chain *c, uint16_t attr)
 }
 EXPORT_SYMBOL(nft_chain_attr_unset);
 
-void nft_chain_attr_set(struct nft_chain *c, uint16_t attr, const void *data)
+static uint32_t nft_chain_attr_validate[NFT_CHAIN_ATTR_MAX + 1] = {
+	[NFT_CHAIN_ATTR_HOOKNUM]	= sizeof(uint32_t),
+	[NFT_CHAIN_ATTR_PRIO]		= sizeof(int32_t),
+	[NFT_CHAIN_ATTR_POLICY]		= sizeof(uint32_t),
+	[NFT_CHAIN_ATTR_BYTES]		= sizeof(uint64_t),
+	[NFT_CHAIN_ATTR_PACKETS]	= sizeof(uint64_t),
+	[NFT_CHAIN_ATTR_HANDLE]		= sizeof(uint64_t),
+	[NFT_CHAIN_ATTR_FAMILY]		= sizeof(uint32_t),
+};
+
+void nft_chain_attr_set_data(struct nft_chain *c, uint16_t attr,
+			     const void *data, uint32_t data_len)
 {
+	if (attr > NFT_CHAIN_ATTR_MAX)
+		return;
+
+	nft_assert_validate(data, nft_chain_attr_validate, attr, data_len);
+
 	switch(attr) {
 	case NFT_CHAIN_ATTR_NAME:
 		strncpy(c->name, data, NFT_CHAIN_MAXNAMELEN);
@@ -173,7 +190,7 @@ void nft_chain_attr_set(struct nft_chain *c, uint16_t attr, const void *data)
 		c->handle = *((uint64_t *)data);
 		break;
 	case NFT_CHAIN_ATTR_FAMILY:
-		c->family = *((uint8_t *)data);
+		c->family = *((uint32_t *)data);
 		break;
 	case NFT_CHAIN_ATTR_TYPE:
 		if (c->type)
@@ -181,44 +198,49 @@ void nft_chain_attr_set(struct nft_chain *c, uint16_t attr, const void *data)
 
 		c->type = strdup(data);
 		break;
-	default:
-		return;
 	}
 	c->flags |= (1 << attr);
+}
+EXPORT_SYMBOL(nft_chain_attr_set_data);
+
+void nft_chain_attr_set(struct nft_chain *c, uint16_t attr, const void *data)
+{
+	nft_chain_attr_set_data(c, attr, data, nft_chain_attr_validate[attr]);
 }
 EXPORT_SYMBOL(nft_chain_attr_set);
 
 void nft_chain_attr_set_u32(struct nft_chain *c, uint16_t attr, uint32_t data)
 {
-	nft_chain_attr_set(c, attr, &data);
+	nft_chain_attr_set_data(c, attr, &data, sizeof(uint32_t));
 }
 EXPORT_SYMBOL(nft_chain_attr_set_u32);
 
 void nft_chain_attr_set_s32(struct nft_chain *c, uint16_t attr, int32_t data)
 {
-	nft_chain_attr_set(c, attr, &data);
+	nft_chain_attr_set_data(c, attr, &data, sizeof(int32_t));
 }
 EXPORT_SYMBOL(nft_chain_attr_set_s32);
 
 void nft_chain_attr_set_u64(struct nft_chain *c, uint16_t attr, uint64_t data)
 {
-	nft_chain_attr_set(c, attr, &data);
+	nft_chain_attr_set_data(c, attr, &data, sizeof(uint64_t));
 }
 EXPORT_SYMBOL(nft_chain_attr_set_u64);
 
 void nft_chain_attr_set_u8(struct nft_chain *c, uint16_t attr, uint8_t data)
 {
-	nft_chain_attr_set(c, attr, &data);
+	nft_chain_attr_set_data(c, attr, &data, sizeof(uint8_t));
 }
 EXPORT_SYMBOL(nft_chain_attr_set_u8);
 
 void nft_chain_attr_set_str(struct nft_chain *c, uint16_t attr, const char *str)
 {
-	nft_chain_attr_set(c, attr, str);
+	nft_chain_attr_set_data(c, attr, str, strlen(str));
 }
 EXPORT_SYMBOL(nft_chain_attr_set_str);
 
-const void *nft_chain_attr_get(struct nft_chain *c, uint16_t attr)
+const void *nft_chain_attr_get_data(struct nft_chain *c, uint16_t attr,
+				    uint32_t *data_len)
 {
 	if (!(c->flags & (1 << attr)))
 		return NULL;
@@ -229,25 +251,41 @@ const void *nft_chain_attr_get(struct nft_chain *c, uint16_t attr)
 	case NFT_CHAIN_ATTR_TABLE:
 		return c->table;
 	case NFT_CHAIN_ATTR_HOOKNUM:
+		*data_len = sizeof(uint32_t);
 		return &c->hooknum;
 	case NFT_CHAIN_ATTR_PRIO:
+		*data_len = sizeof(int32_t);
 		return &c->prio;
 	case NFT_CHAIN_ATTR_POLICY:
+		*data_len = sizeof(uint32_t);
 		return &c->policy;
 	case NFT_CHAIN_ATTR_USE:
+		*data_len = sizeof(uint32_t);
 		return &c->use;
 	case NFT_CHAIN_ATTR_BYTES:
+		*data_len = sizeof(uint64_t);
 		return &c->bytes;
 	case NFT_CHAIN_ATTR_PACKETS:
+		*data_len = sizeof(uint64_t);
 		return &c->packets;
 	case NFT_CHAIN_ATTR_HANDLE:
+		*data_len = sizeof(uint64_t);
 		return &c->handle;
 	case NFT_CHAIN_ATTR_FAMILY:
+		*data_len = sizeof(uint32_t);
 		return &c->family;
 	case NFT_CHAIN_ATTR_TYPE:
+		*data_len = sizeof(uint32_t);
 		return c->type;
 	}
 	return NULL;
+}
+EXPORT_SYMBOL(nft_chain_attr_get_data);
+
+const void *nft_chain_attr_get(struct nft_chain *c, uint16_t attr)
+{
+	uint32_t data_len;
+	return nft_chain_attr_get_data(c, attr, &data_len);
 }
 EXPORT_SYMBOL(nft_chain_attr_get);
 
@@ -259,28 +297,44 @@ EXPORT_SYMBOL(nft_chain_attr_get_str);
 
 uint32_t nft_chain_attr_get_u32(struct nft_chain *c, uint16_t attr)
 {
-	const uint32_t *val = nft_chain_attr_get(c, attr);
+	uint32_t data_len;
+	const uint32_t *val = nft_chain_attr_get_data(c, attr, &data_len);
+
+	nft_assert(val, attr, data_len == sizeof(uint32_t));
+
 	return val ? *val : 0;
 }
 EXPORT_SYMBOL(nft_chain_attr_get_u32);
 
 int32_t nft_chain_attr_get_s32(struct nft_chain *c, uint16_t attr)
 {
-	const int32_t *val = nft_chain_attr_get(c, attr);
+	uint32_t data_len;
+	const int32_t *val = nft_chain_attr_get_data(c, attr, &data_len);
+
+	nft_assert(val, attr, data_len == sizeof(int32_t));
+
 	return val ? *val : 0;
 }
 EXPORT_SYMBOL(nft_chain_attr_get_s32);
 
 uint64_t nft_chain_attr_get_u64(struct nft_chain *c, uint16_t attr)
 {
-	const uint64_t *val = nft_chain_attr_get(c, attr);
+	uint32_t data_len;
+	const uint64_t *val = nft_chain_attr_get_data(c, attr, &data_len);
+
+	nft_assert(val, attr, data_len == sizeof(int64_t));
+
 	return val ? *val : 0;
 }
 EXPORT_SYMBOL(nft_chain_attr_get_u64);
 
 uint8_t nft_chain_attr_get_u8(struct nft_chain *c, uint16_t attr)
 {
-	const uint8_t *val = nft_chain_attr_get(c, attr);
+	uint32_t data_len;
+	const uint8_t *val = nft_chain_attr_get_data(c, attr, &data_len);
+
+	nft_assert(val, attr, data_len == sizeof(int8_t));
+
 	return val ? *val : 0;
 }
 EXPORT_SYMBOL(nft_chain_attr_get_u8);
@@ -448,7 +502,9 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *c)
 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
 	int ret = 0;
 
-	mnl_attr_parse(nlh, sizeof(*nfg), nft_chain_parse_attr_cb, tb);
+	if (mnl_attr_parse(nlh, sizeof(*nfg), nft_chain_parse_attr_cb, tb) < 0)
+		return -1;
+
 	if (tb[NFTA_CHAIN_NAME]) {
 		strncpy(c->name, mnl_attr_get_str(tb[NFTA_CHAIN_NAME]),
 			NFT_CHAIN_MAXNAMELEN);
@@ -458,8 +514,11 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *c)
 		c->table = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TABLE]));
 		c->flags |= (1 << NFT_CHAIN_ATTR_TABLE);
 	}
-	if (tb[NFTA_CHAIN_HOOK])
+	if (tb[NFTA_CHAIN_HOOK]) {
 		ret = nft_chain_parse_hook(tb[NFTA_CHAIN_HOOK], c);
+		if (ret < 0)
+			return ret;
+	}
 	if (tb[NFTA_CHAIN_POLICY]) {
 		c->policy = ntohl(mnl_attr_get_u32(tb[NFTA_CHAIN_POLICY]));
 		c->flags |= (1 << NFT_CHAIN_ATTR_POLICY);
@@ -468,8 +527,11 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *c)
 		c->use = ntohl(mnl_attr_get_u32(tb[NFTA_CHAIN_USE]));
 		c->flags |= (1 << NFT_CHAIN_ATTR_USE);
 	}
-	if (tb[NFTA_CHAIN_COUNTERS])
+	if (tb[NFTA_CHAIN_COUNTERS]) {
 		ret = nft_chain_parse_counters(tb[NFTA_CHAIN_COUNTERS], c);
+		if (ret < 0)
+			return ret;
+	}
 	if (tb[NFTA_CHAIN_HANDLE]) {
 		c->handle = be64toh(mnl_attr_get_u64(tb[NFTA_CHAIN_HANDLE]));
 		c->flags |= (1 << NFT_CHAIN_ATTR_HANDLE);
@@ -842,16 +904,16 @@ static int nft_chain_snprintf_default(char *buf, size_t size,
 {
 	int ret, len = size, offset = 0;
 
-	ret = snprintf(buf, len, "%s %s %s",
-		       nft_family2str(c->family), c->table, c->name);
+	ret = snprintf(buf, len, "%s %s %s use %u",
+		       nft_family2str(c->family), c->table, c->name, c->use);
 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
 		ret = snprintf(buf+offset, len,
-			       " type %s hook %s prio %d policy %s use %d "
+			       " type %s hook %s prio %d policy %s "
 			       "packets %"PRIu64" bytes %"PRIu64"",
 			       c->type, nft_hooknum2str(c->family, c->hooknum),
-			       c->prio, nft_verdict2str(c->policy), c->use,
+			       c->prio, nft_verdict2str(c->policy),
 			       c->packets, c->bytes);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
