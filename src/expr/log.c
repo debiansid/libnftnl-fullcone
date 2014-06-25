@@ -166,31 +166,23 @@ static int nft_rule_expr_log_json_parse(struct nft_rule_expr *e, json_t *root,
 #ifdef JSON_PARSING
 	const char *prefix;
 	uint32_t snaplen;
-	uint16_t uval16;
+	uint16_t group, qthreshold;
 
 	prefix = nft_jansson_parse_str(root, "prefix", err);
-	if (prefix == NULL)
-		return -1;
+	if (prefix != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
 
-	nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
-
-	if (nft_jansson_parse_val(root, "group", NFT_TYPE_U16, &uval16,
-				  err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, uval16);
+	if (nft_jansson_parse_val(root, "group", NFT_TYPE_U16, &group,
+				  err) == 0)
+		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, group);
 
 	if (nft_jansson_parse_val(root, "snaplen", NFT_TYPE_U32, &snaplen,
-				  err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
+				  err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
 
 	if (nft_jansson_parse_val(root, "qthreshold", NFT_TYPE_U16,
-				  &uval16, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, uval16);
+				  &qthreshold, err) == 0)
+		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, qthreshold);
 
 	return 0;
 #else
@@ -204,37 +196,27 @@ static int nft_rule_expr_log_xml_parse(struct nft_rule_expr *e,
 				       struct nft_parse_err *err)
 {
 #ifdef XML_PARSING
-	struct nft_expr_log *log = nft_expr_data(e);
 	const char *prefix;
+	uint32_t snaplen;
+	uint16_t group, qthreshold;
 
 	prefix = nft_mxml_str_parse(tree, "prefix", MXML_DESCEND_FIRST,
 				    NFT_XML_MAND, err);
-	if (prefix == NULL)
-		return -1;
-
-	log->prefix = strdup(prefix);
-	e->flags |= (1 << NFT_EXPR_LOG_PREFIX);
+	if (prefix != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
 
 	if (nft_mxml_num_parse(tree, "group", MXML_DESCEND_FIRST, BASE_DEC,
-			       &log->group, NFT_TYPE_U16, NFT_XML_MAND,
-			       err) != 0)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_LOG_GROUP);
+			       &group, NFT_TYPE_U16, NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, group);
 
 	if (nft_mxml_num_parse(tree, "snaplen", MXML_DESCEND_FIRST, BASE_DEC,
-			       &log->snaplen, NFT_TYPE_U32, NFT_XML_MAND,
-			       err) != 0)
-		return -1;
+			       &snaplen, NFT_TYPE_U32, NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
 
-	e->flags |= (1 << NFT_EXPR_LOG_SNAPLEN);
-
-	if (nft_mxml_num_parse(tree, "qthreshold", MXML_DESCEND_FIRST,
-			       BASE_DEC, &log->qthreshold,
-			       NFT_TYPE_U16, NFT_XML_MAND, err) != 0)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_LOG_QTHRESHOLD);
+	if (nft_mxml_num_parse(tree, "qthreshold", MXML_DESCEND_FIRST, BASE_DEC,
+			       &qthreshold, NFT_TYPE_U16, NFT_XML_MAND,
+			       err) == 0)
+		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, qthreshold);
 
 	return 0;
 #else
@@ -243,32 +225,91 @@ static int nft_rule_expr_log_xml_parse(struct nft_rule_expr *e,
 #endif
 }
 
+static int nft_rule_expr_log_snprintf_default(char *buf, size_t len,
+					      struct nft_rule_expr *e)
+{
+	struct nft_expr_log *log = nft_expr_data(e);
+
+	return snprintf(buf, len, "prefix '%s' group %u snaplen %u"
+				  "qthreshold %u ",
+			log->prefix, log->group, log->snaplen, log->qthreshold);
+}
+
+static int nft_rule_expr_log_snprintf_xml(char *buf, size_t size,
+					  struct nft_rule_expr *e)
+{
+	int ret, len = size, offset = 0;
+	struct nft_expr_log *log = nft_expr_data(e);
+
+	if (e->flags & (1 << NFT_EXPR_LOG_PREFIX)) {
+		ret = snprintf(buf + offset, len, "<prefix>%s</prefix>",
+			       log->prefix);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_GROUP)) {
+		ret = snprintf(buf + offset, len, "<group>%u</group>",
+			       log->group);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_SNAPLEN)) {
+		ret = snprintf(buf + offset, len, "<snaplen>%u</snaplen>",
+			       log->snaplen);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_QTHRESHOLD)) {
+		ret = snprintf(buf + offset, len, "<qthreshold>%u</qthreshold>",
+			       log->qthreshold);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	return offset;
+}
+
+static int nft_rule_expr_log_snprintf_json(char *buf, size_t len,
+					   struct nft_rule_expr *e)
+{
+	int ret, size = len, offset = 0;
+	struct nft_expr_log *log = nft_expr_data(e);
+
+	if (e->flags & (1 << NFT_EXPR_LOG_PREFIX)) {
+		ret = snprintf(buf + offset, len, "\"prefix\":\"%s\",",
+			       log->prefix);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_GROUP)) {
+		ret = snprintf(buf + offset, len, "\"group\":%u,",
+			       log->group);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_SNAPLEN)) {
+		ret = snprintf(buf + offset, len, "\"snaplen\":%u,",
+			       log->snaplen);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOG_QTHRESHOLD)) {
+		ret = snprintf(buf + offset, len, "\"qthreshold\":%u,",
+			       log->qthreshold);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	/* Remove the last comma characther */
+	if (offset > 0)
+		offset--;
+
+	return offset;
+}
+
+
 static int
 nft_rule_expr_log_snprintf(char *buf, size_t len, uint32_t type,
 			    uint32_t flags, struct nft_rule_expr *e)
 {
-	struct nft_expr_log *log = nft_expr_data(e);
-
 	switch(type) {
 	case NFT_OUTPUT_DEFAULT:
-		return snprintf(buf, len, "prefix '%s' group %u "
-					  "snaplen %u qthreshold %u ",
-				log->prefix, log->group,
-				log->snaplen, log->qthreshold);
+		return nft_rule_expr_log_snprintf_default(buf, len, e);
 	case NFT_OUTPUT_XML:
-		return snprintf(buf, len, "<prefix>%s</prefix>"
-					  "<group>%u</group>"
-					  "<snaplen>%u</snaplen>"
-					  "<qthreshold>%u</qthreshold>",
-				log->prefix, log->group,
-				log->snaplen, log->qthreshold);
+		return nft_rule_expr_log_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return snprintf(buf, len, "\"prefix\":\"%s\","
-					  "\"group\":%u,"
-					  "\"snaplen\":%u,"
-					  "\"qthreshold\":%u",
-				log->prefix, log->group,
-				log->snaplen, log->qthreshold);
+		return nft_rule_expr_log_snprintf_json(buf, len, e);
 	default:
 		break;
 	}

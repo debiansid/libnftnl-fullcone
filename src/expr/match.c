@@ -124,7 +124,7 @@ nft_rule_expr_match_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
 	if (e->flags & (1 << NFT_EXPR_MT_REV))
 		mnl_attr_put_u32(nlh, NFTA_MATCH_REV, htonl(mt->rev));
 	if (e->flags & (1 << NFT_EXPR_MT_INFO))
-		mnl_attr_put(nlh, NFTA_MATCH_INFO, XT_ALIGN(mt->data_len), mt->data);
+		mnl_attr_put(nlh, NFTA_MATCH_INFO, mt->data_len, mt->data);
 }
 
 static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *attr)
@@ -177,10 +177,8 @@ static int nft_rule_expr_match_json_parse(struct nft_rule_expr *e, json_t *root,
 	const char *name;
 
 	name = nft_jansson_parse_str(root, "name", err);
-	if (name == NULL)
-		return -1;
-
-	nft_rule_expr_set_str(e, NFT_EXPR_MT_NAME, name);
+	if (name != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_MT_NAME, name);
 
 	return 0;
 #else
@@ -194,17 +192,12 @@ static int nft_rule_expr_match_xml_parse(struct nft_rule_expr *e, mxml_node_t *t
 					 struct nft_parse_err *err)
 {
 #ifdef XML_PARSING
-	struct nft_expr_match *mt = nft_expr_data(e);
 	const char *name;
 
 	name = nft_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
 				  NFT_XML_MAND, err);
-	if (name == NULL)
-		return -1;
-
-	strncpy(mt->name, name, XT_EXTENSION_MAXNAMELEN);
-	mt->name[XT_EXTENSION_MAXNAMELEN-1] = '\0';
-	e->flags |= (1 << NFT_EXPR_MT_NAME);
+	if (name != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_MT_NAME, name);
 
 	/* mt->info is ignored until other solution is reached */
 
@@ -216,29 +209,33 @@ static int nft_rule_expr_match_xml_parse(struct nft_rule_expr *e, mxml_node_t *t
 }
 
 static int nft_rule_expr_match_snprintf_json(char *buf, size_t len,
-					    struct nft_expr_match *mt)
+					     struct nft_rule_expr *e)
 {
+	struct nft_expr_match *mt = nft_expr_data(e);
 	int ret, size = len, offset = 0;
 
-	ret = snprintf(buf, len, "\"name\":\"%s\"",
-				mt->name);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	if (e->flags & (1 << NFT_EXPR_MT_NAME)) {
+		ret = snprintf(buf, len, "\"name\":\"%s\"", mt->name);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
 
 	return offset;
 }
 
 static int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
-					    struct nft_expr_match *mt)
+					    struct nft_rule_expr *e)
 {
+	struct nft_expr_match *mt = nft_expr_data(e);
 	int ret, size=len;
 	int offset = 0;
 
-	ret = snprintf(buf, len, "<name>%s</name>", mt->name);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	if (e->flags & (1 << NFT_EXPR_MT_NAME)) {
+		ret = snprintf(buf, len, "<name>%s</name>", mt->name);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
 
 	return offset;
 }
-
 
 static int
 nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
@@ -251,9 +248,9 @@ nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
 		return snprintf(buf, len, "name %s rev %u ",
 				match->name, match->rev);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_match_snprintf_xml(buf, len, match);
+		return nft_rule_expr_match_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_match_snprintf_json(buf, len, match);
+		return nft_rule_expr_match_snprintf_json(buf, len, e);
 	default:
 		break;
 	}

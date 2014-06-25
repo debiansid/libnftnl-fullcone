@@ -31,6 +31,7 @@ struct nft_expr_lookup {
 	enum nft_registers	sreg;
 	enum nft_registers	dreg;
 	char			set_name[IFNAMSIZ];
+	uint32_t		set_id;
 };
 
 static int
@@ -49,6 +50,9 @@ nft_rule_expr_lookup_set(struct nft_rule_expr *e, uint16_t type,
 	case NFT_EXPR_LOOKUP_SET:
 		snprintf(lookup->set_name, sizeof(lookup->set_name), "%s",
 			 (const char *)data);
+		break;
+	case NFT_EXPR_LOOKUP_SET_ID:
+		lookup->set_id = *((uint32_t *)data);
 		break;
 	default:
 		return -1;
@@ -71,6 +75,8 @@ nft_rule_expr_lookup_get(const struct nft_rule_expr *e, uint16_t type,
 		return &lookup->dreg;
 	case NFT_EXPR_LOOKUP_SET:
 		return lookup->set_name;
+	case NFT_EXPR_LOOKUP_SET_ID:
+		return &lookup->set_id;
 	}
 	return NULL;
 }
@@ -86,6 +92,7 @@ static int nft_rule_expr_lookup_cb(const struct nlattr *attr, void *data)
 	switch(type) {
 	case NFTA_LOOKUP_SREG:
 	case NFTA_LOOKUP_DREG:
+	case NFTA_LOOKUP_SET_ID:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
 			perror("mnl_attr_validate");
 			return MNL_CB_ERROR;
@@ -114,6 +121,10 @@ nft_rule_expr_lookup_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_DREG, htonl(lookup->dreg));
 	if (e->flags & (1 << NFT_EXPR_LOOKUP_SET))
 		mnl_attr_put_strz(nlh, NFTA_LOOKUP_SET, lookup->set_name);
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_SET_ID)) {
+		mnl_attr_put_u32(nlh, NFTA_LOOKUP_SET_ID,
+				 htonl(lookup->set_id));
+	}
 }
 
 static int
@@ -138,6 +149,11 @@ nft_rule_expr_lookup_parse(struct nft_rule_expr *e, struct nlattr *attr)
 		strcpy(lookup->set_name, mnl_attr_get_str(tb[NFTA_LOOKUP_SET]));
 		e->flags |= (1 << NFT_EXPR_LOOKUP_SET);
 	}
+	if (tb[NFTA_LOOKUP_SET_ID]) {
+		lookup->set_id =
+			ntohl(mnl_attr_get_u32(tb[NFTA_LOOKUP_SET_ID]));
+		e->flags |= (1 << NFT_EXPR_LOOKUP_SET_ID);
+	}
 
 	return ret;
 }
@@ -148,23 +164,17 @@ nft_rule_expr_lookup_json_parse(struct nft_rule_expr *e, json_t *root,
 {
 #ifdef JSON_PARSING
 	const char *set_name;
-	int32_t reg;
+	uint32_t sreg, dreg;
 
 	set_name = nft_jansson_parse_str(root, "set", err);
-	if (set_name == NULL)
-		return -1;
+	if (set_name != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_LOOKUP_SET, set_name);
 
-	nft_rule_expr_set_str(e, NFT_EXPR_LOOKUP_SET, set_name);
+	if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &sreg, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_SREG, sreg);
 
-	if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_SREG, reg);
-
-	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_DREG, reg);
+	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &dreg, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_DREG, dreg);
 
 	return 0;
 #else
@@ -178,31 +188,21 @@ nft_rule_expr_lookup_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
 			       struct nft_parse_err *err)
 {
 #ifdef XML_PARSING
-	struct nft_expr_lookup *lookup = nft_expr_data(e);
 	const char *set_name;
-	uint32_t reg;
+	uint32_t sreg, dreg;
 
 	set_name = nft_mxml_str_parse(tree, "set", MXML_DESCEND_FIRST,
 				      NFT_XML_MAND, err);
-	if (set_name == NULL)
-		return -1;
+	if (set_name != NULL)
+		nft_rule_expr_set_str(e, NFT_EXPR_LOOKUP_SET, set_name);
 
-	strncpy(lookup->set_name, set_name, IFNAMSIZ);
-	lookup->set_name[IFNAMSIZ-1] = '\0';
-	e->flags |= (1 << NFT_EXPR_LOOKUP_SET);
+	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND, NFT_XML_MAND,
+			       err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_SREG, sreg);
 
-	if (nft_mxml_reg_parse(tree, "sreg", &reg, MXML_DESCEND,
-			       NFT_XML_MAND, err) != 0)
-		return -1;
-
-	lookup->sreg = reg;
-	e->flags |= (1 << NFT_EXPR_LOOKUP_SREG);
-
-	if (nft_mxml_reg_parse(tree, "dreg", &reg, MXML_DESCEND,
-			       NFT_XML_OPT, err) == 0) {
-		lookup->dreg = reg;
-		e->flags |= (1 << NFT_EXPR_LOOKUP_DREG);
-	}
+	if (nft_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND, NFT_XML_OPT,
+			       err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_DREG, dreg);
 
 	return 0;
 #else
@@ -218,18 +218,24 @@ nft_rule_expr_lookup_snprintf_json(char *buf, size_t size,
 	int len = size, offset = 0, ret;
 	struct nft_expr_lookup *l = nft_expr_data(e);
 
-	ret = snprintf(buf, len, "\"set\":\"%s\",\"sreg\":%u",
-			l->set_name, l->sreg);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-
-	if (e->flags & (1 << NFT_EXPR_LOOKUP_DREG)) {
-		ret = snprintf(buf+offset, len, ",\"dreg\":%u", l->dreg);
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_SET)) {
+		ret = snprintf(buf, len, "\"set\":\"%s\",", l->set_name);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_SREG)) {
+		ret = snprintf(buf + offset, len, "\"sreg\":%u,", l->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_DREG)) {
+		ret = snprintf(buf + offset, len, "\"dreg\":%u,", l->dreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	/* Remove the last comma characther */
+	if (offset > 0)
+		offset--;
 
 	return offset;
 }
-
 
 static int
 nft_rule_expr_lookup_snprintf_xml(char *buf, size_t size,
@@ -238,12 +244,16 @@ nft_rule_expr_lookup_snprintf_xml(char *buf, size_t size,
 	int len = size, offset = 0, ret;
 	struct nft_expr_lookup *l = nft_expr_data(e);
 
-	ret = snprintf(buf, len, "<set>%s</set><sreg>%u</sreg>",
-		       l->set_name, l->sreg);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_SET)) {
+		ret = snprintf(buf, len, "<set>%s</set>", l->set_name);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LOOKUP_SREG)) {
+		ret = snprintf(buf + offset, len, "<sreg>%u</sreg>", l->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
 	if (e->flags & (1 << NFT_EXPR_LOOKUP_DREG)) {
-		ret = snprintf(buf+offset, len, "<dreg>%u</dreg>", l->dreg);
+		ret = snprintf(buf + offset, len, "<dreg>%u</dreg>", l->dreg);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
 
