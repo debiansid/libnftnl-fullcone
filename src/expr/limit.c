@@ -124,15 +124,11 @@ static int nft_rule_expr_limit_json_parse(struct nft_rule_expr *e, json_t *root,
 #ifdef JSON_PARSING
 	uint64_t uval64;
 
-	if (nft_jansson_parse_val(root, "rate", NFT_TYPE_U64, &uval64, err) < 0)
-		return -1;
+	if (nft_jansson_parse_val(root, "rate", NFT_TYPE_U64, &uval64, err) == 0)
+		nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_RATE, uval64);
 
-	nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_RATE, uval64);
-
-	if (nft_jansson_parse_val(root, "unit", NFT_TYPE_U64, &uval64, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_UNIT, uval64);
+	if (nft_jansson_parse_val(root, "unit", NFT_TYPE_U64, &uval64, err) == 0)
+		nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_UNIT, uval64);
 
 	return 0;
 #else
@@ -146,21 +142,15 @@ static int nft_rule_expr_limit_xml_parse(struct nft_rule_expr *e,
 					 struct nft_parse_err *err)
 {
 #ifdef XML_PARSING
-	struct nft_expr_limit *limit = nft_expr_data(e);
+	uint64_t rate, unit;
 
 	if (nft_mxml_num_parse(tree, "rate", MXML_DESCEND_FIRST, BASE_DEC,
-			       &limit->rate, NFT_TYPE_U64, NFT_XML_MAND,
-			       err) != 0)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_LIMIT_RATE);
+			       &rate, NFT_TYPE_U64, NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_RATE, rate);
 
 	if (nft_mxml_num_parse(tree, "unit", MXML_DESCEND_FIRST, BASE_DEC,
-			       &limit->unit, NFT_TYPE_U64, NFT_XML_MAND,
-			       err) != 0)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_LIMIT_UNIT);
+			       &unit, NFT_TYPE_U64, NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_UNIT, unit);
 
 	return 0;
 #else
@@ -181,24 +171,71 @@ static const char *get_unit(uint64_t u)
 	return "error";
 }
 
+static int nft_rule_expr_limit_snprintf_xml(char *buf, size_t len,
+					    struct nft_rule_expr *e)
+{
+	struct nft_expr_limit *limit = nft_expr_data(e);
+	int ret, size = len, offset = 0;
+
+	if (e->flags & (1 << NFT_EXPR_LIMIT_RATE)) {
+		ret = snprintf(buf + offset, len, "<rate>%"PRIu64"</rate>",
+			       limit->rate);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LIMIT_UNIT)) {
+		ret = snprintf(buf + offset, len, "<unit>%"PRIu64"</unit>",
+			       limit->unit);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	return offset;
+}
+
+static int nft_rule_expr_limit_snprintf_json(char *buf, size_t len,
+					    struct nft_rule_expr *e)
+{
+	struct nft_expr_limit *limit = nft_expr_data(e);
+	int ret, size = len, offset = 0;
+
+	if (e->flags & (1 << NFT_EXPR_LIMIT_RATE)) {
+		ret = snprintf(buf + offset, len, "\"rate\":%"PRIu64",",
+			       limit->rate);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_LIMIT_UNIT)) {
+		ret = snprintf(buf + offset, len, "\"unit\":%"PRIu64",",
+			       limit->unit);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	/* Remove the last comma characther */
+	if (offset > 0)
+		offset--;
+
+	return offset;
+}
+
+static int nft_rule_expr_limit_snprintf_default(char *buf, size_t len,
+						struct nft_rule_expr *e)
+{
+	struct nft_expr_limit *limit = nft_expr_data(e);
+
+	return snprintf(buf, len, "rate %"PRIu64"/%s ",
+			limit->rate, get_unit(limit->unit));
+}
+
 static int
 nft_rule_expr_limit_snprintf(char *buf, size_t len, uint32_t type,
 			    uint32_t flags, struct nft_rule_expr *e)
 {
-	struct nft_expr_limit *limit = nft_expr_data(e);
 
 	switch(type) {
 	case NFT_OUTPUT_DEFAULT:
-		return snprintf(buf, len, "rate %"PRIu64"/%s ",
-				limit->rate, get_unit(limit->unit));
+		return nft_rule_expr_limit_snprintf_default(buf, len, e);
 	case NFT_OUTPUT_XML:
-		return snprintf(buf, len, "<rate>%"PRIu64"</rate>"
-					  "<unit>%"PRIu64"</unit>",
-				limit->rate, limit->unit);
+		return nft_rule_expr_limit_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return snprintf(buf, len, "\"rate\":%"PRIu64","
-					  "\"unit\":%"PRIu64"",
-				limit->rate, limit->unit);
+		return nft_rule_expr_limit_snprintf_json(buf, len, e);
 	default:
 		break;
 	}

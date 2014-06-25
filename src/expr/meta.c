@@ -23,7 +23,7 @@
 #include "expr_ops.h"
 
 #ifndef NFT_META_MAX
-#define NFT_META_MAX (NFT_META_L4PROTO + 1)
+#define NFT_META_MAX (NFT_META_BRI_OIFNAME + 1)
 #endif
 
 struct nft_expr_meta {
@@ -153,6 +153,8 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
 	[NFT_META_NFTRACE]	= "nftrace",
 	[NFT_META_RTCLASSID]	= "rtclassid",
 	[NFT_META_SECMARK]	= "secmark",
+	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
+	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
 };
 
 static const char *meta_key2str(uint8_t key)
@@ -185,29 +187,22 @@ static int nft_rule_expr_meta_json_parse(struct nft_rule_expr *e, json_t *root,
 	int key;
 
 	key_str = nft_jansson_parse_str(root, "key", err);
-	if (key_str == NULL)
-		return -1;
-
-	key = str2meta_key(key_str);
-	if (key < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
+	if (key_str != NULL) {
+		key = str2meta_key(key_str);
+		if (key >= 0)
+			nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
+	}
 
 	if (nft_jansson_node_exist(root, "dreg")) {
 		if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg,
-					  err) < 0)
-			return -1;
-
-		nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, reg);
+					  err) == 0)
+			nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, reg);
 	}
 
 	if (nft_jansson_node_exist(root, "sreg")) {
 		if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg,
-					  err) < 0)
-			return -1;
-
-		nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, reg);
+					  err) == 0)
+			nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, reg);
 	}
 
 	return 0;
@@ -222,34 +217,25 @@ static int nft_rule_expr_meta_xml_parse(struct nft_rule_expr *e, mxml_node_t *tr
 					struct nft_parse_err *err)
 {
 #ifdef XML_PARSING
-	struct nft_expr_meta *meta = nft_expr_data(e);
 	const char *key_str;
 	int key;
-	uint32_t reg;
+	uint32_t dreg, sreg;
 
 	key_str = nft_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
 				     NFT_XML_MAND, err);
-	if (key_str == NULL)
-		return -1;
-
-	key = str2meta_key(key_str);
-	if (key < 0)
-		return -1;
-
-	meta->key = key;
-	e->flags |= (1 << NFT_EXPR_META_KEY);
-
-	if (nft_mxml_reg_parse(tree, "dreg", &reg, MXML_DESCEND_FIRST,
-			       NFT_XML_OPT, err) >= 0) {
-		meta->dreg = reg;
-		e->flags |= (1 << NFT_EXPR_META_DREG);
+	if (key_str != NULL) {
+		key = str2meta_key(key_str);
+		if (key >= 0)
+			nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
 	}
 
-	if (nft_mxml_reg_parse(tree, "sreg", &reg, MXML_DESCEND_FIRST,
-			       NFT_XML_OPT, err) >= 0) {
-		meta->sreg = reg;
-		e->flags |= (1 << NFT_EXPR_META_SREG);
-	}
+	if (nft_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
+			       NFT_XML_OPT, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, dreg);
+
+	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
+			       NFT_XML_OPT, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, sreg);
 
 	return 0;
 #else
@@ -283,19 +269,16 @@ nft_rule_expr_meta_snprintf_xml(char *buf, size_t size,
 	struct nft_expr_meta *meta = nft_expr_data(e);
 
 	if (e->flags & (1 << NFT_EXPR_META_DREG)) {
-		ret = snprintf(buf+offset, len, "<dreg>%u</dreg>",
-			       meta->dreg);
+		ret = snprintf(buf, len, "<dreg>%u</dreg>", meta->dreg);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
-
 	if (e->flags & (1 << NFT_EXPR_META_KEY)) {
-		ret = snprintf(buf+offset, len, "<key>%s</key>",
-						meta_key2str(meta->key));
+		ret = snprintf(buf + offset, len, "<key>%s</key>",
+			       meta_key2str(meta->key));
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
-
 	if (e->flags & (1 << NFT_EXPR_META_SREG)) {
-		ret = snprintf(buf+offset, len, "<sreg>%u</sreg>",
+		ret = snprintf(buf + offset, len, "<sreg>%u</sreg>",
 			       meta->sreg);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
@@ -311,27 +294,25 @@ nft_rule_expr_meta_snprintf_json(char *buf, size_t size,
 	struct nft_expr_meta *meta = nft_expr_data(e);
 
 	if (e->flags & (1 << NFT_EXPR_META_DREG)) {
-		ret = snprintf(buf+offset, len, "\"dreg\":%u,",
+		ret = snprintf(buf + offset, len, "\"dreg\":%u,",
 			       meta->dreg);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
-
 	if (e->flags & (1 << NFT_EXPR_META_KEY)) {
-		ret = snprintf(buf+offset, len, "\"key\":\"%s\",",
-						meta_key2str(meta->key));
+		ret = snprintf(buf + offset, len, "\"key\":\"%s\",",
+			       meta_key2str(meta->key));
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
-
 	if (e->flags & (1 << NFT_EXPR_META_SREG)) {
-		ret = snprintf(buf+offset, len, "\"sreg\":%u,",
+		ret = snprintf(buf + offset, len, "\"sreg\":%u,",
 			       meta->sreg);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
+	/* Remove the last comma separator */
+	if (offset > 0)
+		offset--;
 
-	/* Remove the last separator characther */
-	buf[offset-1] = '\0';
-
-	return offset-1;
+	return offset;
 }
 
 static int

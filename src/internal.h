@@ -136,6 +136,12 @@ int nft_get_value(enum nft_type type, void *val, void *out);
 
 #include <stdio.h>
 int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj, uint32_t type, uint32_t flags));
+int nft_event_header_snprintf(char *buf, size_t bufsize,
+			      uint32_t format, uint32_t flags);
+int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags);
+int nft_event_footer_snprintf(char *buf, size_t bufsize,
+			      uint32_t format, uint32_t flags);
+int nft_event_footer_fprintf(FILE *fp, uint32_t format, uint32_t flags);
 
 void xfree(const void *ptr);
 
@@ -161,6 +167,7 @@ struct nft_set {
 	uint32_t		key_len;
 	uint32_t		data_type;
 	uint32_t		data_len;
+	uint32_t		id;
 	struct list_head	element_list;
 
 	uint32_t		flags;
@@ -177,10 +184,12 @@ struct nft_set_elem {
 };
 
 #define SNPRINTF_BUFFER_SIZE(ret, size, len, offset)	\
-	size += ret;					\
+	if (ret < 0)					\
+		return ret;				\
+	offset += ret;					\
 	if (ret > len)					\
 		ret = len;				\
-	offset += ret;					\
+	size += ret;					\
 	len -= ret;
 
 #define div_round_up(n, d)	(((n) + (d) - 1) / (d))

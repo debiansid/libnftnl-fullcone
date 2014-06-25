@@ -379,6 +379,10 @@ top_srcdir = @top_srcdir@
 LIBVERSION = 1:0:1
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
+EXTRA_DIST = test-script.sh			\
+			jsonfiles			\
+			xmlfiles
+
 nft_parsing_test_SOURCES = nft-parsing-test.c
 nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBXML_LIBS} ${LIBJSON_LIBS}
 nft_table_test_SOURCES = nft-table-test.c

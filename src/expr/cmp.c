@@ -183,26 +183,22 @@ static int nft_rule_expr_cmp_json_parse(struct nft_rule_expr *e, json_t *root,
 	uint32_t uval32;
 	int base;
 
-	if (nft_jansson_parse_val(root, "sreg", NFT_TYPE_U32, &uval32, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, uval32);
+	if (nft_jansson_parse_val(root, "sreg", NFT_TYPE_U32, &uval32,
+				  err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, uval32);
 
 	op = nft_jansson_parse_str(root, "op", err);
-	if (op == NULL)
-		return -1;
+	if (op != NULL) {
+		base = nft_str2cmp(op);
+		if (base < 0)
+			return -1;
 
-	base = nft_str2cmp(op);
-	if (base < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, base);
+		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, base);
+	}
 
 	if (nft_jansson_data_reg_parse(root, "cmpdata",
-				       &cmp->data, err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_CMP_DATA);
+				       &cmp->data, err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_CMP_DATA);
 
 	return 0;
 #else
@@ -218,33 +214,26 @@ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_node_t *tre
 	struct nft_expr_cmp *cmp = nft_expr_data(e);
 	const char *op;
 	int32_t op_value;
-	uint32_t reg;
+	uint32_t sreg;
 
-	if (nft_mxml_reg_parse(tree, "sreg", &reg, MXML_DESCEND_FIRST,
-			       NFT_XML_MAND, err) != 0)
-		return -1;
-
-	cmp->sreg = reg;
-	e->flags |= (1 << NFT_EXPR_CMP_SREG);
+	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
+			       NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, sreg);
 
 	op = nft_mxml_str_parse(tree, "op", MXML_DESCEND_FIRST, NFT_XML_MAND,
 				err);
-	if (op == NULL)
-		return -1;
+	if (op != NULL) {
+		op_value = nft_str2cmp(op);
+		if (op_value < 0)
+			return -1;
 
-	op_value = nft_str2cmp(op);
-	if (op_value < 0)
-		return -1;
-
-	cmp->op = op_value;
-	e->flags |= (1 << NFT_EXPR_CMP_OP);
+		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, op_value);
+	}
 
 	if (nft_mxml_data_reg_parse(tree, "cmpdata",
 				    &cmp->data, NFT_XML_MAND,
-				    err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_CMP_DATA);
+				    err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_CMP_DATA);
 
 	return 0;
 #else
@@ -253,42 +242,57 @@ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_node_t *tre
 #endif
 }
 
-static int
-nft_rule_expr_cmp_snprintf_json(char *buf, size_t size, struct nft_expr_cmp *cmp)
+static int nft_rule_expr_cmp_snprintf_json(char *buf, size_t size,
+					   struct nft_rule_expr *e)
 {
+	struct nft_expr_cmp *cmp = nft_expr_data(e);
 	int len = size, offset = 0, ret;
 
-	ret = snprintf(buf, len, "\"sreg\":%u,\"op\":\"%s\",",
-		       cmp->sreg, expr_cmp_str[cmp->op]);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-
-	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
+	if (e->flags & (1 << NFT_EXPR_CMP_SREG)) {
+		ret = snprintf(buf + offset, len, "\"sreg\":%u,", cmp->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_CMP_OP)) {
+		ret = snprintf(buf + offset, len, "\"op\":\"%s\",",
+			       expr_cmp_str[cmp->op]);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	ret = nft_data_reg_snprintf(buf + offset, len, &cmp->data,
 				    NFT_OUTPUT_JSON, 0, DATA_VALUE);
 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
 	return offset;
 }
 
-static int
-nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
+static int nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size,
+					  struct nft_rule_expr *e)
 {
+	struct nft_expr_cmp *cmp = nft_expr_data(e);
 	int len = size, offset = 0, ret;
 
-	ret = snprintf(buf, len, "<sreg>%u</sreg><op>%s</op>",
-		       cmp->sreg, expr_cmp_str[cmp->op]);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	if (e->flags & (1 << NFT_EXPR_CMP_SREG)) {
+		ret = snprintf(buf, len, "<sreg>%u</sreg>",
+			       cmp->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
 
-	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
+	if (e->flags & (1 << NFT_EXPR_CMP_SREG)) {
+		ret = snprintf(buf + offset, len, "<op>%s</op>",
+			       expr_cmp_str[cmp->op]);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	ret = nft_data_reg_snprintf(buf + offset, len, &cmp->data,
 				    NFT_OUTPUT_XML, 0, DATA_VALUE);
 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
 	return offset;
 }
 
-static int
-nft_rule_expr_cmp_snprintf_default(char *buf, size_t size,
-				   struct nft_expr_cmp *cmp)
+static int nft_rule_expr_cmp_snprintf_default(char *buf, size_t size,
+					      struct nft_rule_expr *e)
 {
+	struct nft_expr_cmp *cmp = nft_expr_data(e);
 	int len = size, offset = 0, ret;
 
 	ret = snprintf(buf, len, "%s reg %u ",
@@ -306,15 +310,13 @@ static int
 nft_rule_expr_cmp_snprintf(char *buf, size_t size, uint32_t type,
 			   uint32_t flags, struct nft_rule_expr *e)
 {
-	struct nft_expr_cmp *cmp = nft_expr_data(e);
-
 	switch(type) {
 	case NFT_OUTPUT_DEFAULT:
-		return nft_rule_expr_cmp_snprintf_default(buf, size, cmp);
+		return nft_rule_expr_cmp_snprintf_default(buf, size, e);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_cmp_snprintf_xml(buf, size, cmp);
+		return nft_rule_expr_cmp_snprintf_xml(buf, size, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_cmp_snprintf_json(buf, size, cmp);
+		return nft_rule_expr_cmp_snprintf_json(buf, size, e);
 	default:
 		break;
 	}

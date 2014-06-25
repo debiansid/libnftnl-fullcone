@@ -188,32 +188,22 @@ nft_rule_expr_bitwise_json_parse(struct nft_rule_expr *e, json_t *root,
 	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
 	uint32_t reg, len;
 
-	if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg, err) < 0)
-		return -1;
+	if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_SREG, reg);
 
-	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_SREG, reg);
+	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_DREG, reg);
 
-	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg, err) < 0)
-		return -1;
+	if (nft_jansson_parse_val(root, "len", NFT_TYPE_U32, &len, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_LEN, len);
 
-	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_DREG, reg);
+	if (nft_jansson_data_reg_parse(root, "mask", &bitwise->mask,
+				       err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_BITWISE_MASK);
 
-	if (nft_jansson_parse_val(root, "len", NFT_TYPE_U32, &len, err) < 0)
-		return -1;
-
-	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_LEN, len);
-
-	if (nft_jansson_data_reg_parse(root, "mask",
-				       &bitwise->mask, err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_BITWISE_MASK);
-
-	if (nft_jansson_data_reg_parse(root, "xor",
-				       &bitwise->xor, err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_BITWISE_XOR);
+	if (nft_jansson_data_reg_parse(root, "xor", &bitwise->xor,
+				       err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_BITWISE_XOR);
 
 	if (bitwise->mask.len != bitwise->xor.len)
 		return -1;
@@ -231,40 +221,27 @@ nft_rule_expr_bitwise_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
 {
 #ifdef XML_PARSING
 	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
-	uint32_t reg;
+	uint32_t sreg, dreg, len;
 
-	if (nft_mxml_reg_parse(tree, "sreg", &reg, MXML_DESCEND_FIRST,
-			       NFT_XML_MAND, err) != 0)
-		return -1;
+	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
+			       NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_SREG, sreg);
 
-	bitwise->sreg = reg;
-	e->flags |= (1 << NFT_EXPR_BITWISE_SREG);
+	if (nft_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
+			       NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_DREG, dreg);
 
-	if (nft_mxml_reg_parse(tree, "dreg", &reg, MXML_DESCEND_FIRST,
-			       NFT_XML_MAND, err) != 0)
-		return -1;
+	if (nft_mxml_num_parse(tree, "len", MXML_DESCEND_FIRST, BASE_DEC,
+			       &len, NFT_TYPE_U32, NFT_XML_MAND, err) == 0)
+		nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_LEN, len);
 
-	bitwise->dreg = reg;
-	e->flags |= (1 << NFT_EXPR_BITWISE_DREG);
+	if (nft_mxml_data_reg_parse(tree, "mask", &bitwise->mask, NFT_XML_MAND,
+				    err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_BITWISE_MASK);
 
-	if (nft_mxml_num_parse(tree, "len", MXML_DESCEND_FIRST,
-			       BASE_DEC, &bitwise->len, NFT_TYPE_U8,
-			       NFT_XML_MAND, err) != 0)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_BITWISE_LEN);
-
-	if (nft_mxml_data_reg_parse(tree, "mask", &bitwise->mask,
-				    NFT_XML_MAND, err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_BITWISE_MASK);
-
-	if (nft_mxml_data_reg_parse(tree, "xor", &bitwise->xor,
-				    NFT_XML_MAND, err) != DATA_VALUE)
-		return -1;
-
-	e->flags |= (1 << NFT_EXPR_BITWISE_XOR);
+	if (nft_mxml_data_reg_parse(tree, "xor", &bitwise->xor, NFT_XML_MAND,
+				    err) == DATA_VALUE)
+		e->flags |= (1 << NFT_EXPR_BITWISE_XOR);
 
 	/* Additional validation: mask and xor must use the same number of
 	 * data registers.
@@ -279,74 +256,108 @@ nft_rule_expr_bitwise_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
 #endif
 }
 
-static int
-nft_rule_expr_bitwise_snprintf_json(char *buf, size_t size,
-				   struct nft_expr_bitwise *bitwise)
+static int nft_rule_expr_bitwise_snprintf_json(char *buf, size_t size,
+					       struct nft_rule_expr *e)
 {
 	int len = size, offset = 0, ret;
+	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
 
-	ret = snprintf(buf, len, "\"sreg\":%u,"
-				 "\"dreg\":%u,"
-				 "\"len\":%u,",
-		       bitwise->sreg, bitwise->dreg, bitwise->len);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	if (e->flags & (1 << NFT_EXPR_BITWISE_SREG)) {
+		ret = snprintf(buf + offset, len, "\"sreg\":%u,",
+			       bitwise->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_DREG)) {
+		ret = snprintf(buf + offset, len, "\"dreg\":%u,",
+			       bitwise->dreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_LEN)) {
+		ret = snprintf(buf + offset, len, "\"len\":%u,",
+			       bitwise->len);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_MASK)) {
+		ret = snprintf(buf + offset, len, "\"mask\":{");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = snprintf(buf+offset, len, "\"mask\":{");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
+					    NFT_OUTPUT_JSON, 0, DATA_VALUE);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
-				    NFT_OUTPUT_JSON, 0, DATA_VALUE);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = snprintf(buf + offset, len, "},");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = snprintf(buf+offset, len, "},\"xor\":{");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_XOR)) {
+		ret = snprintf(buf+offset, len, "\"xor\":{");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
-				    NFT_OUTPUT_JSON, 0, DATA_VALUE);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
+					    NFT_OUTPUT_JSON, 0, DATA_VALUE);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = snprintf(buf+offset, len, "}");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = snprintf(buf+offset, len, "},");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	if (offset > 0)
+		offset--;
 
 	return offset;
 }
 
-static int
-nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
-				   struct nft_expr_bitwise *bitwise)
+static int nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+					      struct nft_rule_expr *e)
 {
+	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
 	int len = size, offset = 0, ret;
 
-	ret = snprintf(buf, len, "<sreg>%u</sreg>"
-				 "<dreg>%u</dreg>"
-				 "<len>%u</len>",
-		       bitwise->sreg, bitwise->dreg, bitwise->len);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	if (e->flags & (1 << NFT_EXPR_BITWISE_SREG)) {
+		ret = snprintf(buf + offset, len, "<sreg>%u</sreg>",
+			       bitwise->sreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_DREG)) {
+		ret = snprintf(buf + offset, len, "<dreg>%u</dreg>",
+			       bitwise->dreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_LEN)) {
+		ret = snprintf(buf + offset, len, "<len>%u</len>",
+			       bitwise->len);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_MASK)) {
+		ret = snprintf(buf + offset, len, "<mask>");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = snprintf(buf+offset, len, "<mask>");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = nft_data_reg_snprintf(buf + offset, len, &bitwise->mask,
+					    NFT_OUTPUT_XML, 0, DATA_VALUE);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
-				    NFT_OUTPUT_XML, 0, DATA_VALUE);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = snprintf(buf + offset, len, "</mask>");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+	if (e->flags & (1 << NFT_EXPR_BITWISE_XOR)) {
+		ret = snprintf(buf + offset, len, "<xor>");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = snprintf(buf+offset, len, "</mask><xor>");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = nft_data_reg_snprintf(buf + offset, len, &bitwise->xor,
+					    NFT_OUTPUT_XML, 0, DATA_VALUE);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
-				    NFT_OUTPUT_XML, 0, DATA_VALUE);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-
-	ret = snprintf(buf+offset, len, "</xor>");
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		ret = snprintf(buf + offset, len, "</xor>");
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
 
 	return offset;
 }
 
-static int
-nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
-				       struct nft_expr_bitwise *bitwise)
+static int nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
+						  struct nft_rule_expr *e)
 {
+	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
 	int len = size, offset = 0, ret;
 
 	ret = snprintf(buf, len, "reg %u = (reg=%u & ",
@@ -371,16 +382,13 @@ static int
 nft_rule_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
 			       uint32_t flags, struct nft_rule_expr *e)
 {
-	struct nft_expr_bitwise *bitwise = nft_expr_data(e);
-
 	switch(type) {
 	case NFT_OUTPUT_DEFAULT:
-		return nft_rule_expr_bitwise_snprintf_default(buf, size,
-							      bitwise);
+		return nft_rule_expr_bitwise_snprintf_default(buf, size, e);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_bitwise_snprintf_xml(buf, size, bitwise);
+		return nft_rule_expr_bitwise_snprintf_xml(buf, size, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_bitwise_snprintf_json(buf, size, bitwise);
+		return nft_rule_expr_bitwise_snprintf_json(buf, size, e);
 	default:
 		break;
 	}
