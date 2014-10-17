@@ -1,0 +1,5 @@
+Tests: internaltest
+Restrictions: build-needed
+Depends:
+ @,
+ autopkgtest
