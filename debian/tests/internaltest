@@ -5,6 +5,6 @@
 set -e
 
 cd tests
-./test-script.sh
+sh -e ./test-script.sh
 
 exit $?
