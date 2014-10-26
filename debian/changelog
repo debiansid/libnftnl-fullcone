@@ -1,3 +1,11 @@
+libnftnl (1.0.2-2) unstable; urgency=medium
+
+  * [1f87a22] d/control: bump standars to 3.9.6
+  * [b12a0b0] d/examples: README.examples: fix several typos
+  * [7fd3f3e] d/: add DEP-8 tests
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Sun, 26 Oct 2014 20:23:42 +0100
+
 libnftnl (1.0.2-1) unstable; urgency=medium
 
   * [79a5a5e] Imported Upstream version 1.0.2
