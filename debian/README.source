@@ -1,4 +1,0 @@
-This source package supports autopkgtest (DEP-8) tests.
-
-It was tested locally with:
- $ sudo adt-run -B ../libnftnl0_1.0.2-1_amd64.deb ../libnftnl_1.0.2-1.dsc --- null
