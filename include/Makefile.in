@@ -247,7 +247,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = libnftnl linux
-noinst_HEADERS = linux_list.h
+noinst_HEADERS = linux_list.h	\
+		 buffer.h
+
 all: all-recursive
 
 .SUFFIXES:

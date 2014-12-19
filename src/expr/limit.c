@@ -22,6 +22,7 @@
 #include <libnftnl/expr.h>
 #include <libnftnl/rule.h>
 #include "expr_ops.h"
+#include <buffer.h>
 
 struct nft_expr_limit {
 	uint64_t		rate;
@@ -75,10 +76,8 @@ static int nft_rule_expr_limit_cb(const struct nlattr *attr, void *data)
 	switch(type) {
 	case NFTA_LIMIT_RATE:
 	case NFTA_LIMIT_UNIT:
-		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -171,48 +170,18 @@ static const char *get_unit(uint64_t u)
 	return "error";
 }
 
-static int nft_rule_expr_limit_snprintf_xml(char *buf, size_t len,
-					    struct nft_rule_expr *e)
+static int nft_rule_expr_limit_export(char *buf, size_t size,
+				      struct nft_rule_expr *e, int type)
 {
 	struct nft_expr_limit *limit = nft_expr_data(e);
-	int ret, size = len, offset = 0;
+	NFT_BUF_INIT(b, buf, size);
 
-	if (e->flags & (1 << NFT_EXPR_LIMIT_RATE)) {
-		ret = snprintf(buf + offset, len, "<rate>%"PRIu64"</rate>",
-			       limit->rate);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_LIMIT_UNIT)) {
-		ret = snprintf(buf + offset, len, "<unit>%"PRIu64"</unit>",
-			       limit->unit);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
+	if (e->flags & (1 << NFT_EXPR_LIMIT_RATE))
+		nft_buf_u64(&b, type, limit->rate, RATE);
+	if (e->flags & (1 << NFT_EXPR_LIMIT_UNIT))
+		nft_buf_u64(&b, type, limit->unit, UNIT);
 
-	return offset;
-}
-
-static int nft_rule_expr_limit_snprintf_json(char *buf, size_t len,
-					    struct nft_rule_expr *e)
-{
-	struct nft_expr_limit *limit = nft_expr_data(e);
-	int ret, size = len, offset = 0;
-
-	if (e->flags & (1 << NFT_EXPR_LIMIT_RATE)) {
-		ret = snprintf(buf + offset, len, "\"rate\":%"PRIu64",",
-			       limit->rate);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_LIMIT_UNIT)) {
-		ret = snprintf(buf + offset, len, "\"unit\":%"PRIu64",",
-			       limit->unit);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-
-	/* Remove the last comma characther */
-	if (offset > 0)
-		offset--;
-
-	return offset;
+	return nft_buf_done(&b);
 }
 
 static int nft_rule_expr_limit_snprintf_default(char *buf, size_t len,
@@ -233,9 +202,8 @@ nft_rule_expr_limit_snprintf(char *buf, size_t len, uint32_t type,
 	case NFT_OUTPUT_DEFAULT:
 		return nft_rule_expr_limit_snprintf_default(buf, len, e);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_limit_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_limit_snprintf_json(buf, len, e);
+		return nft_rule_expr_limit_export(buf, len, e, type);
 	default:
 		break;
 	}

@@ -6,7 +6,9 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
 libnftnl_la_SOURCES = utils.c		\
+		      buffer.c		\
 		      common.c		\
+		      gen.c		\
 		      table.c		\
 		      chain.c		\
 		      rule.c		\
@@ -35,6 +37,8 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/queue.c	\
 		      expr/reject.c	\
 		      expr/target.c	\
+		      expr/masq.c	\
+		      expr/redir.c	\
 		      expr/data_reg.h	\
 		      libnftnl.map	\
 		      expr_ops.h	\

@@ -18,6 +18,8 @@ enum {
 	NFT_SET_ATTR_DATA_LEN,
 	NFT_SET_ATTR_FAMILY,
 	NFT_SET_ATTR_ID,
+	NFT_SET_ATTR_POLICY,
+	NFT_SET_ATTR_DESC_SIZE,
 	__NFT_SET_ATTR_MAX
 };
 #define NFT_SET_ATTR_MAX (__NFT_SET_ATTR_MAX - 1)
@@ -120,5 +122,8 @@ struct nft_set_elems_iter *nft_set_elems_iter_create(struct nft_set *s);
 struct nft_set_elem *nft_set_elems_iter_cur(struct nft_set_elems_iter *iter);
 struct nft_set_elem *nft_set_elems_iter_next(struct nft_set_elems_iter *iter);
 void nft_set_elems_iter_destroy(struct nft_set_elems_iter *iter);
+
+int nft_set_elems_nlmsg_build_payload_iter(struct nlmsghdr *nlh,
+					   struct nft_set_elems_iter *iter);
 
 #endif /* _LIBNFTNL_SET_H_ */

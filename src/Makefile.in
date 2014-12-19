@@ -98,13 +98,14 @@ am__DEPENDENCIES_1 =
 libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libnftnl_la_OBJECTS = utils.lo common.lo table.lo chain.lo rule.lo \
-	set.lo set_elem.lo ruleset.lo mxml.lo jansson.lo expr.lo \
-	expr_ops.lo expr/bitwise.lo expr/byteorder.lo expr/cmp.lo \
-	expr/counter.lo expr/ct.lo expr/data_reg.lo expr/exthdr.lo \
-	expr/limit.lo expr/log.lo expr/lookup.lo expr/immediate.lo \
-	expr/match.lo expr/meta.lo expr/nat.lo expr/payload.lo \
-	expr/queue.lo expr/reject.lo expr/target.lo
+am_libnftnl_la_OBJECTS = utils.lo buffer.lo common.lo gen.lo table.lo \
+	chain.lo rule.lo set.lo set_elem.lo ruleset.lo mxml.lo \
+	jansson.lo expr.lo expr_ops.lo expr/bitwise.lo \
+	expr/byteorder.lo expr/cmp.lo expr/counter.lo expr/ct.lo \
+	expr/data_reg.lo expr/exthdr.lo expr/limit.lo expr/log.lo \
+	expr/lookup.lo expr/immediate.lo expr/match.lo expr/meta.lo \
+	expr/nat.lo expr/payload.lo expr/queue.lo expr/reject.lo \
+	expr/target.lo expr/masq.lo expr/redir.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -295,7 +296,7 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 1:0:1
+LIBVERSION = 2:0:2
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 lib_LTLIBRARIES = libnftnl.la
@@ -304,7 +305,9 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
 libnftnl_la_SOURCES = utils.c		\
+		      buffer.c		\
 		      common.c		\
+		      gen.c		\
 		      table.c		\
 		      chain.c		\
 		      rule.c		\
@@ -333,6 +336,8 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/queue.c	\
 		      expr/reject.c	\
 		      expr/target.c	\
+		      expr/masq.c	\
+		      expr/redir.c	\
 		      expr/data_reg.h	\
 		      libnftnl.map	\
 		      expr_ops.h	\
@@ -429,6 +434,8 @@ expr/payload.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/queue.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/reject.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/target.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/masq.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/redir.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 libnftnl.la: $(libnftnl_la_OBJECTS) $(libnftnl_la_DEPENDENCIES) $(EXTRA_libnftnl_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnftnl_la_LINK) -rpath $(libdir) $(libnftnl_la_OBJECTS) $(libnftnl_la_LIBADD) $(LIBS)
 
@@ -456,6 +463,8 @@ mostlyclean-compile:
 	-rm -f expr/log.lo
 	-rm -f expr/lookup.$(OBJEXT)
 	-rm -f expr/lookup.lo
+	-rm -f expr/masq.$(OBJEXT)
+	-rm -f expr/masq.lo
 	-rm -f expr/match.$(OBJEXT)
 	-rm -f expr/match.lo
 	-rm -f expr/meta.$(OBJEXT)
@@ -466,6 +475,8 @@ mostlyclean-compile:
 	-rm -f expr/payload.lo
 	-rm -f expr/queue.$(OBJEXT)
 	-rm -f expr/queue.lo
+	-rm -f expr/redir.$(OBJEXT)
+	-rm -f expr/redir.lo
 	-rm -f expr/reject.$(OBJEXT)
 	-rm -f expr/reject.lo
 	-rm -f expr/target.$(OBJEXT)
@@ -474,10 +485,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chain.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_ops.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jansson.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mxml.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rule.Plo@am__quote@
@@ -497,11 +510,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/limit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/log.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/lookup.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/masq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/match.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/meta.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/nat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/payload.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/queue.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/redir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/reject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/target.Plo@am__quote@
 
