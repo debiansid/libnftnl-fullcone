@@ -1,10 +1,17 @@
-libnftnl (1.0.2-2) unstable; urgency=medium
+libnftnl (1.0.3-1) experimental; urgency=medium
 
-  * [1f87a22] d/control: bump standards to 3.9.6
+  * [1f87a22] d/control: bump standars to 3.9.6
   * [b12a0b0] d/examples: README.examples: fix several typos
   * [7fd3f3e] d/: add DEP-8 tests
+  * [2a2ef64] d/: drop README.source
+  * [99e8c35] d/control: add XS-Testsuite
+  * [e62d229] d/tests/internaltest: use sh instead of bash
+  * [dd1b749] Imported Upstream version 1.0.3
+  * [0b8cfd7] d/libnftnl0.symbols: update symbols file with 1.0.3 symbols
+  * [45d47fd] d/copyright: update file to match 1.0.3 source
+  * [e9c7f61] d/examples/: update XML and JSON file examples
 
- -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Sun, 26 Oct 2014 20:23:42 +0100
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Fri, 19 Dec 2014 12:11:36 +0100
 
 libnftnl (1.0.2-1) unstable; urgency=medium
 
