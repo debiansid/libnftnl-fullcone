@@ -20,27 +20,11 @@
 #include <libmnl/libmnl.h>
 #include <libnftnl/table.h>
 
-int main(int argc, char *argv[])
+static struct nft_table *table_add_parse(int argc, char *argv[])
 {
-	struct mnl_socket *nl;
-	char buf[MNL_SOCKET_BUFFER_SIZE];
-	struct nlmsghdr *nlh;
-	uint32_t portid, seq, family;
-	struct nft_table *t = NULL;
-	int ret;
+	struct nft_table *t;
+	uint16_t family;
 
-	if (argc != 3) {
-		fprintf(stderr, "%s <family> <name>\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
-	t = nft_table_alloc();
-	if (t == NULL) {
-		perror("OOM");
-		exit(EXIT_FAILURE);
-	}
-
-	seq = time(NULL);
 	if (strcmp(argv[1], "ip") == 0)
 		family = NFPROTO_IPV4;
 	else if (strcmp(argv[1], "ip6") == 0)
@@ -51,15 +35,67 @@ int main(int argc, char *argv[])
 		family = NFPROTO_ARP;
 	else {
 		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
+		return NULL;
+	}
+
+	t = nft_table_alloc();
+	if (t == NULL) {
+		perror("OOM");
+		return NULL;
+	}
+
+	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FAMILY, family);
+	nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, argv[2]);
+
+	return t;
+}
+
+int main(int argc, char *argv[])
+{
+	struct mnl_socket *nl;
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct nlmsghdr *nlh;
+	uint32_t portid, seq, table_seq, family;
+	struct nft_table *t;
+	struct mnl_nlmsg_batch *batch;
+	int ret, batching;
+
+	if (argc != 3) {
+		fprintf(stderr, "%s <family> <name>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
-	nft_table_attr_set(t, NFT_TABLE_ATTR_NAME, argv[2]);
+	t = table_add_parse(argc, argv);
+	if (t == NULL)
+		exit(EXIT_FAILURE);
 
-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, family,
-					NLM_F_ACK, seq);
+	batching = nft_batch_is_supported();
+	if (batching < 0) {
+		perror("cannot talk to nfnetlink");
+		exit(EXIT_FAILURE);
+	}
+
+	seq = time(NULL);
+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+
+	if (batching) {
+		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
+		mnl_nlmsg_batch_next(batch);
+	}
+
+	table_seq = seq;
+	family = nft_table_attr_get_u32(t, NFT_TABLE_ATTR_FAMILY);
+	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+					NFT_MSG_NEWTABLE, family,
+					NLM_F_ACK, seq++);
 	nft_table_nlmsg_build_payload(nlh, t);
 	nft_table_free(t);
+	mnl_nlmsg_batch_next(batch);
+
+	if (batching) {
+		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+		mnl_nlmsg_batch_next(batch);
+	}
 
 	nl = mnl_socket_open(NETLINK_NETFILTER);
 	if (nl == NULL) {
@@ -73,14 +109,17 @@ int main(int argc, char *argv[])
 	}
 	portid = mnl_socket_get_portid(nl);
 
-	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
+			      mnl_nlmsg_batch_size(batch)) < 0) {
 		perror("mnl_socket_send");
 		exit(EXIT_FAILURE);
 	}
 
+	mnl_nlmsg_batch_stop(batch);
+
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
+		ret = mnl_cb_run(buf, ret, table_seq, portid, NULL, NULL);
 		if (ret <= 0)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));

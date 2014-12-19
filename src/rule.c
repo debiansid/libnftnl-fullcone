@@ -26,6 +26,7 @@
 #include <linux/netfilter/nf_tables.h>
 
 #include <libnftnl/rule.h>
+#include <libnftnl/set.h>
 #include <libnftnl/expr.h>
 
 #include "linux_list.h"
@@ -332,34 +333,24 @@ static int nft_rule_parse_attr_cb(const struct nlattr *attr, void *data)
 	switch(type) {
 	case NFTA_RULE_TABLE:
 	case NFTA_RULE_CHAIN:
-		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
+			abi_breakage();
 		break;
 	case NFTA_RULE_HANDLE:
-		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
+			abi_breakage();
 		break;
 	case NFTA_RULE_COMPAT:
-		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+			abi_breakage();
 		break;
 	case NFTA_RULE_POSITION:
-		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
+			abi_breakage();
 		break;
 	case NFTA_RULE_USERDATA:
-		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -377,16 +368,12 @@ static int nft_rule_parse_expr_cb(const struct nlattr *attr, void *data)
 
 	switch(type) {
 	case NFTA_EXPR_NAME:
-		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
+			abi_breakage();
 		break;
 	case NFTA_EXPR_DATA:
-		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -441,10 +428,8 @@ static int nft_rule_parse_compat_cb(const struct nlattr *attr, void *data)
 	switch(type) {
 	case NFTA_RULE_COMPAT_PROTO:
 	case NFTA_RULE_COMPAT_FLAGS:
-		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -527,7 +512,8 @@ EXPORT_SYMBOL(nft_rule_nlmsg_parse);
 
 #ifdef JSON_PARSING
 int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
-			   struct nft_parse_err *err)
+			   struct nft_parse_err *err,
+			   struct nft_set_list *set_list)
 {
 	json_t *root, *array;
 	struct nft_rule_expr *e;
@@ -603,7 +589,8 @@ int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
 
 	for (i = 0; i < json_array_size(array); ++i) {
 
-		e = nft_jansson_expr_parse(json_array_get(array, i), err);
+		e = nft_jansson_expr_parse(json_array_get(array, i), err,
+					   set_list);
 		if (e == NULL)
 			goto err;
 
@@ -620,7 +607,8 @@ err:
 
 static int nft_rule_json_parse(struct nft_rule *r, const void *json,
 			       struct nft_parse_err *err,
-			       enum nft_parse_input input)
+			       enum nft_parse_input input,
+			       struct nft_set_list *set_list)
 {
 #ifdef JSON_PARSING
 	json_t *tree;
@@ -630,7 +618,7 @@ static int nft_rule_json_parse(struct nft_rule *r, const void *json,
 	if (tree == NULL)
 		return -1;
 
-	return nft_jansson_parse_rule(r, tree, err);
+	return nft_jansson_parse_rule(r, tree, err, set_list);
 #else
 	errno = EOPNOTSUPP;
 	return -1;
@@ -639,7 +627,8 @@ static int nft_rule_json_parse(struct nft_rule *r, const void *json,
 
 #ifdef XML_PARSING
 int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
-			struct nft_parse_err *err)
+			struct nft_parse_err *err,
+			struct nft_set_list *set_list)
 {
 	mxml_node_t *node;
 	struct nft_rule_expr *e;
@@ -691,7 +680,7 @@ int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
 		node != NULL;
 		node = mxmlFindElement(node, tree, "expr", "type",
 				       NULL, MXML_DESCEND)) {
-		e = nft_mxml_expr_parse(node, err);
+		e = nft_mxml_expr_parse(node, err, set_list);
 		if (e == NULL)
 			return -1;
 
@@ -704,7 +693,8 @@ int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
 
 static int nft_rule_xml_parse(struct nft_rule *r, const void *xml,
 			      struct nft_parse_err *err,
-			      enum nft_parse_input input)
+			      enum nft_parse_input input,
+			      struct nft_set_list *set_list)
 {
 #ifdef XML_PARSING
 	int ret;
@@ -712,7 +702,7 @@ static int nft_rule_xml_parse(struct nft_rule *r, const void *xml,
 	if (tree == NULL)
 		return -1;
 
-	ret = nft_mxml_rule_parse(tree, r, err);
+	ret = nft_mxml_rule_parse(tree, r, err, set_list);
 	mxmlDelete(tree);
 	return ret;
 #else
@@ -730,10 +720,10 @@ static int nft_rule_do_parse(struct nft_rule *r, enum nft_parse_type type,
 
 	switch (type) {
 	case NFT_PARSE_XML:
-		ret = nft_rule_xml_parse(r, data, &perr, input);
+		ret = nft_rule_xml_parse(r, data, &perr, input, NULL);
 		break;
 	case NFT_PARSE_JSON:
-		ret = nft_rule_json_parse(r, data, &perr, input);
+		ret = nft_rule_json_parse(r, data, &perr, input, NULL);
 		break;
 	default:
 		ret = -1;

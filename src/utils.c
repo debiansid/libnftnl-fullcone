@@ -20,36 +20,33 @@
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_tables.h>
 
+static const char *const nft_family_str[NFPROTO_NUMPROTO] = {
+	[NFPROTO_INET]		= "inet",
+	[NFPROTO_IPV4]		= "ip",
+	[NFPROTO_ARP]		= "arp",
+	[NFPROTO_BRIDGE]	= "bridge",
+	[NFPROTO_IPV6]		= "ip6",
+};
+
 const char *nft_family2str(uint32_t family)
 {
-	switch (family) {
-	case AF_INET:
-		return "ip";
-	case AF_INET6:
-		return "ip6";
-	case 1:
-		return "inet";
-	case AF_BRIDGE:
-		return "bridge";
-	case 3: /* NFPROTO_ARP */
-		return "arp";
-	default:
+	if (nft_family_str[family] == NULL)
 		return "unknown";
-	}
+
+	return nft_family_str[family];
 }
 
 int nft_str2family(const char *family)
 {
-	if (strcmp(family, "ip") == 0)
-		return AF_INET;
-	else if (strcmp(family, "ip6") == 0)
-		return AF_INET6;
-	else if (strcmp(family, "inet") == 0)
-		return 1;
-	else if (strcmp(family, "bridge") == 0)
-		return AF_BRIDGE;
-	else if (strcmp(family, "arp") == 0)
-		return 0;
+	int i;
+
+	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
+		if (nft_family_str[i] == NULL)
+			continue;
+
+		if (strcmp(nft_family_str[i], family) == 0)
+			return i;
+	}
 
 	errno = EAFNOSUPPORT;
 	return -1;
@@ -180,11 +177,6 @@ int nft_str2verdict(const char *verdict, int *verdict_num)
 	return -1;
 }
 
-void xfree(const void *ptr)
-{
-	free((void *)ptr);
-}
-
 int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
 		int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj,
 				   uint32_t type, uint32_t flags))
@@ -195,7 +187,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
 	int ret;
 
 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
-	if (ret < 0)
+	if (ret <= 0)
 		goto out;
 
 	if (ret >= NFT_SNPRINTF_BUFSIZ) {
@@ -206,7 +198,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
 			return -1;
 
 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
-		if (ret < 0)
+		if (ret <= 0)
 			goto out;
 	}
 
@@ -224,4 +216,11 @@ void __nft_assert_fail(uint16_t attr, const char *filename, int line)
 	fprintf(stderr, "libnftnl: attribute %d assertion failed in %s:%d\n",
 		attr, filename, line);
 	exit(EXIT_FAILURE);
+}
+
+void __noreturn __abi_breakage(const char *file, int line, const char *reason)
+{
+       fprintf(stderr, "nf_tables kernel ABI is broken, contact your vendor.\n"
+		       "%s:%d reason: %s\n", file, line, reason);
+       exit(EXIT_FAILURE);
 }

@@ -14,6 +14,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <libnftnl/common.h>
+#include <linux/netfilter/nf_tables.h>
+
+#define xfree(ptr)	free((void *)ptr);
 
 #define BASE_DEC 10
 #define BASE_HEX 16
@@ -49,8 +52,10 @@ enum nft_parse_input {
 #define NFT_XML_OPT (1 << 0)
 mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
 				 struct nft_parse_err *err, enum nft_parse_input input);
+struct nft_set_list;
 struct nft_rule_expr *nft_mxml_expr_parse(mxml_node_t *node,
-					  struct nft_parse_err *err);
+					  struct nft_parse_err *err,
+					  struct nft_set_list *set_list);
 int nft_mxml_reg_parse(mxml_node_t *tree, const char *reg_name, uint32_t *reg,
 		       uint32_t mxmlflags, uint32_t flags,
 		       struct nft_parse_err *err);
@@ -80,11 +85,17 @@ int nft_mxml_chain_parse(mxml_node_t *tree, struct nft_chain *c,
 			 struct nft_parse_err *err);
 struct nft_rule;
 int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
-			struct nft_parse_err *err);
+			struct nft_parse_err *err,
+			struct nft_set_list *set_list);
 struct nft_set;
 int nft_mxml_set_parse(mxml_node_t *tree, struct nft_set *s,
 		       struct nft_parse_err *err);
 #endif
+
+struct nft_set_list;
+struct nft_rule_expr;
+int nft_set_lookup_id(struct nft_rule_expr *e, struct nft_set_list *set_list,
+		      uint32_t *set_id);
 
 #ifdef JSON_PARSING
 #include <jansson.h>
@@ -105,7 +116,8 @@ int nft_jansson_str2num(json_t *root, const char *node_name, int base, void *out
 int nft_jansson_parse_reg(json_t *root, const char *node_name, int type,
 			  void *out, struct nft_parse_err *err);
 struct nft_rule_expr *nft_jansson_expr_parse(json_t *root,
-					     struct nft_parse_err *err);
+					     struct nft_parse_err *err,
+					     struct nft_set_list *set_list);
 union nft_data_reg;
 int nft_jansson_data_reg_parse(json_t *root, const char *node_name,
 			       union nft_data_reg *data_reg,
@@ -120,8 +132,10 @@ struct nft_chain;
 int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
 			    struct nft_parse_err *err);
 struct nft_rule;
+struct nft_set_list;
 int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
-			   struct nft_parse_err *err);
+			   struct nft_parse_err *err,
+			   struct nft_set_list *set_list);
 struct nft_set;
 int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
 			  struct nft_parse_err *err);
@@ -142,8 +156,6 @@ int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags);
 int nft_event_footer_snprintf(char *buf, size_t bufsize,
 			      uint32_t format, uint32_t flags);
 int nft_event_footer_fprintf(FILE *fp, uint32_t format, uint32_t flags);
-
-void xfree(const void *ptr);
 
 struct expr_ops;
 
@@ -168,6 +180,10 @@ struct nft_set {
 	uint32_t		data_type;
 	uint32_t		data_len;
 	uint32_t		id;
+	enum nft_set_policies	policy;
+	struct {
+		uint32_t		size;
+	} desc;
 	struct list_head	element_list;
 
 	uint32_t		flags;
@@ -210,5 +226,14 @@ void __nft_assert_fail(uint16_t attr, const char *filename, int line);
 	if (_validate_array[_attr])						\
 		nft_assert(data, attr, _validate_array[_attr] == _data_len);	\
 })
+
+#define __noreturn	__attribute__((__noreturn__))
+
+void __noreturn __abi_breakage(const char *file, int line, const char *reason);
+
+#include <string.h>
+
+#define abi_breakage()	\
+	__abi_breakage(__FILE__, __LINE__, strerror(errno));
 
 #endif

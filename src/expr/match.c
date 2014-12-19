@@ -20,12 +20,15 @@
 
 #include <linux/netfilter/nf_tables.h>
 #include <linux/netfilter/nf_tables_compat.h>
-#include <linux/netfilter/x_tables.h>
 
 #include <libnftnl/expr.h>
 #include <libnftnl/rule.h>
 
 #include "expr_ops.h"
+#include <buffer.h>
+
+/* From include/linux/netfilter/x_tables.h */
+#define XT_EXTENSION_MAXNAMELEN 29
 
 struct nft_expr_match {
 	char		name[XT_EXTENSION_MAXNAMELEN];
@@ -91,22 +94,16 @@ static int nft_rule_expr_match_cb(const struct nlattr *attr, void *data)
 
 	switch(type) {
 	case NFTA_MATCH_NAME:
-		if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0)
+			abi_breakage();
 		break;
 	case NFTA_MATCH_REV:
-		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+			abi_breakage();
 		break;
 	case NFTA_MATCH_INFO:
-		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -208,33 +205,16 @@ static int nft_rule_expr_match_xml_parse(struct nft_rule_expr *e, mxml_node_t *t
 #endif
 }
 
-static int nft_rule_expr_match_snprintf_json(char *buf, size_t len,
-					     struct nft_rule_expr *e)
+static int nft_rule_expr_match_export(char *buf, size_t size,
+				      struct nft_rule_expr *e, int type)
 {
 	struct nft_expr_match *mt = nft_expr_data(e);
-	int ret, size = len, offset = 0;
+	NFT_BUF_INIT(b, buf, size);
 
-	if (e->flags & (1 << NFT_EXPR_MT_NAME)) {
-		ret = snprintf(buf, len, "\"name\":\"%s\"", mt->name);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
+	if (e->flags & (1 << NFT_EXPR_MT_NAME))
+		nft_buf_str(&b, type, mt->name, NAME);
 
-	return offset;
-}
-
-static int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
-					    struct nft_rule_expr *e)
-{
-	struct nft_expr_match *mt = nft_expr_data(e);
-	int ret, size=len;
-	int offset = 0;
-
-	if (e->flags & (1 << NFT_EXPR_MT_NAME)) {
-		ret = snprintf(buf, len, "<name>%s</name>", mt->name);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-
-	return offset;
+	return nft_buf_done(&b);
 }
 
 static int
@@ -243,14 +223,13 @@ nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
 {
 	struct nft_expr_match *match = nft_expr_data(e);
 
-	switch(type) {
+	switch (type) {
 	case NFT_OUTPUT_DEFAULT:
 		return snprintf(buf, len, "name %s rev %u ",
 				match->name, match->rev);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_match_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_match_snprintf_json(buf, len, e);
+		return nft_rule_expr_match_export(buf, len, e, type);
 	default:
 		break;
 	}

@@ -21,9 +21,10 @@
 #include <libnftnl/expr.h>
 #include <libnftnl/rule.h>
 #include "expr_ops.h"
+#include <buffer.h>
 
 #ifndef NFT_META_MAX
-#define NFT_META_MAX (NFT_META_BRI_OIFNAME + 1)
+#define NFT_META_MAX (NFT_META_CGROUP + 1)
 #endif
 
 struct nft_expr_meta {
@@ -86,10 +87,8 @@ static int nft_rule_expr_meta_cb(const struct nlattr *attr, void *data)
 	case NFTA_META_KEY:
 	case NFTA_META_DREG:
 	case NFTA_META_SREG:
-		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-			perror("mnl_attr_validate");
-			return MNL_CB_ERROR;
-		}
+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+			abi_breakage();
 		break;
 	}
 
@@ -155,6 +154,11 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
 	[NFT_META_SECMARK]	= "secmark",
 	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
 	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
+	[NFT_META_PKTTYPE]	= "pkttype",
+	[NFT_META_CPU]		= "cpu",
+	[NFT_META_IIFGROUP]	= "iifgroup",
+	[NFT_META_OIFGROUP]	= "oifgroup",
+	[NFT_META_CGROUP]	= "cgroup",
 };
 
 static const char *meta_key2str(uint8_t key)
@@ -261,71 +265,32 @@ nft_rule_expr_meta_snprintf_default(char *buf, size_t len,
 	return 0;
 }
 
-static int
-nft_rule_expr_meta_snprintf_xml(char *buf, size_t size,
-				struct nft_rule_expr *e)
+static int nft_rule_expr_meta_export(char *buf, size_t size,
+				     struct nft_rule_expr *e, int type)
 {
-	int ret, len = size, offset = 0;
 	struct nft_expr_meta *meta = nft_expr_data(e);
+	NFT_BUF_INIT(b, buf, size);
 
-	if (e->flags & (1 << NFT_EXPR_META_DREG)) {
-		ret = snprintf(buf, len, "<dreg>%u</dreg>", meta->dreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_META_KEY)) {
-		ret = snprintf(buf + offset, len, "<key>%s</key>",
-			       meta_key2str(meta->key));
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_META_SREG)) {
-		ret = snprintf(buf + offset, len, "<sreg>%u</sreg>",
-			       meta->sreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
+	if (e->flags & (1 << NFT_EXPR_META_DREG))
+		nft_buf_u32(&b, type, meta->dreg, DREG);
+	if (e->flags & (1 << NFT_EXPR_META_KEY))
+		nft_buf_str(&b, type, meta_key2str(meta->key), KEY);
+	if (e->flags & (1 << NFT_EXPR_META_SREG))
+		nft_buf_u32(&b, type, meta->sreg, SREG);
 
-	return offset;
-}
-
-static int
-nft_rule_expr_meta_snprintf_json(char *buf, size_t size,
-				 struct nft_rule_expr *e)
-{
-	int ret, len = size, offset = 0;
-	struct nft_expr_meta *meta = nft_expr_data(e);
-
-	if (e->flags & (1 << NFT_EXPR_META_DREG)) {
-		ret = snprintf(buf + offset, len, "\"dreg\":%u,",
-			       meta->dreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_META_KEY)) {
-		ret = snprintf(buf + offset, len, "\"key\":\"%s\",",
-			       meta_key2str(meta->key));
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	if (e->flags & (1 << NFT_EXPR_META_SREG)) {
-		ret = snprintf(buf + offset, len, "\"sreg\":%u,",
-			       meta->sreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-	}
-	/* Remove the last comma separator */
-	if (offset > 0)
-		offset--;
-
-	return offset;
+	return nft_buf_done(&b);
 }
 
 static int
 nft_rule_expr_meta_snprintf(char *buf, size_t len, uint32_t type,
 			    uint32_t flags, struct nft_rule_expr *e)
 {
-	switch(type) {
+	switch (type) {
 	case NFT_OUTPUT_DEFAULT:
 		return nft_rule_expr_meta_snprintf_default(buf, len, e);
 	case NFT_OUTPUT_XML:
-		return nft_rule_expr_meta_snprintf_xml(buf, len, e);
 	case NFT_OUTPUT_JSON:
-		return nft_rule_expr_meta_snprintf_json(buf, len, e);
+		return nft_rule_expr_meta_export(buf, len, e, type);
 	default:
 		break;
 	}
