@@ -2,31 +2,10 @@
    "nftables" : [
       {
          "table" : {
+            "use" : 1,
             "flags" : 0,
             "name" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "table" : {
-            "flags" : 0,
-            "name" : "filter2",
-            "family" : "ip6"
-         }
-      },
-      {
-         "chain" : {
-            "bytes" : 10681449,
-            "hooknum" : "input",
-            "prio" : 0,
-            "table" : "filter",
-            "packets" : 16216,
-            "name" : "input",
-            "handle" : 1,
-            "use" : 0,
-            "policy" : "accept",
-            "type" : "filter",
-            "family" : "ip"
+            "family" : "inet"
          }
       },
       {
@@ -38,106 +17,24 @@
             "packets" : 0,
             "name" : "forward",
             "handle" : 2,
-            "use" : 0,
+            "use" : 1,
             "policy" : "accept",
             "type" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "chain" : {
-            "bytes" : 2375830,
-            "hooknum" : "output",
-            "prio" : 0,
-            "table" : "filter",
-            "packets" : 15184,
-            "name" : "output",
-            "handle" : 3,
-            "use" : 0,
-            "policy" : "accept",
-            "type" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "chain" : {
-            "bytes" : 0,
-            "use" : 0,
-            "handle" : 4,
-            "table" : "filter",
-            "packets" : 0,
-            "name" : "chain1",
-            "family" : "ip"
-         }
-      },
-      {
-         "set" : {
-            "key_len" : 2,
-            "key_type" : 12,
-            "flags" : 3,
-            "table" : "filter",
-            "name" : "set0",
-            "family" : "ip"
+            "family" : "inet"
          }
       },
       {
          "rule" : {
-            "chain" : "output",
+            "chain" : "forward",
             "expr" : [
                {
-                  "base" : "link",
-                  "len" : 4,
                   "dreg" : 1,
-                  "type" : "payload",
-                  "offset" : 16
+                  "type" : "meta",
+                  "key" : "l4proto"
                },
                {
-                  "cmpdata" : {
-                     "data_reg" : {
-                        "len" : 4,
-                        "type" : "value",
-                        "data0" : "0x0100a8c0"
-                     }
-                  },
-                  "type" : "cmp",
-                  "sreg" : 1,
-                  "op" : "eq"
-               },
-               {
-                  "bytes" : 0,
-                  "pkts" : 0,
-                  "type" : "counter"
-               },
-               {
-                  "immediatedata" : {
-                     "data_reg" : {
-                        "type" : "verdict",
-                        "verdict" : "drop"
-                     }
-                  },
-                  "dreg" : 0,
-                  "type" : "immediate"
-               }
-            ],
-            "handle" : 6,
-            "table" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "rule" : {
-            "chain" : "output",
-            "expr" : [
-               {
-                  "base" : "link",
-                  "len" : 1,
-                  "dreg" : 1,
-                  "type" : "payload",
-                  "offset" : 9
-               },
-               {
-                  "cmpdata" : {
-                     "data_reg" : {
+                  "data" : {
+                     "reg" : {
                         "len" : 1,
                         "type" : "value",
                         "data0" : "0x00000006"
@@ -148,15 +45,15 @@
                   "op" : "eq"
                },
                {
-                  "base" : "link",
+                  "base" : "transport",
                   "len" : 2,
                   "dreg" : 1,
                   "type" : "payload",
                   "offset" : 2
                },
                {
-                  "cmpdata" : {
-                     "data_reg" : {
+                  "data" : {
+                     "reg" : {
                         "len" : 2,
                         "type" : "value",
                         "data0" : "0x00001600"
@@ -167,72 +64,41 @@
                   "op" : "eq"
                },
                {
-                  "bytes" : 0,
-                  "pkts" : 0,
-                  "type" : "counter"
-               }
-            ],
-            "handle" : 9,
-            "table" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "rule" : {
-            "chain" : "output",
-            "expr" : [
-               {
-                  "base" : "link",
-                  "len" : 4,
                   "dreg" : 1,
-                  "type" : "payload",
-                  "offset" : 16
+                  "type" : "ct",
+                  "key" : "state"
                },
                {
-                  "cmpdata" : {
-                     "data_reg" : {
+                  "len" : 4,
+                  "xor" : {
+                     "reg" : {
                         "len" : 4,
                         "type" : "value",
-                        "data0" : "0x0100a8c0"
+                        "data0" : "0x00000000"
+                     }
+                  },
+                  "dreg" : 1,
+                  "type" : "bitwise",
+                  "sreg" : 1,
+                  "mask" : {
+                     "reg" : {
+                        "len" : 4,
+                        "type" : "value",
+                        "data0" : "0x00000008"
+                     }
+                  }
+               },
+               {
+                  "data" : {
+                     "reg" : {
+                        "len" : 4,
+                        "type" : "value",
+                        "data0" : "0x00000000"
                      }
                   },
                   "type" : "cmp",
                   "sreg" : 1,
-                  "op" : "eq"
-               },
-               {
-                  "bytes" : 0,
-                  "pkts" : 0,
-                  "type" : "counter"
-               }
-            ],
-            "handle" : 10,
-            "table" : "filter",
-            "family" : "ip"
-         }
-      },
-      {
-         "rule" : {
-            "chain" : "output",
-            "expr" : [
-               {
-                  "base" : "link",
-                  "len" : 4,
-                  "dreg" : 1,
-                  "type" : "payload",
-                  "offset" : 16
-               },
-               {
-                  "cmpdata" : {
-                     "data_reg" : {
-                        "len" : 4,
-                        "type" : "value",
-                        "data0" : "0x0100a8c0"
-                     }
-                  },
-                  "type" : "cmp",
-                  "sreg" : 1,
-                  "op" : "eq"
+                  "op" : "neq"
                },
                {
                   "bytes" : 0,
@@ -240,19 +106,19 @@
                   "type" : "counter"
                },
                {
-                  "immediatedata" : {
-                     "data_reg" : {
-                        "type" : "verdict",
-                        "verdict" : "drop"
-                     }
-                  },
                   "dreg" : 0,
+                  "data" : {
+                     "reg" : {
+                        "type" : "verdict",
+                        "verdict" : "accept"
+                     }
+                  },
                   "type" : "immediate"
                }
             ],
-            "handle" : 11,
+            "handle" : 4,
             "table" : "filter",
-            "family" : "ip"
+            "family" : "inet"
          }
       }
    ]
