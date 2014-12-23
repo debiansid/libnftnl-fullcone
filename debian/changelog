@@ -1,3 +1,9 @@
+libnftnl (1.0.3-2) unstable; urgency=medium
+
+  * Rebuild the experimental version to upload to unstable.
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Tue, 23 Dec 2014 13:48:04 +0100
+
 libnftnl (1.0.3-1) experimental; urgency=medium
 
   * [1f87a22] d/control: bump standars to 3.9.6
