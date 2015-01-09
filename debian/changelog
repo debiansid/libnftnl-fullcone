@@ -1,3 +1,9 @@
+libnftnl (1.0.3-3) unstable; urgency=medium
+
+  * [c163e8b] d/tests/: internaltest: add build-essential dependency
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Fri, 09 Jan 2015 09:18:37 +0100
+
 libnftnl (1.0.3-2) unstable; urgency=medium
 
   * Rebuild the experimental version to upload to unstable.
