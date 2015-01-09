@@ -2,4 +2,5 @@ Tests: internaltest
 Restrictions: build-needed
 Depends:
  @,
+ build-essential,
  autopkgtest
