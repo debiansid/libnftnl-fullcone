@@ -1,3 +1,9 @@
+libnftnl (1.0.3-4~bpo8+1) jessie-backports; urgency=medium
+
+  * Rebuild for jessie-backports.
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Tue, 28 Apr 2015 09:58:07 +0200
+
 libnftnl (1.0.3-4) unstable; urgency=medium
 
   * [9e3ab1d] d/t/control: internaltest: replace Depends build-essential
