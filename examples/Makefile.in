@@ -62,7 +62,8 @@ check_PROGRAMS = nft-table-add$(EXEEXT) nft-table-parse-add$(EXEEXT) \
 	nft-set-parse-add$(EXEEXT) nft-set-get$(EXEEXT) \
 	nft-set-del$(EXEEXT) nft-set-elem-add$(EXEEXT) \
 	nft-set-elem-get$(EXEEXT) nft-set-elem-del$(EXEEXT) \
-	nft-ruleset-get$(EXEEXT) nft-compat-get$(EXEEXT)
+	nft-ruleset-get$(EXEEXT) nft-ruleset-parse-file$(EXEEXT) \
+	nft-compat-get$(EXEEXT)
 subdir = examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gcc4_visibility.m4 \
@@ -114,6 +115,10 @@ nft_rule_parse_add_DEPENDENCIES = ../src/libnftnl.la \
 am_nft_ruleset_get_OBJECTS = nft-ruleset-get.$(OBJEXT)
 nft_ruleset_get_OBJECTS = $(am_nft_ruleset_get_OBJECTS)
 nft_ruleset_get_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_ruleset_parse_file_OBJECTS = nft-ruleset-parse-file.$(OBJEXT)
+nft_ruleset_parse_file_OBJECTS = $(am_nft_ruleset_parse_file_OBJECTS)
+nft_ruleset_parse_file_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
 am_nft_set_add_OBJECTS = nft-set-add.$(OBJEXT)
 nft_set_add_OBJECTS = $(am_nft_set_add_OBJECTS)
@@ -187,25 +192,25 @@ SOURCES = $(nft_chain_add_SOURCES) $(nft_chain_del_SOURCES) \
 	$(nft_compat_get_SOURCES) $(nft_events_SOURCES) \
 	$(nft_rule_add_SOURCES) $(nft_rule_del_SOURCES) \
 	$(nft_rule_get_SOURCES) $(nft_rule_parse_add_SOURCES) \
-	$(nft_ruleset_get_SOURCES) $(nft_set_add_SOURCES) \
-	$(nft_set_del_SOURCES) $(nft_set_elem_add_SOURCES) \
-	$(nft_set_elem_del_SOURCES) $(nft_set_elem_get_SOURCES) \
-	$(nft_set_get_SOURCES) $(nft_set_parse_add_SOURCES) \
-	$(nft_table_add_SOURCES) $(nft_table_del_SOURCES) \
-	$(nft_table_get_SOURCES) $(nft_table_parse_add_SOURCES) \
-	$(nft_table_upd_SOURCES)
+	$(nft_ruleset_get_SOURCES) $(nft_ruleset_parse_file_SOURCES) \
+	$(nft_set_add_SOURCES) $(nft_set_del_SOURCES) \
+	$(nft_set_elem_add_SOURCES) $(nft_set_elem_del_SOURCES) \
+	$(nft_set_elem_get_SOURCES) $(nft_set_get_SOURCES) \
+	$(nft_set_parse_add_SOURCES) $(nft_table_add_SOURCES) \
+	$(nft_table_del_SOURCES) $(nft_table_get_SOURCES) \
+	$(nft_table_parse_add_SOURCES) $(nft_table_upd_SOURCES)
 DIST_SOURCES = $(nft_chain_add_SOURCES) $(nft_chain_del_SOURCES) \
 	$(nft_chain_get_SOURCES) $(nft_chain_parse_add_SOURCES) \
 	$(nft_compat_get_SOURCES) $(nft_events_SOURCES) \
 	$(nft_rule_add_SOURCES) $(nft_rule_del_SOURCES) \
 	$(nft_rule_get_SOURCES) $(nft_rule_parse_add_SOURCES) \
-	$(nft_ruleset_get_SOURCES) $(nft_set_add_SOURCES) \
-	$(nft_set_del_SOURCES) $(nft_set_elem_add_SOURCES) \
-	$(nft_set_elem_del_SOURCES) $(nft_set_elem_get_SOURCES) \
-	$(nft_set_get_SOURCES) $(nft_set_parse_add_SOURCES) \
-	$(nft_table_add_SOURCES) $(nft_table_del_SOURCES) \
-	$(nft_table_get_SOURCES) $(nft_table_parse_add_SOURCES) \
-	$(nft_table_upd_SOURCES)
+	$(nft_ruleset_get_SOURCES) $(nft_ruleset_parse_file_SOURCES) \
+	$(nft_set_add_SOURCES) $(nft_set_del_SOURCES) \
+	$(nft_set_elem_add_SOURCES) $(nft_set_elem_del_SOURCES) \
+	$(nft_set_elem_get_SOURCES) $(nft_set_get_SOURCES) \
+	$(nft_set_parse_add_SOURCES) $(nft_table_add_SOURCES) \
+	$(nft_table_del_SOURCES) $(nft_table_get_SOURCES) \
+	$(nft_table_parse_add_SOURCES) $(nft_table_upd_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -361,7 +366,7 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 2:0:2
+LIBVERSION = 3:0:3
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 nft_table_add_SOURCES = nft-table-add.c
@@ -408,6 +413,8 @@ nft_set_elem_get_SOURCES = nft-set-elem-get.c
 nft_set_elem_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_ruleset_get_SOURCES = nft-ruleset-get.c
 nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_ruleset_parse_file_SOURCES = nft-ruleset-parse-file.c
+nft_ruleset_parse_file_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_compat_get_SOURCES = nft-compat-get.c
 nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 all: all-am
@@ -487,6 +494,9 @@ nft-rule-parse-add$(EXEEXT): $(nft_rule_parse_add_OBJECTS) $(nft_rule_parse_add_
 nft-ruleset-get$(EXEEXT): $(nft_ruleset_get_OBJECTS) $(nft_ruleset_get_DEPENDENCIES) $(EXTRA_nft_ruleset_get_DEPENDENCIES) 
 	@rm -f nft-ruleset-get$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_ruleset_get_OBJECTS) $(nft_ruleset_get_LDADD) $(LIBS)
+nft-ruleset-parse-file$(EXEEXT): $(nft_ruleset_parse_file_OBJECTS) $(nft_ruleset_parse_file_DEPENDENCIES) $(EXTRA_nft_ruleset_parse_file_DEPENDENCIES) 
+	@rm -f nft-ruleset-parse-file$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_ruleset_parse_file_OBJECTS) $(nft_ruleset_parse_file_LDADD) $(LIBS)
 nft-set-add$(EXEEXT): $(nft_set_add_OBJECTS) $(nft_set_add_DEPENDENCIES) $(EXTRA_nft_set_add_DEPENDENCIES) 
 	@rm -f nft-set-add$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_set_add_OBJECTS) $(nft_set_add_LDADD) $(LIBS)
@@ -541,6 +551,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-get.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-parse-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ruleset-get.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ruleset-parse-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-set-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-set-del.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-set-elem-add.Po@am__quote@

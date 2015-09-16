@@ -12,15 +12,17 @@
 #include <time.h>
 #include <linux/netlink.h>
 #include <linux/netfilter/nfnetlink.h>
+#include <linux/netfilter/nf_tables.h>
 
 #include <libmnl/libmnl.h>
 #include <libnftnl/common.h>
 #include <libnftnl/set.h>
+#include <buffer.h>
 
 #include <errno.h>
 #include "internal.h"
 
-struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+struct nlmsghdr *nftnl_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
 				     uint16_t type, uint32_t seq)
 {
 	struct nlmsghdr *nlh;
@@ -38,121 +40,123 @@ struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
 
 	return nlh;
 }
-EXPORT_SYMBOL(nft_nlmsg_build_hdr);
+EXPORT_SYMBOL(nftnl_nlmsg_build_hdr, nft_nlmsg_build_hdr);
 
-struct nft_parse_err *nft_parse_err_alloc(void)
+struct nftnl_parse_err *nftnl_parse_err_alloc(void)
 {
-	return calloc(1, sizeof(struct nft_parse_err));
-}
-EXPORT_SYMBOL(nft_parse_err_alloc);
+	struct nftnl_parse_err *err;
 
-void nft_parse_err_free(struct nft_parse_err *err)
+	err = calloc(1, sizeof(struct nftnl_parse_err));
+	if (err == NULL)
+		return NULL;
+
+	err->error = NFTNL_PARSE_EOPNOTSUPP;
+
+	return err;
+}
+EXPORT_SYMBOL(nftnl_parse_err_alloc, nft_parse_err_alloc);
+
+void nftnl_parse_err_free(struct nftnl_parse_err *err)
 {
 	xfree(err);
 }
-EXPORT_SYMBOL(nft_parse_err_free);
+EXPORT_SYMBOL(nftnl_parse_err_free, nft_parse_err_free);
 
-int nft_parse_perror(const char *msg, struct nft_parse_err *err)
+int nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
 {
 	switch (err->error) {
-	case NFT_PARSE_EBADINPUT:
+	case NFTNL_PARSE_EBADINPUT:
 		return fprintf(stderr, "%s: Bad input format in line %d column %d\n",
 			       msg, err->line, err->column);
-	case NFT_PARSE_EMISSINGNODE:
+	case NFTNL_PARSE_EMISSINGNODE:
 		return fprintf(stderr, "%s: Node \"%s\" not found\n",
 			       msg, err->node_name);
-	case NFT_PARSE_EBADTYPE:
+	case NFTNL_PARSE_EBADTYPE:
 		return fprintf(stderr, "%s: Invalid type in node \"%s\"\n",
 			       msg, err->node_name);
+	case NFTNL_PARSE_EOPNOTSUPP:
+		return fprintf(stderr, "%s: Operation not supported\n", msg);
 	default:
 		return fprintf(stderr, "%s: Undefined error\n", msg);
 	}
 }
-EXPORT_SYMBOL(nft_parse_perror);
+EXPORT_SYMBOL(nftnl_parse_perror, nft_parse_perror);
 
-int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
-			      uint32_t flags)
+int nftnl_cmd_header_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
+			    uint32_t flags)
 {
-	int ret = 0;
+	NFTNL_BUF_INIT(b, buf, size);
 
-	if (!(flags & NFT_OF_EVENT_ANY))
+	if (cmd == NFTNL_CMD_UNSPEC)
 		return 0;
 
 	switch (type) {
-	case NFT_OUTPUT_XML:
-		if (flags & NFT_OF_EVENT_NEW) {
-			ret = snprintf(buf, size, "<event><type>new</type>");
-		} else if (flags & NFT_OF_EVENT_DEL) {
-			ret = snprintf(buf, size,
-				       "<event><type>delete</type>");
-		} else {
-			ret = snprintf(buf, size,
-				       "<event><type>unknown</type>");
-		}
-		break;
-	case NFT_OUTPUT_JSON:
-		if (flags & NFT_OF_EVENT_NEW) {
-			ret = snprintf(buf, size, "{event:{type:\"new\",{\"");
-		} else if (flags & NFT_OF_EVENT_DEL) {
-			ret = snprintf(buf, size,
-				       "{event:{type:\"delete\",{\"");
-		} else {
-			ret = snprintf(buf, size,
-				       "{event:{type:\"unknown\",{\"");
-		}
+	case NFTNL_OUTPUT_XML:
+	case NFTNL_OUTPUT_JSON:
+		nftnl_buf_open_array(&b, type, nftnl_cmd2tag(cmd));
 		break;
 	default:
-		if (flags & NFT_OF_EVENT_NEW) {
-			ret = snprintf(buf, size, "%9s", "[NEW] ");
-		} else if (flags & NFT_OF_EVENT_DEL) {
-			ret = snprintf(buf, size, "%9s", "[DELETE] ");
-		} else {
-			ret = snprintf(buf, size, "%9s", "[unknown] ");
+		switch (cmd) {
+		case NFTNL_CMD_ADD:
+			return snprintf(buf, size, "%9s", "[ADD] ");
+		case NFTNL_CMD_DELETE:
+			return snprintf(buf, size, "%9s", "[DELETE] ");
+		default:
+			return snprintf(buf, size, "%9s", "[unknown] ");
 		}
 		break;
 	}
-	return ret;
+	return nftnl_buf_done(&b);
 }
 
-static int nft_event_header_fprintf_cb(char *buf, size_t size, void *unused,
-				       uint32_t type, uint32_t flags)
+static int nftnl_cmd_header_fprintf_cb(char *buf, size_t size, void *obj,
+				     uint32_t cmd, uint32_t type,
+				     uint32_t flags)
 {
-	return nft_event_header_snprintf(buf, size, type, flags);
+	return nftnl_cmd_header_snprintf(buf, size, cmd, type, flags);
 }
 
-int nft_event_header_fprintf(FILE *fp, uint32_t type, uint32_t flags)
+int nftnl_cmd_header_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
+			   uint32_t flags)
 {
-	return nft_fprintf(fp, NULL, type, flags, nft_event_header_fprintf_cb);
+	return nftnl_fprintf(fp, NULL, cmd, type, flags,
+			   nftnl_cmd_header_fprintf_cb);
 }
 
-int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
-			      uint32_t flags)
+int nftnl_cmd_footer_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
+			    uint32_t flags)
 {
-	if (!(flags & NFT_OF_EVENT_ANY))
+	NFTNL_BUF_INIT(b, buf, size);
+
+	if (cmd == NFTNL_CMD_UNSPEC)
 		return 0;
 
 	switch (type) {
-	case NFT_OUTPUT_XML:
-		return snprintf(buf, size, "</event>");
-	case NFT_OUTPUT_JSON:
-		return snprintf(buf, size, "}}}");
+	case NFTNL_OUTPUT_XML:
+	case NFTNL_OUTPUT_JSON:
+		nftnl_buf_close_array(&b, type, nftnl_cmd2tag(cmd));
+		break;
 	default:
 		return 0;
 	}
+	return nftnl_buf_done(&b);
 }
 
-static int nft_event_footer_fprintf_cb(char *buf, size_t size, void *unused,
-				       uint32_t type, uint32_t flags)
+static int nftnl_cmd_footer_fprintf_cb(char *buf, size_t size, void *obj,
+				     uint32_t cmd, uint32_t type,
+				     uint32_t flags)
 {
-	return nft_event_footer_snprintf(buf, size, type, flags);
+	return nftnl_cmd_footer_snprintf(buf, size, cmd, type, flags);
 }
 
-int nft_event_footer_fprintf(FILE *fp, uint32_t type, uint32_t flags)
+int nftnl_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
+			   uint32_t flags)
 {
-	return nft_fprintf(fp, NULL, type, flags, nft_event_footer_fprintf_cb);
+	return nftnl_fprintf(fp, NULL, cmd, type, flags,
+			   nftnl_cmd_footer_fprintf_cb);
 }
 
-static void nft_batch_build_hdr(char *buf, uint16_t type, uint32_t seq)
+static void nftnl_batch_build_hdr(char *buf, uint16_t type, uint32_t seq)
 {
 	struct nlmsghdr *nlh;
 	struct nfgenmsg *nfg;
@@ -168,19 +172,19 @@ static void nft_batch_build_hdr(char *buf, uint16_t type, uint32_t seq)
 	nfg->res_id = NFNL_SUBSYS_NFTABLES;
 }
 
-void nft_batch_begin(char *buf, uint32_t seq)
+void nftnl_batch_begin(char *buf, uint32_t seq)
 {
-	nft_batch_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, seq);
+	nftnl_batch_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, seq);
 }
-EXPORT_SYMBOL(nft_batch_begin);
+EXPORT_SYMBOL(nftnl_batch_begin, nft_batch_begin);
 
-void nft_batch_end(char *buf, uint32_t seq)
+void nftnl_batch_end(char *buf, uint32_t seq)
 {
-	nft_batch_build_hdr(buf, NFNL_MSG_BATCH_END, seq);
+	nftnl_batch_build_hdr(buf, NFNL_MSG_BATCH_END, seq);
 }
-EXPORT_SYMBOL(nft_batch_end);
+EXPORT_SYMBOL(nftnl_batch_end, nft_batch_end);
 
-int nft_batch_is_supported(void)
+int nftnl_batch_is_supported(void)
 {
 	struct mnl_socket *nl;
 	struct mnl_nlmsg_batch *b;
@@ -197,16 +201,16 @@ int nft_batch_is_supported(void)
 
 	b = mnl_nlmsg_batch_start(buf, sizeof(buf));
 
-	nft_batch_begin(mnl_nlmsg_batch_current(b), seq++);
+	nftnl_batch_begin(mnl_nlmsg_batch_current(b), seq++);
 	mnl_nlmsg_batch_next(b);
 
 	req_seq = seq;
-	nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(b),
+	nftnl_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(b),
 				NFT_MSG_NEWSET, AF_INET,
 				NLM_F_ACK, seq++);
 	mnl_nlmsg_batch_next(b);
 
-	nft_batch_end(mnl_nlmsg_batch_current(b), seq++);
+	nftnl_batch_end(mnl_nlmsg_batch_current(b), seq++);
 	mnl_nlmsg_batch_next(b);
 
 	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(b),
@@ -237,4 +241,4 @@ err:
 	mnl_nlmsg_batch_stop(b);
 	return -1;
 }
-EXPORT_SYMBOL(nft_batch_is_supported);
+EXPORT_SYMBOL(nftnl_batch_is_supported, nft_batch_is_supported);
