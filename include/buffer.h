@@ -1,10 +1,10 @@
-#ifndef _NFT_BUFFER_H_
-#define _NFT_BUFFER_H_
+#ifndef _NFTNL_BUFFER_H_
+#define _NFTNL_BUFFER_H_
 
 #include <stdint.h>
 #include <stdbool.h>
 
-struct nft_buf {
+struct nftnl_buf {
 	char		*buf;
 	size_t		size;
 	size_t		len;
@@ -12,25 +12,28 @@ struct nft_buf {
 	bool		fail;
 };
 
-#define NFT_BUF_INIT(__b, __buf, __len)			\
-	struct nft_buf __b = {				\
+#define NFTNL_BUF_INIT(__b, __buf, __len)			\
+	struct nftnl_buf __b = {				\
 		.buf	= __buf,			\
 		.len	= __len,			\
 	};
 
-int nft_buf_update(struct nft_buf *b, int ret);
-int nft_buf_done(struct nft_buf *b);
+int nftnl_buf_update(struct nftnl_buf *b, int ret);
+int nftnl_buf_done(struct nftnl_buf *b);
 
-union nft_data_reg;
+union nftnl_data_reg;
 
-int nft_buf_open(struct nft_buf *b, int type, const char *tag);
-int nft_buf_close(struct nft_buf *b, int type, const char *tag);
+int nftnl_buf_open(struct nftnl_buf *b, int type, const char *tag);
+int nftnl_buf_close(struct nftnl_buf *b, int type, const char *tag);
 
-int nft_buf_u32(struct nft_buf *b, int type, uint32_t value, const char *tag);
-int nft_buf_s32(struct nft_buf *b, int type, uint32_t value, const char *tag);
-int nft_buf_u64(struct nft_buf *b, int type, uint64_t value, const char *tag);
-int nft_buf_str(struct nft_buf *b, int type, const char *str, const char *tag);
-int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
+int nftnl_buf_open_array(struct nftnl_buf *b, int type, const char *tag);
+int nftnl_buf_close_array(struct nftnl_buf *b, int type, const char *tag);
+
+int nftnl_buf_u32(struct nftnl_buf *b, int type, uint32_t value, const char *tag);
+int nftnl_buf_s32(struct nftnl_buf *b, int type, uint32_t value, const char *tag);
+int nftnl_buf_u64(struct nftnl_buf *b, int type, uint64_t value, const char *tag);
+int nftnl_buf_str(struct nftnl_buf *b, int type, const char *str, const char *tag);
+int nftnl_buf_reg(struct nftnl_buf *b, int type, union nftnl_data_reg *reg,
 		int reg_type, const char *tag);
 
 #define BASE			"base"
@@ -38,6 +41,7 @@ int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
 #define CHAIN			"chain"
 #define CODE			"code"
 #define DATA			"data"
+#define DEVICE			"device"
 #define DIR			"dir"
 #define DREG			"dreg"
 #define EXTHDR_TYPE		"exthdr_type"
@@ -63,12 +67,15 @@ int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
 #define QTHRESH			"qthreshold"
 #define RATE			"rate"
 #define SET			"set"
+#define SET_NAME		"set_name"
 #define SIZE			"size"
 #define SNAPLEN			"snaplen"
 #define SREG_ADDR_MAX		"sreg_addr_max"
 #define SREG_ADDR_MIN		"sreg_addr_min"
 #define SREG_PROTO_MAX		"sreg_proto_max"
 #define SREG_PROTO_MIN		"sreg_proto_min"
+#define SREG_KEY		"sreg_key"
+#define SREG_DATA		"sreg_data"
 #define SREG			"sreg"
 #define TABLE			"table"
 #define TOTAL			"total"
@@ -76,5 +83,10 @@ int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
 #define UNIT			"unit"
 #define USE			"use"
 #define XOR			"xor"
+#define ADD			"add"
+#define INSERT			"insert"
+#define DELETE			"delete"
+#define REPLACE			"replace"
+#define FLUSH			"flush"
 
 #endif
