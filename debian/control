@@ -55,8 +55,7 @@ Pre-Depends:
 Depends:
  libnftnl0 (= ${binary:Version}),
  pkg-config,
- ${misc:Depends},
- ${shlibs:Depends}
+ ${misc:Depends}
 Description: Development files for libnftnl0
  libnftnl is the low-level library for Netfilter 4th generation
  framework nftables.
