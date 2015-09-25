@@ -1,3 +1,9 @@
+libnftnl (1.0.5-1~bpo8+1) jessie-backports; urgency=medium
+
+  * Rebuild for jessie-backports.
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Fri, 25 Sep 2015 09:06:03 +0200
+
 libnftnl (1.0.5-1) unstable; urgency=medium
 
   * [cf56f2d] Imported Upstream version 1.0.4
