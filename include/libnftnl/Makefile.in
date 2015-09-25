@@ -236,7 +236,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-pkginclude_HEADERS = table.h		\
+pkginclude_HEADERS = batch.h		\
+		     table.h		\
 		     chain.h		\
 		     rule.h		\
 		     expr.h		\

@@ -1,3 +1,15 @@
+libnftnl (1.0.5-1) unstable; urgency=medium
+
+  * [cf56f2d] Imported Upstream version 1.0.4
+  * [5dd1bdd] d/rules: drop get-orig-source target
+  * [a2c863e] d/: fix place of upstream signing key
+  * [11ec045] Imported Upstream version 1.0.5
+  * [85914ac] d/control: cleanup unused ${shlibs:Depends} variable in
+  libnftnl-dev
+  * [b9ff15b] d/: update symbols and bump SONAME
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Fri, 18 Sep 2015 09:25:31 +0200
+
 libnftnl (1.0.3-4~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.

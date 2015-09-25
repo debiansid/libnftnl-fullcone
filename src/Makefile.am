@@ -6,6 +6,7 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
 libnftnl_la_SOURCES = utils.c		\
+		      batch.c		\
 		      buffer.c		\
 		      common.c		\
 		      gen.c		\
@@ -29,6 +30,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/limit.c	\
 		      expr/log.c	\
 		      expr/lookup.c	\
+		      expr/dynset.c	\
 		      expr/immediate.c	\
 		      expr/match.c	\
 		      expr/meta.c	\
@@ -39,7 +41,4 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/target.c	\
 		      expr/masq.c	\
 		      expr/redir.c	\
-		      expr/data_reg.h	\
-		      libnftnl.map	\
-		      expr_ops.h	\
-		      internal.h
+		      libnftnl.map

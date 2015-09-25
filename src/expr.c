@@ -9,13 +9,13 @@
  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
 #include "internal.h"
-#include "expr_ops.h"
 
 #include <time.h>
 #include <endian.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <netinet/in.h>
 
 #include <libmnl/libmnl.h>
@@ -24,50 +24,48 @@
 
 #include <libnftnl/expr.h>
 
-#include "linux_list.h"
-
-struct nft_rule_expr *nft_rule_expr_alloc(const char *name)
+struct nftnl_expr *nftnl_expr_alloc(const char *name)
 {
-	struct nft_rule_expr *expr;
+	struct nftnl_expr *expr;
 	struct expr_ops *ops;
 
-	ops = nft_expr_ops_lookup(name);
+	ops = nftnl_expr_ops_lookup(name);
 	if (ops == NULL)
 		return NULL;
 
-	expr = calloc(1, sizeof(struct nft_rule_expr) + ops->alloc_len);
+	expr = calloc(1, sizeof(struct nftnl_expr) + ops->alloc_len);
 	if (expr == NULL)
 		return NULL;
 
 	/* Manually set expression name attribute */
-	expr->flags |= (1 << NFT_RULE_EXPR_ATTR_NAME);
+	expr->flags |= (1 << NFTNL_EXPR_NAME);
 	expr->ops = ops;
 
 	return expr;
 }
-EXPORT_SYMBOL(nft_rule_expr_alloc);
+EXPORT_SYMBOL(nftnl_expr_alloc, nft_rule_expr_alloc);
 
-void nft_rule_expr_free(struct nft_rule_expr *expr)
+void nftnl_expr_free(struct nftnl_expr *expr)
 {
 	if (expr->ops->free)
 		expr->ops->free(expr);
 
 	xfree(expr);
 }
-EXPORT_SYMBOL(nft_rule_expr_free);
+EXPORT_SYMBOL(nftnl_expr_free, nft_rule_expr_free);
 
-bool nft_rule_expr_is_set(const struct nft_rule_expr *expr, uint16_t type)
+bool nftnl_expr_is_set(const struct nftnl_expr *expr, uint16_t type)
 {
 	return expr->flags & (1 << type);
 }
-EXPORT_SYMBOL(nft_rule_expr_is_set);
+EXPORT_SYMBOL(nftnl_expr_is_set, nft_rule_expr_is_set);
 
 void
-nft_rule_expr_set(struct nft_rule_expr *expr, uint16_t type,
+nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
 		  const void *data, uint32_t data_len)
 {
 	switch(type) {
-	case NFT_RULE_EXPR_ATTR_NAME:	/* cannot be modified */
+	case NFTNL_EXPR_NAME:	/* cannot be modified */
 		return;
 	default:
 		if (expr->ops->set(expr, type, data, data_len) < 0)
@@ -75,44 +73,44 @@ nft_rule_expr_set(struct nft_rule_expr *expr, uint16_t type,
 	}
 	expr->flags |= (1 << type);
 }
-EXPORT_SYMBOL(nft_rule_expr_set);
+EXPORT_SYMBOL(nftnl_expr_set, nft_rule_expr_set);
 
 void
-nft_rule_expr_set_u8(struct nft_rule_expr *expr, uint16_t type, uint8_t data)
+nftnl_expr_set_u8(struct nftnl_expr *expr, uint16_t type, uint8_t data)
 {
-	nft_rule_expr_set(expr, type, &data, sizeof(uint8_t));
+	nftnl_expr_set(expr, type, &data, sizeof(uint8_t));
 }
-EXPORT_SYMBOL(nft_rule_expr_set_u8);
+EXPORT_SYMBOL(nftnl_expr_set_u8, nft_rule_expr_set_u8);
 
 void
-nft_rule_expr_set_u16(struct nft_rule_expr *expr, uint16_t type, uint16_t data)
+nftnl_expr_set_u16(struct nftnl_expr *expr, uint16_t type, uint16_t data)
 {
-	nft_rule_expr_set(expr, type, &data, sizeof(uint16_t));
+	nftnl_expr_set(expr, type, &data, sizeof(uint16_t));
 }
-EXPORT_SYMBOL(nft_rule_expr_set_u16);
+EXPORT_SYMBOL(nftnl_expr_set_u16, nft_rule_expr_set_u16);
 
 void
-nft_rule_expr_set_u32(struct nft_rule_expr *expr, uint16_t type, uint32_t data)
+nftnl_expr_set_u32(struct nftnl_expr *expr, uint16_t type, uint32_t data)
 {
-	nft_rule_expr_set(expr, type, &data, sizeof(uint32_t));
+	nftnl_expr_set(expr, type, &data, sizeof(uint32_t));
 }
-EXPORT_SYMBOL(nft_rule_expr_set_u32);
+EXPORT_SYMBOL(nftnl_expr_set_u32, nft_rule_expr_set_u32);
 
 void
-nft_rule_expr_set_u64(struct nft_rule_expr *expr, uint16_t type, uint64_t data)
+nftnl_expr_set_u64(struct nftnl_expr *expr, uint16_t type, uint64_t data)
 {
-	nft_rule_expr_set(expr, type, &data, sizeof(uint64_t));
+	nftnl_expr_set(expr, type, &data, sizeof(uint64_t));
 }
-EXPORT_SYMBOL(nft_rule_expr_set_u64);
+EXPORT_SYMBOL(nftnl_expr_set_u64, nft_rule_expr_set_u64);
 
 void
-nft_rule_expr_set_str(struct nft_rule_expr *expr, uint16_t type, const char *str)
+nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str)
 {
-	nft_rule_expr_set(expr, type, str, strlen(str)+1);
+	nftnl_expr_set(expr, type, str, strlen(str)+1);
 }
-EXPORT_SYMBOL(nft_rule_expr_set_str);
+EXPORT_SYMBOL(nftnl_expr_set_str, nft_rule_expr_set_str);
 
-const void *nft_rule_expr_get(const struct nft_rule_expr *expr,
+const void *nftnl_expr_get(const struct nftnl_expr *expr,
 			      uint16_t type, uint32_t *data_len)
 {
 	const void *ret;
@@ -121,7 +119,7 @@ const void *nft_rule_expr_get(const struct nft_rule_expr *expr,
 		return NULL;
 
 	switch(type) {
-	case NFT_RULE_EXPR_ATTR_NAME:
+	case NFTNL_EXPR_NAME:
 		ret = expr->ops->name;
 		break;
 	default:
@@ -131,14 +129,14 @@ const void *nft_rule_expr_get(const struct nft_rule_expr *expr,
 
 	return ret;
 }
-EXPORT_SYMBOL(nft_rule_expr_get);
+EXPORT_SYMBOL(nftnl_expr_get, nft_rule_expr_get);
 
-uint8_t nft_rule_expr_get_u8(const struct nft_rule_expr *expr, uint16_t type)
+uint8_t nftnl_expr_get_u8(const struct nftnl_expr *expr, uint16_t type)
 {
 	const void *data;
 	uint32_t data_len;
 
-	data = nft_rule_expr_get(expr, type, &data_len);
+	data = nftnl_expr_get(expr, type, &data_len);
 	if (data == NULL)
 		return 0;
 
@@ -147,14 +145,14 @@ uint8_t nft_rule_expr_get_u8(const struct nft_rule_expr *expr, uint16_t type)
 
 	return *((uint8_t *)data);
 }
-EXPORT_SYMBOL(nft_rule_expr_get_u8);
+EXPORT_SYMBOL(nftnl_expr_get_u8, nft_rule_expr_get_u8);
 
-uint16_t nft_rule_expr_get_u16(const struct nft_rule_expr *expr, uint16_t type)
+uint16_t nftnl_expr_get_u16(const struct nftnl_expr *expr, uint16_t type)
 {
 	const void *data;
 	uint32_t data_len;
 
-	data = nft_rule_expr_get(expr, type, &data_len);
+	data = nftnl_expr_get(expr, type, &data_len);
 	if (data == NULL)
 		return 0;
 
@@ -163,14 +161,14 @@ uint16_t nft_rule_expr_get_u16(const struct nft_rule_expr *expr, uint16_t type)
 
 	return *((uint16_t *)data);
 }
-EXPORT_SYMBOL(nft_rule_expr_get_u16);
+EXPORT_SYMBOL(nftnl_expr_get_u16, nft_rule_expr_get_u16);
 
-uint32_t nft_rule_expr_get_u32(const struct nft_rule_expr *expr, uint16_t type)
+uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type)
 {
 	const void *data;
 	uint32_t data_len;
 
-	data = nft_rule_expr_get(expr, type, &data_len);
+	data = nftnl_expr_get(expr, type, &data_len);
 	if (data == NULL)
 		return 0;
 
@@ -179,14 +177,14 @@ uint32_t nft_rule_expr_get_u32(const struct nft_rule_expr *expr, uint16_t type)
 
 	return *((uint32_t *)data);
 }
-EXPORT_SYMBOL(nft_rule_expr_get_u32);
+EXPORT_SYMBOL(nftnl_expr_get_u32, nft_rule_expr_get_u32);
 
-uint64_t nft_rule_expr_get_u64(const struct nft_rule_expr *expr, uint16_t type)
+uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type)
 {
 	const void *data;
 	uint32_t data_len;
 
-	data = nft_rule_expr_get(expr, type, &data_len);
+	data = nftnl_expr_get(expr, type, &data_len);
 	if (data == NULL)
 		return 0;
 
@@ -195,33 +193,76 @@ uint64_t nft_rule_expr_get_u64(const struct nft_rule_expr *expr, uint16_t type)
 
 	return *((uint64_t *)data);
 }
-EXPORT_SYMBOL(nft_rule_expr_get_u64);
+EXPORT_SYMBOL(nftnl_expr_get_u64, nft_rule_expr_get_u64);
 
-const char *nft_rule_expr_get_str(const struct nft_rule_expr *expr, uint16_t type)
+const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
 {
 	uint32_t data_len;
 
-	return (const char *)nft_rule_expr_get(expr, type, &data_len);
+	return (const char *)nftnl_expr_get(expr, type, &data_len);
 }
-EXPORT_SYMBOL(nft_rule_expr_get_str);
+EXPORT_SYMBOL(nftnl_expr_get_str, nft_rule_expr_get_str);
 
 void
-nft_rule_expr_build_payload(struct nlmsghdr *nlh, struct nft_rule_expr *expr)
+nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr)
 {
-	struct nlattr *nest1, *nest2;
+	struct nlattr *nest;
 
-	nest1 = mnl_attr_nest_start(nlh, NFTA_LIST_ELEM);
 	mnl_attr_put_strz(nlh, NFTA_EXPR_NAME, expr->ops->name);
 
-	nest2 = mnl_attr_nest_start(nlh, NFTA_EXPR_DATA);
+	nest = mnl_attr_nest_start(nlh, NFTA_EXPR_DATA);
 	expr->ops->build(nlh, expr);
-	mnl_attr_nest_end(nlh, nest2);
-
-	mnl_attr_nest_end(nlh, nest1);
+	mnl_attr_nest_end(nlh, nest);
 }
-EXPORT_SYMBOL(nft_rule_expr_build_payload);
 
-int nft_rule_expr_snprintf(char *buf, size_t size, struct nft_rule_expr *expr,
+static int nftnl_rule_parse_expr_cb(const struct nlattr *attr, void *data)
+{
+	const struct nlattr **tb = data;
+	int type = mnl_attr_get_type(attr);
+
+	if (mnl_attr_type_valid(attr, NFTA_EXPR_MAX) < 0)
+		return MNL_CB_OK;
+
+	switch (type) {
+	case NFTA_EXPR_NAME:
+		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
+			abi_breakage();
+		break;
+	case NFTA_EXPR_DATA:
+		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+			abi_breakage();
+		break;
+	}
+
+	tb[type] = attr;
+	return MNL_CB_OK;
+}
+
+struct nftnl_expr *nftnl_expr_parse(struct nlattr *attr)
+{
+	struct nlattr *tb[NFTA_EXPR_MAX+1] = {};
+	struct nftnl_expr *expr;
+
+	if (mnl_attr_parse_nested(attr, nftnl_rule_parse_expr_cb, tb) < 0)
+		goto err1;
+
+	expr = nftnl_expr_alloc(mnl_attr_get_str(tb[NFTA_EXPR_NAME]));
+	if (expr == NULL)
+		goto err1;
+
+	if (tb[NFTA_EXPR_DATA] &&
+	    expr->ops->parse(expr, tb[NFTA_EXPR_DATA]) < 0)
+		goto err2;
+
+	return expr;
+
+err2:
+	xfree(expr);
+err1:
+	return NULL;
+}
+
+int nftnl_expr_snprintf(char *buf, size_t size, struct nftnl_expr *expr,
 			   uint32_t type, uint32_t flags)
 {
 	int ret;
@@ -232,4 +273,4 @@ int nft_rule_expr_snprintf(char *buf, size_t size, struct nft_rule_expr *expr,
 
 	return offset;
 }
-EXPORT_SYMBOL(nft_rule_expr_snprintf);
+EXPORT_SYMBOL(nftnl_expr_snprintf, nft_rule_expr_snprintf);
