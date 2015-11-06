@@ -11,11 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <linux/netfilter/nf_tables.h>
 
+#include <linux/netfilter/nf_tables.h>
 #include <libmnl/libmnl.h>
 #include <libnftnl/rule.h>
 #include <libnftnl/expr.h>
@@ -31,18 +30,22 @@ static void print_err(const char *msg)
 static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
 			      struct nftnl_expr *rule_b)
 {
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_RATE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_RATE))
-		print_err("Expr CTR_BYTES mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_UNIT) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_UNIT))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_BURST) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_BURST))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_TYPE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_TYPE))
-		print_err("Expr TYPE mismatches");
+	uint32_t data_a, data_b, chain_a, chain_b;
+
+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_IMM_DREG) !=
+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_IMM_DREG))
+		print_err("Expr NFTNL_EXPR_IMM_DREG mismatches");
+	nftnl_expr_get(rule_a, NFTNL_EXPR_IMM_DATA, data_a);
+	nftnl_expr_get(rule_b, NFTNL_EXPR_IMM_DATA, data_b)
+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_IMM_VERDICT) !=
+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_IMM_VERDICT))
+		print_err("Expr NFTNL_EXPR_IMM_VERDICT mismatches");
+	nftnl_expr_get(rule_a, NFTNL_EXPR_IMM_CHAIN, chain_a);
+	nftnl_expr_get(rule_b, NFTNL_EXPR_IMM_CHAIN, chain_b);
+	if (data_a != data_b)
+		print_err("Expr NFTNL_EXPR_IMM_DATA. Size mismatches");
+	if (chain_a != chain_b)
+		print_err("Expr NFTNL_EXPR_IMM_CHAIN. Size mismatches");
 }
 
 int main(int argc, char *argv[])
@@ -53,19 +56,21 @@ int main(int argc, char *argv[])
 	char buf[4096];
 	struct nftnl_expr_iter *iter_a, *iter_b;
 	struct nftnl_expr *rule_a, *rule_b;
+	uint32_t chain_t = 0x12345678;
+	uint32_t data_t = 0x12345678;
 
 	a = nftnl_rule_alloc();
 	b = nftnl_rule_alloc();
 	if (a == NULL || b == NULL)
 		print_err("OOM");
-	ex = nftnl_expr_alloc("limit");
+	ex = nftnl_expr_alloc("immediate");
 	if (ex == NULL)
 		print_err("OOM");
 
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_RATE, 0x123456789abcdef0);
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_UNIT, 0x123456789abcdef0);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_BURST, 0x89123456);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_TYPE, 0xdef01234);
+	nftnl_expr_set_u32(ex, NFTNL_EXPR_IMM_DREG, 0x1234568);
+	nftnl_expr_set(ex, NFTNL_EXPR_IMM_DATA, &chain_t, sizeof(chain_t));
+	nftnl_expr_set_u32(ex, NFTNL_EXPR_IMM_VERDICT, 0x12345678);
+	nftnl_expr_set(ex, NFTNL_EXPR_IMM_CHAIN, &data_t, sizeof(data_t));
 
 	nftnl_rule_add_expr(a, ex);
 

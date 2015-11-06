@@ -15,7 +15,6 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <linux/netfilter/nf_tables.h>
-
 #include <libmnl/libmnl.h>
 #include <libnftnl/rule.h>
 #include <libnftnl/expr.h>
@@ -31,18 +30,18 @@ static void print_err(const char *msg)
 static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
 			      struct nftnl_expr *rule_b)
 {
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_RATE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_RATE))
-		print_err("Expr CTR_BYTES mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_UNIT) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_UNIT))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_BURST) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_BURST))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_TYPE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_TYPE))
-		print_err("Expr TYPE mismatches");
+	uint32_t data_lena, data_lenb;
+
+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_LOOKUP_SREG) !=
+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_LOOPUP_SREG))
+		print_err("Expr NFTNL_EXPR_LOOkUP_SREG mismatches");
+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_LOOKUP_DREG) !=
+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_LOOPUP_DREG))
+		print_err("Expr NFTNL_EXPR_LOOkUP_DREG mismatches");
+	nftnl_expr_get(rule_a, NFTNL_EXPR_LOOKUP_SET, &data_lena);
+	nftnl_expr_get(rule_b, NFTNL_EXPR_LOOKUP_SET, &data_lenb);
+	if (data_lena != data_lenb)
+		print_err("Expr NFTNL_EXPR_LOOKUP_SET size mismatches");
 }
 
 int main(int argc, char *argv[])
@@ -53,19 +52,20 @@ int main(int argc, char *argv[])
 	char buf[4096];
 	struct nftnl_expr_iter *iter_a, *iter_b;
 	struct nftnl_expr *rule_a, *rule_b;
+	uint32_t lookup_set = 0x12345678;
 
 	a = nftnl_rule_alloc();
 	b = nftnl_rule_alloc();
 	if (a == NULL || b == NULL)
 		print_err("OOM");
-	ex = nftnl_expr_alloc("limit");
+	ex = nftnl_expr_alloc("lookup");
 	if (ex == NULL)
 		print_err("OOM");
 
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_RATE, 0x123456789abcdef0);
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_UNIT, 0x123456789abcdef0);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_BURST, 0x89123456);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_TYPE, 0xdef01234);
+	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_SREG, 0x12345678);
+	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_DREG, 0x12345678);
+	nftnl_expr_set(ex, NFTNL_EXPR_LOOKUP_SET, &lookup_set,
+			  sizeof(lookup_set));
 
 	nftnl_rule_add_expr(a, ex);
 
@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 	iter_b = nftnl_expr_iter_create(b);
 	if (iter_a == NULL || iter_b == NULL)
 		print_err("OOM");
-
 	rule_a = nftnl_expr_iter_next(iter_a);
 	rule_b = nftnl_expr_iter_next(iter_b);
 	if (rule_a == NULL || rule_b == NULL)
@@ -99,6 +98,7 @@ int main(int argc, char *argv[])
 	if (!test_ok)
 		exit(EXIT_FAILURE);
 
-	printf("%s: \033[32mOK\e[0m\n", argv[0]);
+	print(_"%s: \033[32mOK\e[0m\n", argv[0]);
+
 	return EXIT_SUCCESS;
 }

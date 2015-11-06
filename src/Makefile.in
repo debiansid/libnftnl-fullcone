@@ -102,10 +102,11 @@ am_libnftnl_la_OBJECTS = utils.lo batch.lo buffer.lo common.lo gen.lo \
 	table.lo chain.lo rule.lo set.lo set_elem.lo ruleset.lo \
 	mxml.lo jansson.lo expr.lo expr_ops.lo expr/bitwise.lo \
 	expr/byteorder.lo expr/cmp.lo expr/counter.lo expr/ct.lo \
-	expr/data_reg.lo expr/exthdr.lo expr/limit.lo expr/log.lo \
-	expr/lookup.lo expr/dynset.lo expr/immediate.lo expr/match.lo \
-	expr/meta.lo expr/nat.lo expr/payload.lo expr/queue.lo \
-	expr/reject.lo expr/target.lo expr/masq.lo expr/redir.lo
+	expr/data_reg.lo expr/dup.lo expr/exthdr.lo expr/limit.lo \
+	expr/log.lo expr/lookup.lo expr/dynset.lo expr/immediate.lo \
+	expr/match.lo expr/meta.lo expr/nat.lo expr/payload.lo \
+	expr/queue.lo expr/reject.lo expr/target.lo expr/masq.lo \
+	expr/redir.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -325,6 +326,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/counter.c	\
 		      expr/ct.c		\
 		      expr/data_reg.c	\
+		      expr/dup.c	\
 		      expr/exthdr.c	\
 		      expr/limit.c	\
 		      expr/log.c	\
@@ -421,6 +423,7 @@ expr/cmp.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/counter.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/ct.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/data_reg.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/dup.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/exthdr.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/limit.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/log.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -453,6 +456,8 @@ mostlyclean-compile:
 	-rm -f expr/ct.lo
 	-rm -f expr/data_reg.$(OBJEXT)
 	-rm -f expr/data_reg.lo
+	-rm -f expr/dup.$(OBJEXT)
+	-rm -f expr/dup.lo
 	-rm -f expr/dynset.$(OBJEXT)
 	-rm -f expr/dynset.lo
 	-rm -f expr/exthdr.$(OBJEXT)
@@ -508,6 +513,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/counter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/ct.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/data_reg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dynset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/exthdr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/immediate.Plo@am__quote@
