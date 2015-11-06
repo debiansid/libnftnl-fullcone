@@ -1,3 +1,9 @@
+libnftnl (1.0.5+snapshot20151106-1) unstable; urgency=medium
+
+  * [c3afd66] Imported Upstream version 1.0.5+snapshot20151106
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Fri, 06 Nov 2015 13:09:07 +0100
+
 libnftnl (1.0.5-1) unstable; urgency=medium
 
   * [cf56f2d] Imported Upstream version 1.0.4
