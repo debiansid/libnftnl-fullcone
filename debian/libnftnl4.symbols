@@ -1,4 +1,5 @@
 libnftnl.so.4 libnftnl4 #MINVER#
+ LIBNFTNL_4.1@LIBNFTNL_4.1 1.0.5+snapshot20160416
  LIBNFTNL_4@LIBNFTNL_4 1.0.5
  nft_batch_alloc@LIBNFTNL_4 1.0.5
  nft_batch_begin@LIBNFTNL_4 1.0.5
@@ -422,3 +423,26 @@ libnftnl.so.4 libnftnl4 #MINVER#
  nftnl_table_set_u8@LIBNFTNL_4 1.0.5
  nftnl_table_snprintf@LIBNFTNL_4 1.0.5
  nftnl_table_unset@LIBNFTNL_4 1.0.5
+ nftnl_trace_alloc@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_free@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_get_data@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_get_str@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_get_u16@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_get_u32@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_get_u64@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_is_set@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_trace_nlmsg_parse@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_buf_alloc@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_buf_data@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_buf_free@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_buf_len@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_buf_put@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_end@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_get@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_len@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_next@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_parse@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_put@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_put_strz@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_start@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ nftnl_udata_type@LIBNFTNL_4.1 1.0.5+snapshot20160416
