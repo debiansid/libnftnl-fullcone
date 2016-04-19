@@ -11,17 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <linux/netfilter/nf_tables.h>
 
+#include <linux/netfilter/nf_tables.h>
 #include <libmnl/libmnl.h>
 #include <libnftnl/rule.h>
 #include <libnftnl/expr.h>
 
 static int test_ok = 1;
-
 static void print_err(const char *msg)
 {
 	test_ok = 0;
@@ -31,21 +29,9 @@ static void print_err(const char *msg)
 static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
 			      struct nftnl_expr *rule_b)
 {
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_RATE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_RATE))
-		print_err("Expr CTR_BYTES mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_UNIT) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_UNIT))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_BURST) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_BURST))
-		print_err("Expr CTR_PACKET mismatches");
-	if (nftnl_expr_get_u64(rule_a, NFTNL_EXPR_LIMIT_TYPE) !=
-	    nftnl_expr_get_u64(rule_b, NFTNL_EXPR_LIMIT_TYPE))
-		print_err("Expr TYPE mismatches");
-	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_LIMIT_FLAGS) !=
-	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_LIMIT_FLAGS))
-		print_err("Expr FLAGS mismatches");
+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_FWD_SREG_DEV) !=
+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_FWD_SREG_DEV))
+		print_err("Expr SREG_OIF mismatches");
 }
 
 int main(int argc, char *argv[])
@@ -61,15 +47,11 @@ int main(int argc, char *argv[])
 	b = nftnl_rule_alloc();
 	if (a == NULL || b == NULL)
 		print_err("OOM");
-	ex = nftnl_expr_alloc("limit");
+	ex = nftnl_expr_alloc("dup");
 	if (ex == NULL)
 		print_err("OOM");
 
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_RATE, 0x123456789abcdef0);
-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_UNIT, 0x123456789abcdef0);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_BURST, 0x89123456);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_TYPE, 0xdef01234);
-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_FLAGS, 0xdef01234);
+	nftnl_expr_set_u32(ex, NFTNL_EXPR_FWD_SREG_DEV,  0x78123456);
 
 	nftnl_rule_add_expr(a, ex);
 
