@@ -11,6 +11,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      common.c		\
 		      gen.c		\
 		      table.c		\
+		      trace.c		\
 		      chain.c		\
 		      rule.c		\
 		      set.c		\
@@ -18,6 +19,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      ruleset.c		\
 		      mxml.c		\
 		      jansson.c		\
+		      udata.c		\
 		      expr.c		\
 		      expr_ops.c	\
 		      expr/bitwise.c	\
@@ -28,6 +30,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/data_reg.c	\
 		      expr/dup.c	\
 		      expr/exthdr.c	\
+		      expr/fwd.c	\
 		      expr/limit.c	\
 		      expr/log.c	\
 		      expr/lookup.c	\

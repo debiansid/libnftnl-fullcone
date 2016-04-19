@@ -99,14 +99,14 @@ libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libnftnl_la_OBJECTS = utils.lo batch.lo buffer.lo common.lo gen.lo \
-	table.lo chain.lo rule.lo set.lo set_elem.lo ruleset.lo \
-	mxml.lo jansson.lo expr.lo expr_ops.lo expr/bitwise.lo \
-	expr/byteorder.lo expr/cmp.lo expr/counter.lo expr/ct.lo \
-	expr/data_reg.lo expr/dup.lo expr/exthdr.lo expr/limit.lo \
-	expr/log.lo expr/lookup.lo expr/dynset.lo expr/immediate.lo \
-	expr/match.lo expr/meta.lo expr/nat.lo expr/payload.lo \
-	expr/queue.lo expr/reject.lo expr/target.lo expr/masq.lo \
-	expr/redir.lo
+	table.lo trace.lo chain.lo rule.lo set.lo set_elem.lo \
+	ruleset.lo mxml.lo jansson.lo udata.lo expr.lo expr_ops.lo \
+	expr/bitwise.lo expr/byteorder.lo expr/cmp.lo expr/counter.lo \
+	expr/ct.lo expr/data_reg.lo expr/dup.lo expr/exthdr.lo \
+	expr/fwd.lo expr/limit.lo expr/log.lo expr/lookup.lo \
+	expr/dynset.lo expr/immediate.lo expr/match.lo expr/meta.lo \
+	expr/nat.lo expr/payload.lo expr/queue.lo expr/reject.lo \
+	expr/target.lo expr/masq.lo expr/redir.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -311,6 +311,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      common.c		\
 		      gen.c		\
 		      table.c		\
+		      trace.c		\
 		      chain.c		\
 		      rule.c		\
 		      set.c		\
@@ -318,6 +319,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      ruleset.c		\
 		      mxml.c		\
 		      jansson.c		\
+		      udata.c		\
 		      expr.c		\
 		      expr_ops.c	\
 		      expr/bitwise.c	\
@@ -328,6 +330,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/data_reg.c	\
 		      expr/dup.c	\
 		      expr/exthdr.c	\
+		      expr/fwd.c	\
 		      expr/limit.c	\
 		      expr/log.c	\
 		      expr/lookup.c	\
@@ -425,6 +428,7 @@ expr/ct.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/data_reg.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/dup.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/exthdr.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/fwd.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/limit.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/log.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/lookup.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -462,6 +466,8 @@ mostlyclean-compile:
 	-rm -f expr/dynset.lo
 	-rm -f expr/exthdr.$(OBJEXT)
 	-rm -f expr/exthdr.lo
+	-rm -f expr/fwd.$(OBJEXT)
+	-rm -f expr/fwd.lo
 	-rm -f expr/immediate.$(OBJEXT)
 	-rm -f expr/immediate.lo
 	-rm -f expr/limit.$(OBJEXT)
@@ -506,6 +512,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set_elem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trace.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/udata.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/bitwise.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/byteorder.Plo@am__quote@
@@ -516,6 +524,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dynset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/exthdr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/fwd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/immediate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/limit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/log.Plo@am__quote@
