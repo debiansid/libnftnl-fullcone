@@ -14,7 +14,6 @@ Section: libs
 Homepage: http://git.netfilter.org/libnftnl
 Vcs-Git: https://github.com/aborrero/pkg-libnftnl.git
 Vcs-Browser: https://github.com/aborrero/pkg-libnftnl
-XS-Testsuite: autopkgtest
 
 Package: libnftnl4
 Architecture: linux-any
