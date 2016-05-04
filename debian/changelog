@@ -1,3 +1,14 @@
+libnftnl (1.0.5+snapshot20160416-1) unstable; urgency=medium
+
+  * [796ad93] d/control: bump standards to 3.9.7
+  * [f84de65] Imported Upstream version 1.0.5+snapshot20160416
+  * [74d97d5] d/libnftnl4.symbols: update file with new 1.0.5+snapshot20160416
+  symbols
+  * [377c9b6] d/control: use HTTPS in Vcs-git filed
+  * [6254c3e] d/control: remove XS-Testsuite filed
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Tue, 19 Apr 2016 15:07:09 +0200
+
 libnftnl (1.0.5+snapshot20151106-1~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.
