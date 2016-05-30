@@ -51,6 +51,9 @@ void nftnl_set_elem_free(struct nftnl_set_elem *s)
 	if (s->flags & (1 << NFTNL_SET_ELEM_EXPR))
 		nftnl_expr_free(s->expr);
 
+	if (s->flags & (1 << NFTNL_SET_ELEM_USERDATA))
+		xfree(s->user.data);
+
 	xfree(s);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_set_elem_free, nft_set_elem_free);
@@ -122,8 +125,14 @@ void nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
 		s->timeout = *((uint64_t *)data);
 		break;
 	case NFTNL_SET_ELEM_USERDATA: /* NFTA_SET_ELEM_USERDATA */
-		s->user.data = (void *)data;
-		s->user.len  = data_len;
+		if (s->user.data != NULL)
+			xfree(s->user.data);
+
+		s->user.data = malloc(data_len);
+		if (!s->user.data)
+			return;
+		memcpy(s->user.data, data, data_len);
+		s->user.len = data_len;
 		break;
 	default:
 		return;
@@ -599,7 +608,8 @@ int nftnl_set_elem_parse_file(struct nftnl_set_elem *e, enum nftnl_parse_type ty
 EXPORT_SYMBOL_ALIAS(nftnl_set_elem_parse_file, nft_set_elem_parse_file);
 
 static int nftnl_set_elem_snprintf_json(char *buf, size_t size,
-				      struct nftnl_set_elem *e, uint32_t flags)
+					const struct nftnl_set_elem *e,
+					uint32_t flags)
 {
 	int ret, len = size, offset = 0, type = -1;
 
@@ -641,7 +651,7 @@ static int nftnl_set_elem_snprintf_json(char *buf, size_t size,
 }
 
 static int nftnl_set_elem_snprintf_default(char *buf, size_t size,
-					 struct nftnl_set_elem *e)
+					   const struct nftnl_set_elem *e)
 {
 	int ret, len = size, offset = 0, i;
 
@@ -684,7 +694,8 @@ static int nftnl_set_elem_snprintf_default(char *buf, size_t size,
 }
 
 static int nftnl_set_elem_snprintf_xml(char *buf, size_t size,
-				     struct nftnl_set_elem *e, uint32_t flags)
+				       const struct nftnl_set_elem *e,
+				       uint32_t flags)
 {
 	int ret, len = size, offset = 0, type = DATA_NONE;
 
@@ -735,8 +746,9 @@ static int nftnl_set_elem_snprintf_xml(char *buf, size_t size,
 }
 
 static int nftnl_set_elem_cmd_snprintf(char *buf, size_t size,
-				     struct nftnl_set_elem *e, uint32_t cmd,
-				     uint32_t type, uint32_t flags)
+				       const struct nftnl_set_elem *e,
+				       uint32_t cmd, uint32_t type,
+				       uint32_t flags)
 {
 	int ret, len = size, offset = 0;
 
@@ -765,17 +777,18 @@ static int nftnl_set_elem_cmd_snprintf(char *buf, size_t size,
 	return offset;
 }
 
-int nftnl_set_elem_snprintf(char *buf, size_t size, struct nftnl_set_elem *e,
-			      uint32_t type, uint32_t flags)
+int nftnl_set_elem_snprintf(char *buf, size_t size,
+			    const struct nftnl_set_elem *e,
+			    uint32_t type, uint32_t flags)
 {
 	return nftnl_set_elem_cmd_snprintf(buf, size, e, nftnl_flag2cmd(flags),
 					 type, flags);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_set_elem_snprintf, nft_set_elem_snprintf);
 
-static inline int nftnl_set_elem_do_snprintf(char *buf, size_t size, void *e,
-					   uint32_t cmd, uint32_t type,
-					   uint32_t flags)
+static int nftnl_set_elem_do_snprintf(char *buf, size_t size, const void *e,
+				      uint32_t cmd, uint32_t type,
+				      uint32_t flags)
 {
 	return nftnl_set_elem_snprintf(buf, size, e, type, flags);
 }
