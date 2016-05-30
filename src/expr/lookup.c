@@ -21,14 +21,10 @@
 #include <libnftnl/rule.h>
 #include <libnftnl/expr.h>
 
-#ifndef IFNAMSIZ
-#define IFNAMSIZ	16
-#endif
-
 struct nftnl_expr_lookup {
 	enum nft_registers	sreg;
 	enum nft_registers	dreg;
-	char			set_name[IFNAMSIZ];
+	char			*set_name;
 	uint32_t		set_id;
 };
 
@@ -46,8 +42,7 @@ nftnl_expr_lookup_set(struct nftnl_expr *e, uint16_t type,
 		lookup->dreg = *((uint32_t *)data);
 		break;
 	case NFTNL_EXPR_LOOKUP_SET:
-		snprintf(lookup->set_name, sizeof(lookup->set_name), "%s",
-			 (const char *)data);
+		lookup->set_name = strdup((const char *)data);
 		break;
 	case NFTNL_EXPR_LOOKUP_SET_ID:
 		lookup->set_id = *((uint32_t *)data);
@@ -105,7 +100,7 @@ static int nftnl_expr_lookup_cb(const struct nlattr *attr, void *data)
 }
 
 static void
-nftnl_expr_lookup_build(struct nlmsghdr *nlh, struct nftnl_expr *e)
+nftnl_expr_lookup_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_lookup *lookup = nftnl_expr_data(e);
 
@@ -140,7 +135,8 @@ nftnl_expr_lookup_parse(struct nftnl_expr *e, struct nlattr *attr)
 		e->flags |= (1 << NFTNL_EXPR_LOOKUP_DREG);
 	}
 	if (tb[NFTA_LOOKUP_SET]) {
-		strcpy(lookup->set_name, mnl_attr_get_str(tb[NFTA_LOOKUP_SET]));
+		lookup->set_name =
+			strdup(mnl_attr_get_str(tb[NFTA_LOOKUP_SET]));
 		e->flags |= (1 << NFTNL_EXPR_LOOKUP_SET);
 	}
 	if (tb[NFTA_LOOKUP_SET_ID]) {
@@ -207,7 +203,7 @@ nftnl_expr_lookup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
 
 static int
 nftnl_expr_lookup_export(char *buf, size_t size,
-			    struct nftnl_expr *e, int type)
+			 const struct nftnl_expr *e, int type)
 {
 	struct nftnl_expr_lookup *l = nftnl_expr_data(e);
 	NFTNL_BUF_INIT(b, buf, size);
@@ -224,7 +220,7 @@ nftnl_expr_lookup_export(char *buf, size_t size,
 
 static int
 nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
-				      struct nftnl_expr *e)
+				   const struct nftnl_expr *e)
 {
 	int len = size, offset = 0, ret;
 	struct nftnl_expr_lookup *l = nftnl_expr_data(e);
@@ -243,7 +239,7 @@ nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
 
 static int
 nftnl_expr_lookup_snprintf(char *buf, size_t size, uint32_t type,
-			       uint32_t flags, struct nftnl_expr *e)
+			   uint32_t flags, const struct nftnl_expr *e)
 {
 
 	switch(type) {
@@ -258,10 +254,18 @@ nftnl_expr_lookup_snprintf(char *buf, size_t size, uint32_t type,
 	return -1;
 }
 
+static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
+{
+	struct nftnl_expr_lookup *lookup = nftnl_expr_data(e);
+
+	xfree(lookup->set_name);
+}
+
 struct expr_ops expr_ops_lookup = {
 	.name		= "lookup",
 	.alloc_len	= sizeof(struct nftnl_expr_lookup),
 	.max_attr	= NFTA_LOOKUP_MAX,
+	.free		= nftnl_expr_lookup_free,
 	.set		= nftnl_expr_lookup_set,
 	.get		= nftnl_expr_lookup_get,
 	.parse		= nftnl_expr_lookup_parse,
