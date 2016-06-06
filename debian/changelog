@@ -1,3 +1,10 @@
+libnftnl (1.0.6-1) unstable; urgency=medium
+
+  * [b98a331] d/control: bump standars version to 3.9.8
+  * [b5707be] Imported Upstream version 1.0.6
+
+ -- Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>  Mon, 30 May 2016 13:17:35 +0200
+
 libnftnl (1.0.5+snapshot20160416-1~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.

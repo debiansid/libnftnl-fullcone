@@ -9,7 +9,7 @@ Build-Depends:
  libmxml-dev,
  libtool,
  pkg-config
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Section: libs
 Homepage: http://git.netfilter.org/libnftnl
 Vcs-Git: https://github.com/aborrero/pkg-libnftnl.git

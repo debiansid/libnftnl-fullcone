@@ -59,7 +59,7 @@ struct nftnl_trace *nftnl_trace_alloc(void)
 }
 
 EXPORT_SYMBOL(nftnl_trace_free);
-void nftnl_trace_free(struct nftnl_trace *t)
+void nftnl_trace_free(const struct nftnl_trace *t)
 {
 	xfree(t->chain);
 	xfree(t->table);
@@ -122,6 +122,8 @@ static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
 		if (mnl_attr_get_payload_len(attr) == 0)
 			abi_breakage();
 		break;
+	default:
+		return MNL_CB_OK;
 	};
 
 	tb[type] = attr;
