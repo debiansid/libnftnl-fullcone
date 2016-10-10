@@ -6,7 +6,6 @@ Build-Depends:
  dh-autoreconf,
  libjansson-dev,
  libmnl-dev,
- libmxml-dev,
  libtool,
  pkg-config
 Standards-Version: 3.9.8
