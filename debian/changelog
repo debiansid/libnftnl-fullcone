@@ -1,3 +1,11 @@
+libnftnl (1.0.6-2) unstable; urgency=medium
+
+  * [daa2393] d/rules: run tests and fail the build if the tests fail
+  * [74ac377] d/: update email address to 'arturo@debian.org'
+  * [aa177d6] libnftnl: disable XML parsing
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 10 Oct 2016 11:41:08 +0200
+
 libnftnl (1.0.6-1) unstable; urgency=medium
 
   * [b98a331] d/control: bump standars version to 3.9.8
