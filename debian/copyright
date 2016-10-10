@@ -11,7 +11,7 @@ Copyright: 2012 Ana Rey Botello <anarey@gmail.com>
 License: GPL-2+
 
 Files: debian/*
-Copyright: 2014 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Copyright: 2014 Arturo Borrero Gonzalez <arturo@debian.org>
 License: GPL-2+
 
 Files: src/ruleset.c
