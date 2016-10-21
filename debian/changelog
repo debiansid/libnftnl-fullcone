@@ -1,3 +1,11 @@
+libnftnl (1.0.6-3) unstable; urgency=medium
+
+  * [6b0ecb8] d/rules: don't run testsuite at buildtime in big endian arches
+    (Closes: #841352)
+  * [ec015a9] libnftnl: bindnow hardened build
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 21 Oct 2016 11:20:23 +0200
+
 libnftnl (1.0.6-2) unstable; urgency=medium
 
   * [daa2393] d/rules: run tests and fail the build if the tests fail
