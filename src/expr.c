@@ -60,18 +60,18 @@ bool nftnl_expr_is_set(const struct nftnl_expr *expr, uint16_t type)
 }
 EXPORT_SYMBOL_ALIAS(nftnl_expr_is_set, nft_rule_expr_is_set);
 
-void
-nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
-		  const void *data, uint32_t data_len)
+int nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
+		   const void *data, uint32_t data_len)
 {
 	switch(type) {
 	case NFTNL_EXPR_NAME:	/* cannot be modified */
-		return;
+		return 0;
 	default:
 		if (expr->ops->set(expr, type, data, data_len) < 0)
-			return;
+			return -1;
 	}
 	expr->flags |= (1 << type);
+	return 0;
 }
 EXPORT_SYMBOL_ALIAS(nftnl_expr_set, nft_rule_expr_set);
 
@@ -103,10 +103,9 @@ nftnl_expr_set_u64(struct nftnl_expr *expr, uint16_t type, uint64_t data)
 }
 EXPORT_SYMBOL_ALIAS(nftnl_expr_set_u64, nft_rule_expr_set_u64);
 
-void
-nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str)
+int nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str)
 {
-	nftnl_expr_set(expr, type, str, strlen(str)+1);
+	return nftnl_expr_set(expr, type, str, strlen(str) + 1);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_expr_set_str, nft_rule_expr_set_str);
 
@@ -120,6 +119,7 @@ const void *nftnl_expr_get(const struct nftnl_expr *expr,
 
 	switch(type) {
 	case NFTNL_EXPR_NAME:
+		*data_len = strlen(expr->ops->name) + 1;
 		ret = expr->ops->name;
 		break;
 	default:
@@ -203,12 +203,24 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
 }
 EXPORT_SYMBOL_ALIAS(nftnl_expr_get_str, nft_rule_expr_get_str);
 
-void
-nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr)
+bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+{
+	if (e1->flags != e2->flags ||
+	    strcmp(e1->ops->name, e2->ops->name) != 0)
+		return false;
+
+	return e1->ops->cmp(e1, e2);
+}
+EXPORT_SYMBOL(nftnl_expr_cmp);
+
+void nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr)
 {
 	struct nlattr *nest;
 
 	mnl_attr_put_strz(nlh, NFTA_EXPR_NAME, expr->ops->name);
+
+	if (!expr->ops->build)
+		return;
 
 	nest = mnl_attr_nest_start(nlh, NFTA_EXPR_DATA);
 	expr->ops->build(nlh, expr);
@@ -251,6 +263,7 @@ struct nftnl_expr *nftnl_expr_parse(struct nlattr *attr)
 		goto err1;
 
 	if (tb[NFTA_EXPR_DATA] &&
+	    expr->ops->parse &&
 	    expr->ops->parse(expr, tb[NFTA_EXPR_DATA]) < 0)
 		goto err2;
 

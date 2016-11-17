@@ -64,10 +64,7 @@ void nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
 
 	switch (attr) {
 	case NFTNL_TABLE_NAME:
-		if (t->name) {
-			xfree(t->name);
-			t->name = NULL;
-		}
+		xfree(t->name);
 		break;
 	case NFTNL_TABLE_FLAGS:
 	case NFTNL_TABLE_FAMILY:
@@ -84,20 +81,20 @@ static uint32_t nftnl_table_validate[NFTNL_TABLE_MAX + 1] = {
 	[NFTNL_TABLE_FAMILY]	= sizeof(uint32_t),
 };
 
-void nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
-			     const void *data, uint32_t data_len)
+int nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
+			 const void *data, uint32_t data_len)
 {
-	if (attr > NFTNL_TABLE_MAX)
-		return;
-
+	nftnl_assert_attr_exists(attr, NFTNL_TABLE_MAX);
 	nftnl_assert_validate(data, nftnl_table_validate, attr, data_len);
 
 	switch (attr) {
 	case NFTNL_TABLE_NAME:
-		if (t->name)
+		if (t->flags & (1 << NFTNL_TABLE_NAME))
 			xfree(t->name);
 
 		t->name = strdup(data);
+		if (!t->name)
+			return -1;
 		break;
 	case NFTNL_TABLE_FLAGS:
 		t->table_flags = *((uint32_t *)data);
@@ -110,6 +107,7 @@ void nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
 		break;
 	}
 	t->flags |= (1 << attr);
+	return 0;
 }
 EXPORT_SYMBOL_ALIAS(nftnl_table_set_data, nft_table_attr_set_data);
 
@@ -131,9 +129,9 @@ void nftnl_table_set_u8(struct nftnl_table *t, uint16_t attr, uint8_t val)
 }
 EXPORT_SYMBOL_ALIAS(nftnl_table_set_u8, nft_table_attr_set_u8);
 
-void nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, const char *str)
+int nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, const char *str)
 {
-	nftnl_table_set_data(t, attr, str, 0);
+	return nftnl_table_set_data(t, attr, str, strlen(str) + 1);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_table_set_str, nft_table_attr_set_str);
 
@@ -145,6 +143,7 @@ const void *nftnl_table_get_data(const struct nftnl_table *t, uint16_t attr,
 
 	switch(attr) {
 	case NFTNL_TABLE_NAME:
+		*data_len = strlen(t->name) + 1;
 		return t->name;
 	case NFTNL_TABLE_FLAGS:
 		*data_len = sizeof(uint32_t);
@@ -229,8 +228,11 @@ int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
 		return -1;
 
 	if (tb[NFTA_TABLE_NAME]) {
-		xfree(t->name);
+		if (t->flags & (1 << NFTNL_TABLE_NAME))
+			xfree(t->name);
 		t->name = strdup(mnl_attr_get_str(tb[NFTA_TABLE_NAME]));
+		if (!t->name)
+			return -1;
 		t->flags |= (1 << NFTNL_TABLE_NAME);
 	}
 	if (tb[NFTA_TABLE_FLAGS]) {
@@ -248,55 +250,6 @@ int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
 	return 0;
 }
 EXPORT_SYMBOL_ALIAS(nftnl_table_nlmsg_parse, nft_table_nlmsg_parse);
-
-#ifdef XML_PARSING
-int nftnl_mxml_table_parse(mxml_node_t *tree, struct nftnl_table *t,
-			 struct nftnl_parse_err *err)
-{
-	const char *name;
-	int family;
-	uint32_t flags, use;
-
-	name = nftnl_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
-				  NFTNL_XML_MAND, err);
-	if (name != NULL)
-		nftnl_table_set_str(t, NFTNL_TABLE_NAME, name);
-
-	family = nftnl_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST,
-				       NFTNL_XML_MAND, err);
-	if (family >= 0)
-		nftnl_table_set_u32(t, NFTNL_TABLE_FAMILY, family);
-
-	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND, BASE_DEC,
-			       &flags, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_table_set_u32(t, NFTNL_TABLE_FLAGS, flags);
-
-	if (nftnl_mxml_num_parse(tree, "use", MXML_DESCEND, BASE_DEC,
-			       &use, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_table_set_u32(t, NFTNL_TABLE_USE, use);
-
-	return 0;
-}
-#endif
-
-static int nftnl_table_xml_parse(struct nftnl_table *t, const void *data,
-			       struct nftnl_parse_err *err,
-			       enum nftnl_parse_input input)
-{
-#ifdef XML_PARSING
-	int ret;
-	mxml_node_t *tree = nftnl_mxml_build_tree(data, "table", err, input);
-	if (tree == NULL)
-		return -1;
-
-	ret = nftnl_mxml_table_parse(tree, t, err);
-	mxmlDelete(tree);
-	return ret;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
 
 #ifdef JSON_PARSING
 int nftnl_jansson_parse_table(struct nftnl_table *t, json_t *tree,
@@ -358,15 +311,13 @@ static int nftnl_table_do_parse(struct nftnl_table *t, enum nftnl_parse_type typ
 			      enum nftnl_parse_input input)
 {
 	int ret;
-	struct nftnl_parse_err perr;
+	struct nftnl_parse_err perr = {};
 
 	switch (type) {
-	case NFTNL_PARSE_XML:
-		ret = nftnl_table_xml_parse(t, data, &perr, input);
-		break;
 	case NFTNL_PARSE_JSON:
 		ret = nftnl_table_json_parse(t, data, &perr, input);
 		break;
+	case NFTNL_PARSE_XML:
 	default:
 		ret = -1;
 		errno = EOPNOTSUPP;
@@ -542,11 +493,12 @@ int nftnl_table_list_foreach(struct nftnl_table_list *table_list,
 EXPORT_SYMBOL_ALIAS(nftnl_table_list_foreach, nft_table_list_foreach);
 
 struct nftnl_table_list_iter {
-	struct nftnl_table_list	*list;
-	struct nftnl_table	*cur;
+	const struct nftnl_table_list	*list;
+	struct nftnl_table		*cur;
 };
 
-struct nftnl_table_list_iter *nftnl_table_list_iter_create(struct nftnl_table_list *l)
+struct nftnl_table_list_iter *
+nftnl_table_list_iter_create(const struct nftnl_table_list *l)
 {
 	struct nftnl_table_list_iter *iter;
 

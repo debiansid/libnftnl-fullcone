@@ -49,7 +49,7 @@ nftnl_expr_target_set(struct nftnl_expr *e, uint16_t type,
 		tg->rev = *((uint32_t *)data);
 		break;
 	case NFTNL_EXPR_TG_INFO:
-		if (tg->data)
+		if (e->flags & (1 << NFTNL_EXPR_TG_INFO))
 			xfree(tg->data);
 
 		tg->data = data;
@@ -182,27 +182,6 @@ nftnl_expr_target_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int
-nftnl_expr_target_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-			       struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *name;
-
-	name = nftnl_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
-				  NFTNL_XML_MAND, err);
-	if (name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_TG_NAME, name);
-
-	/* tg->info is ignored until other solution is reached */
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_rule_exp_target_export(char *buf, size_t size,
 				        const struct nftnl_expr *e, int type)
 {
@@ -241,16 +220,35 @@ static void nftnl_expr_target_free(const struct nftnl_expr *e)
 	xfree(target->data);
 }
 
+static bool nftnl_expr_target_cmp(const struct nftnl_expr *e1,
+				  const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_target *t1 = nftnl_expr_data(e1);
+	struct nftnl_expr_target *t2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_TG_NAME))
+		eq &= !strcmp(t1->name, t2->name);
+	if (e1->flags & (1 << NFTNL_EXPR_TG_REV))
+		eq &= (t1->rev == t2->rev);
+	if (e1->flags & (1 << NFTNL_EXPR_TG_INFO)) {
+		eq &= (t1->data_len == t2->data_len);
+		eq &= !memcmp(t1->data, t2->data, t1->data_len);
+	}
+
+	return eq;
+}
+
 struct expr_ops expr_ops_target = {
 	.name		= "target",
 	.alloc_len	= sizeof(struct nftnl_expr_target),
 	.max_attr	= NFTA_TARGET_MAX,
 	.free		= nftnl_expr_target_free,
+	.cmp		= nftnl_expr_target_cmp,
 	.set		= nftnl_expr_target_set,
 	.get		= nftnl_expr_target_get,
 	.parse		= nftnl_expr_target_parse,
 	.build		= nftnl_expr_target_build,
 	.snprintf	= nftnl_expr_target_snprintf,
-	.xml_parse	= nftnl_expr_target_xml_parse,
 	.json_parse	= nftnl_expr_target_json_parse,
 };

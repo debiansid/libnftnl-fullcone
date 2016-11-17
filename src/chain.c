@@ -32,7 +32,7 @@
 struct nftnl_chain {
 	struct list_head head;
 
-	char		name[NFT_CHAIN_MAXNAMELEN];
+	const char	*name;
 	const char	*type;
 	const char	*table;
 	const char	*dev;
@@ -95,13 +95,14 @@ EXPORT_SYMBOL_ALIAS(nftnl_chain_alloc, nft_chain_alloc);
 
 void nftnl_chain_free(const struct nftnl_chain *c)
 {
-	if (c->table != NULL)
+	if (c->flags & (1 << NFTNL_CHAIN_NAME))
+		xfree(c->name);
+	if (c->flags & (1 << NFTNL_CHAIN_TABLE))
 		xfree(c->table);
-	if (c->type != NULL)
+	if (c->flags & (1 << NFTNL_CHAIN_TYPE))
 		xfree(c->type);
-	if (c->dev != NULL)
+	if (c->flags & (1 << NFTNL_CHAIN_DEV))
 		xfree(c->dev);
-
 	xfree(c);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_chain_free, nft_chain_free);
@@ -118,21 +119,17 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
 		return;
 
 	switch (attr) {
+	case NFTNL_CHAIN_NAME:
+		xfree(c->name);
+		break;
 	case NFTNL_CHAIN_TABLE:
-		if (c->table) {
-			xfree(c->table);
-			c->table = NULL;
-		}
+		xfree(c->table);
 		break;
 	case NFTNL_CHAIN_USE:
 		break;
 	case NFTNL_CHAIN_TYPE:
-		if (c->type) {
-			xfree(c->type);
-			c->type = NULL;
-		}
+		xfree(c->type);
 		break;
-	case NFTNL_CHAIN_NAME:
 	case NFTNL_CHAIN_HOOKNUM:
 	case NFTNL_CHAIN_PRIO:
 	case NFTNL_CHAIN_POLICY:
@@ -142,10 +139,7 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
 	case NFTNL_CHAIN_FAMILY:
 		break;
 	case NFTNL_CHAIN_DEV:
-		if (c->dev) {
-			xfree(c->dev);
-			c->dev = NULL;
-		}
+		xfree(c->dev);
 		break;
 	default:
 		return;
@@ -165,23 +159,28 @@ static uint32_t nftnl_chain_validate[NFTNL_CHAIN_MAX + 1] = {
 	[NFTNL_CHAIN_FAMILY]		= sizeof(uint32_t),
 };
 
-void nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
-			     const void *data, uint32_t data_len)
+int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+			 const void *data, uint32_t data_len)
 {
-	if (attr > NFTNL_CHAIN_MAX)
-		return;
-
+	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
 	nftnl_assert_validate(data, nftnl_chain_validate, attr, data_len);
 
 	switch(attr) {
 	case NFTNL_CHAIN_NAME:
-		strncpy(c->name, data, NFT_CHAIN_MAXNAMELEN);
+		if (c->flags & (1 << NFTNL_CHAIN_NAME))
+			xfree(c->name);
+
+		c->name = strdup(data);
+		if (!c->name)
+			return -1;
 		break;
 	case NFTNL_CHAIN_TABLE:
-		if (c->table)
+		if (c->flags & (1 << NFTNL_CHAIN_TABLE))
 			xfree(c->table);
 
 		c->table = strdup(data);
+		if (!c->table)
+			return -1;
 		break;
 	case NFTNL_CHAIN_HOOKNUM:
 		memcpy(&c->hooknum, data, sizeof(c->hooknum));
@@ -208,19 +207,24 @@ void nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
 		c->family = *((uint32_t *)data);
 		break;
 	case NFTNL_CHAIN_TYPE:
-		if (c->type)
+		if (c->flags & (1 << NFTNL_CHAIN_TYPE))
 			xfree(c->type);
 
 		c->type = strdup(data);
+		if (!c->type)
+			return -1;
 		break;
 	case NFTNL_CHAIN_DEV:
-		if (c->dev)
+		if (c->flags & (1 << NFTNL_CHAIN_DEV))
 			xfree(c->dev);
 
 		c->dev = strdup(data);
+		if (!c->dev)
+			return -1;
 		break;
 	}
 	c->flags |= (1 << attr);
+	return 0;
 }
 EXPORT_SYMBOL_ALIAS(nftnl_chain_set_data, nft_chain_attr_set_data);
 
@@ -254,9 +258,9 @@ void nftnl_chain_set_u8(struct nftnl_chain *c, uint16_t attr, uint8_t data)
 }
 EXPORT_SYMBOL_ALIAS(nftnl_chain_set_u8, nft_chain_attr_set_u8);
 
-void nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, const char *str)
+int nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, const char *str)
 {
-	nftnl_chain_set_data(c, attr, str, strlen(str));
+	return nftnl_chain_set_data(c, attr, str, strlen(str) + 1);
 }
 EXPORT_SYMBOL_ALIAS(nftnl_chain_set_str, nft_chain_attr_set_str);
 
@@ -268,8 +272,10 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
 
 	switch(attr) {
 	case NFTNL_CHAIN_NAME:
+		*data_len = strlen(c->name) + 1;
 		return c->name;
 	case NFTNL_CHAIN_TABLE:
+		*data_len = strlen(c->table) + 1;
 		return c->table;
 	case NFTNL_CHAIN_HOOKNUM:
 		*data_len = sizeof(uint32_t);
@@ -299,6 +305,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
 		*data_len = sizeof(uint32_t);
 		return c->type;
 	case NFTNL_CHAIN_DEV:
+		*data_len = strlen(c->dev) + 1;
 		return c->dev;
 	}
 	return NULL;
@@ -514,6 +521,8 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
 	}
 	if (tb[NFTA_HOOK_DEV]) {
 		c->dev = strdup(mnl_attr_get_str(tb[NFTA_HOOK_DEV]));
+		if (!c->dev)
+			return -1;
 		c->flags |= (1 << NFTNL_CHAIN_DEV);
 	}
 
@@ -530,13 +539,19 @@ int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
 		return -1;
 
 	if (tb[NFTA_CHAIN_NAME]) {
-		strncpy(c->name, mnl_attr_get_str(tb[NFTA_CHAIN_NAME]),
-			NFT_CHAIN_MAXNAMELEN);
+		if (c->flags & (1 << NFTNL_CHAIN_NAME))
+			xfree(c->name);
+		c->name = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_NAME]));
+		if (!c->name)
+			return -1;
 		c->flags |= (1 << NFTNL_CHAIN_NAME);
 	}
 	if (tb[NFTA_CHAIN_TABLE]) {
-		xfree(c->table);
+		if (c->flags & (1 << NFTNL_CHAIN_TABLE))
+			xfree(c->table);
 		c->table = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TABLE]));
+		if (!c->table)
+			return -1;
 		c->flags |= (1 << NFTNL_CHAIN_TABLE);
 	}
 	if (tb[NFTA_CHAIN_HOOK]) {
@@ -562,8 +577,11 @@ int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
 		c->flags |= (1 << NFTNL_CHAIN_HANDLE);
 	}
 	if (tb[NFTA_CHAIN_TYPE]) {
-		xfree(c->type);
+		if (c->flags & (1 << NFTNL_CHAIN_TYPE))
+			xfree(c->type);
 		c->type = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TYPE]));
+		if (!c->type)
+			return -1;
 		c->flags |= (1 << NFTNL_CHAIN_TYPE);
 	}
 
@@ -690,123 +708,18 @@ static int nftnl_chain_json_parse(struct nftnl_chain *c, const void *json,
 #endif
 }
 
-#ifdef XML_PARSING
-int nftnl_mxml_chain_parse(mxml_node_t *tree, struct nftnl_chain *c,
-			 struct nftnl_parse_err *err)
-{
-	const char *table, *name, *hooknum_str, *policy_str, *type, *dev;
-	int family, hooknum, policy;
-	uint64_t handle, bytes, packets, prio, use;
-
-	name = nftnl_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
-				  NFTNL_XML_MAND, err);
-	if (name != NULL)
-		nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, name);
-
-	if (nftnl_mxml_num_parse(tree, "handle", MXML_DESCEND_FIRST, BASE_DEC,
-			       &handle, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_chain_set_u64(c, NFTNL_CHAIN_HANDLE, handle);
-
-	if (nftnl_mxml_num_parse(tree, "bytes", MXML_DESCEND_FIRST, BASE_DEC,
-			       &bytes, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_chain_set_u64(c, NFTNL_CHAIN_BYTES, bytes);
-
-
-	if (nftnl_mxml_num_parse(tree, "packets", MXML_DESCEND_FIRST, BASE_DEC,
-			       &packets, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_chain_set_u64(c, NFTNL_CHAIN_PACKETS, packets);
-
-	table = nftnl_mxml_str_parse(tree, "table", MXML_DESCEND_FIRST,
-				   NFTNL_XML_MAND, err);
-
-	if (table != NULL)
-		nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
-
-	if (nftnl_mxml_num_parse(tree, "use", MXML_DESCEND_FIRST, BASE_DEC,
-			       &use, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_chain_set_u64(c, NFTNL_CHAIN_PACKETS, use);
-
-	family = nftnl_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST,
-				       NFTNL_XML_MAND, err);
-	if (family >= 0)
-		nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, family);
-
-	hooknum_str = nftnl_mxml_str_parse(tree, "hooknum", MXML_DESCEND_FIRST,
-					 NFTNL_XML_OPT, err);
-	if (hooknum_str != NULL) {
-		hooknum = nftnl_str2hooknum(c->family, hooknum_str);
-		if (hooknum < 0)
-			return -1;
-		nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, hooknum);
-
-		type = nftnl_mxml_str_parse(tree, "type", MXML_DESCEND_FIRST,
-					  NFTNL_XML_MAND, err);
-
-		if (type != NULL)
-			nftnl_chain_set_str(c, NFTNL_CHAIN_TYPE, type);
-
-		if (nftnl_mxml_num_parse(tree, "prio", MXML_DESCEND, BASE_DEC,
-				       &prio, NFTNL_TYPE_S32, NFTNL_XML_MAND,
-				       err) == 0)
-			nftnl_chain_set_s32(c, NFTNL_CHAIN_PRIO, prio);
-
-		policy_str = nftnl_mxml_str_parse(tree, "policy",
-						MXML_DESCEND_FIRST,
-						NFTNL_XML_MAND, err);
-		if (policy_str != NULL) {
-			if (nftnl_str2verdict(policy_str, &policy) != 0) {
-				errno = EINVAL;
-				err->node_name = "policy";
-				err->error = NFTNL_PARSE_EBADTYPE;
-				return -1;
-			}
-			nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY,
-					       policy);
-		}
-
-		dev = nftnl_mxml_str_parse(tree, "device", MXML_DESCEND_FIRST,
-					   NFTNL_XML_MAND, err);
-		if (dev != NULL)
-			nftnl_chain_set_str(c, NFTNL_CHAIN_DEV, dev);
-	}
-
-	return 0;
-}
-#endif
-
-static int nftnl_chain_xml_parse(struct nftnl_chain *c, const void *xml,
-			       struct nftnl_parse_err *err,
-			       enum nftnl_parse_input input)
-{
-#ifdef XML_PARSING
-	int ret;
-	mxml_node_t *tree = nftnl_mxml_build_tree(xml, "chain", err, input);
-	if (tree == NULL)
-		return -1;
-
-	ret = nftnl_mxml_chain_parse(tree, c, err);
-	mxmlDelete(tree);
-	return ret;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_chain_do_parse(struct nftnl_chain *c, enum nftnl_parse_type type,
 			      const void *data, struct nftnl_parse_err *err,
 			      enum nftnl_parse_input input)
 {
 	int ret;
-	struct nftnl_parse_err perr;
+	struct nftnl_parse_err perr = {};
 
 	switch (type) {
-	case NFTNL_PARSE_XML:
-		ret = nftnl_chain_xml_parse(c, data, &perr, input);
-		break;
 	case NFTNL_PARSE_JSON:
 		ret = nftnl_chain_json_parse(c, data, &perr, input);
 		break;
+	case NFTNL_PARSE_XML:
 	default:
 		ret = -1;
 		errno = EOPNOTSUPP;
@@ -1021,11 +934,12 @@ int nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
 EXPORT_SYMBOL_ALIAS(nftnl_chain_list_foreach, nft_chain_list_foreach);
 
 struct nftnl_chain_list_iter {
-	struct nftnl_chain_list	*list;
-	struct nftnl_chain	*cur;
+	const struct nftnl_chain_list	*list;
+	struct nftnl_chain		*cur;
 };
 
-struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(struct nftnl_chain_list *l)
+struct nftnl_chain_list_iter *
+nftnl_chain_list_iter_create(const struct nftnl_chain_list *l)
 {
 	struct nftnl_chain_list_iter *iter;
 

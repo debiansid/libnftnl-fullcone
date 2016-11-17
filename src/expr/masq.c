@@ -1,5 +1,5 @@
 /*
- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
@@ -155,32 +155,6 @@ nftnl_expr_masq_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int
-nftnl_expr_masq_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-			     struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint32_t flags;
-	uint32_t reg_proto_min, reg_proto_max;
-
-	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
-			       &flags, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_min", &reg_proto_min,
-				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN,
-				   reg_proto_min);
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_max", &reg_proto_max,
-				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX,
-				   reg_proto_max);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
 static int nftnl_expr_masq_export(char *buf, size_t size,
 				  const struct nftnl_expr *e, int type)
 {
@@ -228,15 +202,32 @@ static int nftnl_expr_masq_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_masq_cmp(const struct nftnl_expr *e1,
+				const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_masq *m1 = nftnl_expr_data(e1);
+	struct nftnl_expr_masq *m2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
+		eq &= (m1->flags == m2->flags);
+	if (e1->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
+		eq &= (m1->sreg_proto_min == m2->sreg_proto_min);
+	if (e1->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
+		eq &= (m1->sreg_proto_max == m2->sreg_proto_max);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_masq = {
 	.name		= "masq",
 	.alloc_len	= sizeof(struct nftnl_expr_masq),
 	.max_attr	= NFTA_MASQ_MAX,
+	.cmp		= nftnl_expr_masq_cmp,
 	.set		= nftnl_expr_masq_set,
 	.get		= nftnl_expr_masq_get,
 	.parse		= nftnl_expr_masq_parse,
 	.build		= nftnl_expr_masq_build,
 	.snprintf	= nftnl_expr_masq_snprintf,
-	.xml_parse	= nftnl_expr_masq_xml_parse,
 	.json_parse	= nftnl_expr_masq_json_parse,
 };

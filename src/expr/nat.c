@@ -275,60 +275,6 @@ static int nftnl_expr_nat_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int nftnl_expr_nat_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				       struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *nat_type;
-	uint32_t family, nat_type_value, flags;
-	uint32_t reg_addr_min, reg_addr_max;
-	uint32_t reg_proto_min, reg_proto_max;
-
-	nat_type = nftnl_mxml_str_parse(tree, "nat_type", MXML_DESCEND_FIRST,
-				      NFTNL_XML_MAND, err);
-	if (nat_type == NULL)
-		return -1;
-
-	nat_type_value = nftnl_str2nat(nat_type);
-	if (nat_type_value < 0)
-		return -1;
-	nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_TYPE, nat_type_value);
-
-	family = nftnl_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST,
-				       NFTNL_XML_MAND, err);
-	if (family < 0) {
-		mxmlDelete(tree);
-		return -1;
-	}
-	nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_FAMILY, family);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_addr_min", &reg_addr_min,
-			       MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_REG_ADDR_MIN, reg_addr_min);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_addr_max", &reg_addr_max,
-			       MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_REG_ADDR_MAX, reg_addr_max);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_min", &reg_proto_min,
-			       MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_REG_PROTO_MIN, reg_proto_min);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_max", &reg_proto_max,
-			       MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_REG_PROTO_MAX, reg_proto_max);
-
-	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND, BASE_DEC, &flags,
-			       NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_NAT_FLAGS, flags);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_nat_export(char *buf, size_t size,
 				 const struct nftnl_expr *e, int type)
 {
@@ -404,15 +350,39 @@ nftnl_expr_nat_snprintf(char *buf, size_t size, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_nat_cmp(const struct nftnl_expr *e1,
+			       const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_nat *n1 = nftnl_expr_data(e1);
+	struct nftnl_expr_nat *n2 = nftnl_expr_data(e2);
+	bool eq = true;
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_REG_ADDR_MIN))
+		eq &= (n1->sreg_addr_min == n2->sreg_addr_min);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_REG_ADDR_MAX))
+		eq &= (n1->sreg_addr_max == n2->sreg_addr_max);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_REG_PROTO_MIN))
+		eq &= (n1->sreg_proto_min == n2->sreg_proto_min);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_REG_PROTO_MAX))
+		eq &= (n1->sreg_proto_max == n2->sreg_proto_max);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_FAMILY))
+		eq &= (n1->family == n2->family);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_TYPE))
+		eq &= (n1->type == n2->type);
+	if (e1->flags & (1 << NFTNL_EXPR_NAT_FLAGS))
+		eq &= (n1->flags == n2->flags);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_nat = {
 	.name		= "nat",
 	.alloc_len	= sizeof(struct nftnl_expr_nat),
 	.max_attr	= NFTA_NAT_MAX,
+	.cmp		= nftnl_expr_nat_cmp,
 	.set		= nftnl_expr_nat_set,
 	.get		= nftnl_expr_nat_get,
 	.parse		= nftnl_expr_nat_parse,
 	.build		= nftnl_expr_nat_build,
 	.snprintf	= nftnl_expr_nat_snprintf,
-	.xml_parse	= nftnl_expr_nat_xml_parse,
 	.json_parse	= nftnl_expr_nat_json_parse,
 };

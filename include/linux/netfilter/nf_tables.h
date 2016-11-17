@@ -547,12 +547,46 @@ enum nft_cmp_attributes {
 #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
 
 /**
+ * enum nft_range_ops - nf_tables range operator
+ *
+ * @NFT_RANGE_EQ: equal
+ * @NFT_RANGE_NEQ: not equal
+ */
+enum nft_range_ops {
+	NFT_RANGE_EQ,
+	NFT_RANGE_NEQ,
+};
+
+/**
+ * enum nft_range_attributes - nf_tables range expression netlink attributes
+ *
+ * @NFTA_RANGE_SREG: source register of data to compare (NLA_U32: nft_registers)
+ * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_cmp_ops)
+ * @NFTA_RANGE_FROM_DATA: data range from (NLA_NESTED: nft_data_attributes)
+ * @NFTA_RANGE_TO_DATA: data range to (NLA_NESTED: nft_data_attributes)
+ */
+enum nft_range_attributes {
+	NFTA_RANGE_UNSPEC,
+	NFTA_RANGE_SREG,
+	NFTA_RANGE_OP,
+	NFTA_RANGE_FROM_DATA,
+	NFTA_RANGE_TO_DATA,
+	__NFTA_RANGE_MAX
+};
+#define NFTA_RANGE_MAX         (__NFTA_RANGE_MAX - 1)
+
+enum nft_lookup_flags {
+	NFT_LOOKUP_F_INV = (1 << 0),
+};
+
+/**
  * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
  *
  * @NFTA_LOOKUP_SET: name of the set where to look for (NLA_STRING)
  * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
  * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
  * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
+ * @NFTA_LOOKUP_FLAGS: flags (NLA_U32: enum nft_lookup_flags)
  */
 enum nft_lookup_attributes {
 	NFTA_LOOKUP_UNSPEC,
@@ -560,6 +594,7 @@ enum nft_lookup_attributes {
 	NFTA_LOOKUP_SREG,
 	NFTA_LOOKUP_DREG,
 	NFTA_LOOKUP_SET_ID,
+	NFTA_LOOKUP_FLAGS,
 	__NFTA_LOOKUP_MAX
 };
 #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
@@ -718,6 +753,41 @@ enum nft_meta_keys {
 };
 
 /**
+ * enum nft_rt_keys - nf_tables routing expression keys
+ *
+ * @NFT_RT_CLASSID: realm value of packet's route (skb->dst->tclassid)
+ * @NFT_RT_NEXTHOP4: routing nexthop for IPv4
+ * @NFT_RT_NEXTHOP6: routing nexthop for IPv6
+ */
+enum nft_rt_keys {
+	NFT_RT_CLASSID,
+	NFT_RT_NEXTHOP4,
+	NFT_RT_NEXTHOP6,
+};
+
+/**
+ * enum nft_hash_attributes - nf_tables hash expression netlink attributes
+ *
+ * @NFTA_HASH_SREG: source register (NLA_U32)
+ * @NFTA_HASH_DREG: destination register (NLA_U32)
+ * @NFTA_HASH_LEN: source data length (NLA_U32)
+ * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
+ * @NFTA_HASH_SEED: seed value (NLA_U32)
+ * @NFTA_HASH_OFFSET: offset value to be added (NLA_U32)
+ */
+enum nft_hash_attributes {
+	NFTA_HASH_UNSPEC,
+	NFTA_HASH_SREG,
+	NFTA_HASH_DREG,
+	NFTA_HASH_LEN,
+	NFTA_HASH_MODULUS,
+	NFTA_HASH_SEED,
+	NFTA_HASH_OFFSET,
+	__NFTA_HASH_MAX,
+};
+#define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
+
+/**
  * enum nft_meta_attributes - nf_tables meta expression netlink attributes
  *
  * @NFTA_META_DREG: destination register (NLA_U32)
@@ -732,6 +802,20 @@ enum nft_meta_attributes {
 	__NFTA_META_MAX
 };
 #define NFTA_META_MAX		(__NFTA_META_MAX - 1)
+
+/**
+ * enum nft_rt_attributes - nf_tables routing expression netlink attributes
+ *
+ * @NFTA_RT_DREG: destination register (NLA_U32)
+ * @NFTA_RT_KEY: routing data item to load (NLA_U32: nft_rt_keys)
+ */
+enum nft_rt_attributes {
+	NFTA_RT_UNSPEC,
+	NFTA_RT_DREG,
+	NFTA_RT_KEY,
+	__NFTA_RT_MAX
+};
+#define NFTA_RT_MAX		(__NFTA_RT_MAX - 1)
 
 /**
  * enum nft_ct_keys - nf_tables ct expression keys
@@ -860,12 +944,14 @@ enum nft_log_attributes {
  * @NFTA_QUEUE_NUM: netlink queue to send messages to (NLA_U16)
  * @NFTA_QUEUE_TOTAL: number of queues to load balance packets on (NLA_U16)
  * @NFTA_QUEUE_FLAGS: various flags (NLA_U16)
+ * @NFTA_QUEUE_SREG_QNUM: source register of queue number (NLA_U32: nft_registers)
  */
 enum nft_queue_attributes {
 	NFTA_QUEUE_UNSPEC,
 	NFTA_QUEUE_NUM,
 	NFTA_QUEUE_TOTAL,
 	NFTA_QUEUE_FLAGS,
+	NFTA_QUEUE_SREG_QNUM,
 	__NFTA_QUEUE_MAX
 };
 #define NFTA_QUEUE_MAX		(__NFTA_QUEUE_MAX - 1)
@@ -873,6 +959,25 @@ enum nft_queue_attributes {
 #define NFT_QUEUE_FLAG_BYPASS		0x01 /* for compatibility with v2 */
 #define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
 #define NFT_QUEUE_FLAG_MASK		0x03
+
+enum nft_quota_flags {
+	NFT_QUOTA_F_INV		= (1 << 0),
+};
+
+/**
+ * enum nft_quota_attributes - nf_tables quota expression netlink attributes
+ *
+ * @NFTA_QUOTA_BYTES: quota in bytes (NLA_U16)
+ * @NFTA_QUOTA_FLAGS: flags (NLA_U32)
+ */
+enum nft_quota_attributes {
+	NFTA_QUOTA_UNSPEC,
+	NFTA_QUOTA_BYTES,
+	NFTA_QUOTA_FLAGS,
+	NFTA_QUOTA_PAD,
+	__NFTA_QUOTA_MAX
+};
+#define NFTA_QUOTA_MAX		(__NFTA_QUOTA_MAX - 1)
 
 /**
  * enum nft_reject_types - nf_tables reject expression reject types
@@ -1025,6 +1130,42 @@ enum nft_gen_attributes {
 };
 #define NFTA_GEN_MAX		(__NFTA_GEN_MAX - 1)
 
+/*
+ * enum nft_fib_attributes - nf_tables fib expression netlink attributes
+ *
+ * @NFTA_FIB_DREG: destination register (NLA_U32)
+ * @NFTA_FIB_RESULT: desired result (NLA_U32)
+ * @NFTA_FIB_FLAGS: flowi fields to initialize when querying the FIB (NLA_U32)
+ *
+ * The FIB expression performs a route lookup according
+ * to the packet data.
+ */
+enum nft_fib_attributes {
+	NFTA_FIB_UNSPEC,
+	NFTA_FIB_DREG,
+	NFTA_FIB_RESULT,
+	NFTA_FIB_FLAGS,
+	__NFTA_FIB_MAX
+};
+#define NFTA_FIB_MAX (__NFTA_FIB_MAX - 1)
+
+enum nft_fib_result {
+	NFT_FIB_RESULT_UNSPEC,
+	NFT_FIB_RESULT_OIF,
+	NFT_FIB_RESULT_OIFNAME,
+	NFT_FIB_RESULT_ADDRTYPE,
+	__NFT_FIB_RESULT_MAX
+};
+#define NFT_FIB_RESULT_MAX	(__NFT_FIB_RESULT_MAX - 1)
+
+enum nft_fib_flags {
+	NFTA_FIB_F_SADDR	= 1 << 0,	/* look up src */
+	NFTA_FIB_F_DADDR	= 1 << 1,	/* look up dst */
+	NFTA_FIB_F_MARK		= 1 << 2,	/* use skb->mark */
+	NFTA_FIB_F_IIF		= 1 << 3,	/* restrict to iif */
+	NFTA_FIB_F_OIF		= 1 << 4,	/* restrict to oif */
+};
+
 /**
  * enum nft_trace_attributes - nf_tables trace netlink attributes
  *
@@ -1045,7 +1186,7 @@ enum nft_gen_attributes {
  * @NFTA_TRACE_NFPROTO: nf protocol processed (NLA_U32)
  * @NFTA_TRACE_POLICY: policy that decided fate of packet (NLA_U32)
  */
-enum nft_trace_attibutes {
+enum nft_trace_attributes {
 	NFTA_TRACE_UNSPEC,
 	NFTA_TRACE_TABLE,
 	NFTA_TRACE_CHAIN,
@@ -1076,4 +1217,30 @@ enum nft_trace_types {
 	__NFT_TRACETYPE_MAX
 };
 #define NFT_TRACETYPE_MAX (__NFT_TRACETYPE_MAX - 1)
+
+/**
+ * enum nft_ng_attributes - nf_tables number generator expression netlink attributes
+ *
+ * @NFTA_NG_DREG: destination register (NLA_U32)
+ * @NFTA_NG_MODULUS: maximum value to be returned (NLA_U32)
+ * @NFTA_NG_TYPE: operation type (NLA_U32)
+ * @NFTA_NG_OFFSET: offset to be added to the counter (NLA_U32)
+ */
+enum nft_ng_attributes {
+	NFTA_NG_UNSPEC,
+	NFTA_NG_DREG,
+	NFTA_NG_MODULUS,
+	NFTA_NG_TYPE,
+	NFTA_NG_OFFSET,
+	__NFTA_NG_MAX
+};
+#define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+
+enum nft_ng_types {
+	NFT_NG_INCREMENTAL,
+	NFT_NG_RANDOM,
+	__NFT_NG_MAX
+};
+#define NFT_NG_MAX	(__NFT_NG_MAX - 1)
+
 #endif /* _LINUX_NF_TABLES_H */

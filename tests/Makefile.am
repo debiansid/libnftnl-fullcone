@@ -1,8 +1,7 @@
 include $(top_srcdir)/Make_global.am
 
 EXTRA_DIST =		test-script.sh			\
-			jsonfiles			\
-			xmlfiles
+			jsonfiles
 
 check_PROGRAMS = 	nft-parsing-test		\
 			nft-table-test			\
@@ -24,15 +23,19 @@ check_PROGRAMS = 	nft-parsing-test		\
 			nft-expr_match-test		\
 			nft-expr_masq-test		\
 			nft-expr_meta-test		\
+			nft-expr_numgen-test		\
 			nft-expr_nat-test		\
 			nft-expr_payload-test		\
 			nft-expr_queue-test		\
+			nft-expr_range-test             \
+			nft-expr_quota-test		\
 			nft-expr_redir-test		\
 			nft-expr_reject-test		\
-			nft-expr_target-test
+			nft-expr_target-test		\
+			nft-expr_hash-test
 
 nft_parsing_test_SOURCES = nft-parsing-test.c
-nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBXML_LIBS} ${LIBJSON_LIBS}
+nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBJSON_LIBS}
 
 nft_table_test_SOURCES = nft-table-test.c
 nft_table_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -70,13 +73,13 @@ nft_expr_dup_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_fwd_test_SOURCES = nft-expr_fwd-test.c
 nft_expr_fwd_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
-nft_expr_immediate_test_SOURCES = nft-expr_counter-test.c
+nft_expr_immediate_test_SOURCES = nft-expr_immediate-test.c
 nft_expr_immediate_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_expr_limit_test_SOURCES = nft-expr_limit-test.c
 nft_expr_limit_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
-nft_expr_lookup_test_SOURCES = nft-expr_limit-test.c
+nft_expr_lookup_test_SOURCES = nft-expr_lookup-test.c
 nft_expr_lookup_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_expr_log_test_SOURCES = nft-expr_log-test.c
@@ -91,6 +94,9 @@ nft_expr_masq_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_meta_test_SOURCES = nft-expr_meta-test.c
 nft_expr_meta_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
+nft_expr_numgen_test_SOURCES = nft-expr_numgen-test.c
+nft_expr_numgen_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
 nft_expr_nat_test_SOURCES = nft-expr_nat-test.c
 nft_expr_nat_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
@@ -100,6 +106,12 @@ nft_expr_payload_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_queue_test_SOURCES = nft-expr_queue-test.c
 nft_expr_queue_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
+nft_expr_quota_test_SOURCES = nft-expr_quota-test.c
+nft_expr_quota_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_expr_range_test_SOURCES = nft-expr_range-test.c
+nft_expr_range_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
 nft_expr_reject_test_SOURCES = nft-expr_reject-test.c
 nft_expr_reject_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
@@ -108,3 +120,6 @@ nft_expr_redir_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_expr_target_test_SOURCES = nft-expr_target-test.c
 nft_expr_target_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_expr_hash_test_SOURCES = nft-expr_hash-test.c
+nft_expr_hash_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}

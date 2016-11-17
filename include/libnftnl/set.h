@@ -22,6 +22,7 @@ enum nftnl_set_attr {
 	NFTNL_SET_DESC_SIZE,
 	NFTNL_SET_TIMEOUT,
 	NFTNL_SET_GC_INTERVAL,
+	NFTNL_SET_USERDATA,
 	__NFTNL_SET_MAX
 };
 #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
@@ -35,12 +36,12 @@ struct nftnl_set *nftnl_set_clone(const struct nftnl_set *set);
 
 bool nftnl_set_is_set(const struct nftnl_set *s, uint16_t attr);
 void nftnl_set_unset(struct nftnl_set *s, uint16_t attr);
-void nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data);
-void nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
-			   uint32_t data_len);
+int nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data);
+int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+		       uint32_t data_len);
 void nftnl_set_set_u32(struct nftnl_set *s, uint16_t attr, uint32_t val);
 void nftnl_set_set_u64(struct nftnl_set *s, uint16_t attr, uint64_t val);
-void nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *str);
+int nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *str);
 
 const void *nftnl_set_get(const struct nftnl_set *s, uint16_t attr);
 const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
@@ -70,8 +71,8 @@ void nftnl_set_list_del(struct nftnl_set *s);
 int nftnl_set_list_foreach(struct nftnl_set_list *set_list, int (*cb)(struct nftnl_set *t, void *data), void *data);
 
 struct nftnl_set_list_iter;
-struct nftnl_set_list_iter *nftnl_set_list_iter_create(struct nftnl_set_list *l);
-struct nftnl_set *nftnl_set_list_iter_cur(struct nftnl_set_list_iter *iter);
+struct nftnl_set_list_iter *nftnl_set_list_iter_create(const struct nftnl_set_list *l);
+struct nftnl_set *nftnl_set_list_iter_cur(const struct nftnl_set_list_iter *iter);
 struct nftnl_set *nftnl_set_list_iter_next(struct nftnl_set_list_iter *iter);
 void nftnl_set_list_iter_destroy(const struct nftnl_set_list_iter *iter);
 
@@ -106,10 +107,10 @@ struct nftnl_set_elem *nftnl_set_elem_clone(struct nftnl_set_elem *elem);
 void nftnl_set_elem_add(struct nftnl_set *s, struct nftnl_set_elem *elem);
 
 void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr);
-void nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr, const void *data, uint32_t data_len);
+int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr, const void *data, uint32_t data_len);
 void nftnl_set_elem_set_u32(struct nftnl_set_elem *s, uint16_t attr, uint32_t val);
 void nftnl_set_elem_set_u64(struct nftnl_set_elem *s, uint16_t attr, uint64_t val);
-void nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr, const char *str);
+int nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr, const char *str);
 
 const void *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t *data_len);
 const char *nftnl_set_elem_get_str(struct nftnl_set_elem *s, uint16_t attr);
@@ -132,8 +133,8 @@ int nftnl_set_elem_fprintf(FILE *fp, struct nftnl_set_elem *se, uint32_t type, u
 int nftnl_set_elem_foreach(struct nftnl_set *s, int (*cb)(struct nftnl_set_elem *e, void *data), void *data);
 
 struct nftnl_set_elems_iter;
-struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(struct nftnl_set *s);
-struct nftnl_set_elem *nftnl_set_elems_iter_cur(struct nftnl_set_elems_iter *iter);
+struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(const struct nftnl_set *s);
+struct nftnl_set_elem *nftnl_set_elems_iter_cur(const struct nftnl_set_elems_iter *iter);
 struct nftnl_set_elem *nftnl_set_elems_iter_next(struct nftnl_set_elems_iter *iter);
 void nftnl_set_elems_iter_destroy(struct nftnl_set_elems_iter *iter);
 
@@ -206,8 +207,8 @@ void nft_set_list_del(struct nft_set *s);
 int nft_set_list_foreach(struct nft_set_list *set_list, int (*cb)(struct nft_set *t, void *data), void *data);
 
 struct nft_set_list_iter;
-struct nft_set_list_iter *nft_set_list_iter_create(struct nft_set_list *l);
-struct nft_set *nft_set_list_iter_cur(struct nft_set_list_iter *iter);
+struct nft_set_list_iter *nft_set_list_iter_create(const struct nft_set_list *l);
+struct nft_set *nft_set_list_iter_cur(const struct nft_set_list_iter *iter);
 struct nft_set *nft_set_list_iter_next(struct nft_set_list_iter *iter);
 void nft_set_list_iter_destroy(struct nft_set_list_iter *iter);
 
@@ -268,8 +269,8 @@ int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type, uint3
 int nft_set_elem_foreach(struct nft_set *s, int (*cb)(struct nft_set_elem *e, void *data), void *data);
 
 struct nft_set_elems_iter;
-struct nft_set_elems_iter *nft_set_elems_iter_create(struct nft_set *s);
-struct nft_set_elem *nft_set_elems_iter_cur(struct nft_set_elems_iter *iter);
+struct nft_set_elems_iter *nft_set_elems_iter_create(const struct nft_set *s);
+struct nft_set_elem *nft_set_elems_iter_cur(const struct nft_set_elems_iter *iter);
 struct nft_set_elem *nft_set_elems_iter_next(struct nft_set_elems_iter *iter);
 void nft_set_elems_iter_destroy(struct nft_set_elems_iter *iter);
 
