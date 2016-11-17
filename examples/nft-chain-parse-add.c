@@ -1,6 +1,6 @@
 /*
  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
@@ -81,18 +81,15 @@ int main(int argc, char *argv[])
 	struct mnl_nlmsg_batch *batch;
 
 	if (argc < 3) {
-		printf("Usage: %s {xml|json} <file>\n", argv[0]);
+		printf("Usage: %s {json} <file>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
-	if (strcmp(argv[1], "xml") == 0) {
-		format = NFTNL_PARSE_XML;
-		outformat = NFTNL_OUTPUT_XML;
-	} else if (strcmp(argv[1], "json") == 0) {
+	if (strcmp(argv[1], "json") == 0) {
 		format = NFTNL_PARSE_JSON;
 		outformat = NFTNL_OUTPUT_JSON;
 	} else {
-		printf("Unknown format: xml, json\n");
+		printf("Unknown format: only json is supported\n");
 		exit(EXIT_FAILURE);
 	}
 

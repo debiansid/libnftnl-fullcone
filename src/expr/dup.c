@@ -133,26 +133,6 @@ static int nftnl_expr_dup_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int nftnl_expr_dup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				    struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint32_t sreg_addr, sreg_dev;
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_addr", &sreg_addr, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_ADDR, sreg_addr);
-	if (nftnl_mxml_reg_parse(tree, "sreg_dev", &sreg_dev, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_DEV, sreg_dev);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_dup_export(char *buf, size_t size,
 				 const struct nftnl_expr *e, int type)
 {
@@ -202,15 +182,30 @@ static int nftnl_expr_dup_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_dup_cmp(const struct nftnl_expr *e1,
+			       const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_dup *d1 = nftnl_expr_data(e1);
+	struct nftnl_expr_dup *d2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_DUP_SREG_ADDR))
+		eq &= (d1->sreg_addr == d2->sreg_addr);
+	if (e1->flags & (1 << NFTNL_EXPR_DUP_SREG_DEV))
+		eq &= (d1->sreg_dev == d2->sreg_dev);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_dup = {
 	.name		= "dup",
 	.alloc_len	= sizeof(struct nftnl_expr_dup),
 	.max_attr	= NFTA_DUP_MAX,
+	.cmp		= nftnl_expr_dup_cmp,
 	.set		= nftnl_expr_dup_set,
 	.get		= nftnl_expr_dup_get,
 	.parse		= nftnl_expr_dup_parse,
 	.build		= nftnl_expr_dup_build,
 	.snprintf	= nftnl_expr_dup_snprintf,
-	.xml_parse	= nftnl_expr_dup_xml_parse,
 	.json_parse	= nftnl_expr_dup_json_parse,
 };

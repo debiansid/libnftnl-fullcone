@@ -19,13 +19,23 @@ extern struct expr_ops expr_ops_lookup;
 extern struct expr_ops expr_ops_masq;
 extern struct expr_ops expr_ops_match;
 extern struct expr_ops expr_ops_meta;
+extern struct expr_ops expr_ops_ng;
 extern struct expr_ops expr_ops_nat;
 extern struct expr_ops expr_ops_payload;
+extern struct expr_ops expr_ops_range;
 extern struct expr_ops expr_ops_redir;
 extern struct expr_ops expr_ops_reject;
+extern struct expr_ops expr_ops_rt;
 extern struct expr_ops expr_ops_queue;
+extern struct expr_ops expr_ops_quota;
 extern struct expr_ops expr_ops_target;
 extern struct expr_ops expr_ops_dynset;
+extern struct expr_ops expr_ops_hash;
+extern struct expr_ops expr_ops_fib;
+
+static struct expr_ops expr_ops_notrack = {
+	.name	= "notrack",
+};
 
 static struct expr_ops *expr_ops[] = {
 	&expr_ops_bitwise,
@@ -43,13 +53,20 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_masq,
 	&expr_ops_match,
 	&expr_ops_meta,
+	&expr_ops_ng,
 	&expr_ops_nat,
+	&expr_ops_notrack,
 	&expr_ops_payload,
+	&expr_ops_range,
 	&expr_ops_redir,
 	&expr_ops_reject,
+	&expr_ops_rt,
 	&expr_ops_queue,
+	&expr_ops_quota,
 	&expr_ops_target,
 	&expr_ops_dynset,
+	&expr_ops_hash,
+	&expr_ops_fib,
 	NULL,
 };
 

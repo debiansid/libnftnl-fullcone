@@ -186,38 +186,6 @@ static int nftnl_expr_limit_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int nftnl_expr_limit_xml_parse(struct nftnl_expr *e,
-					 mxml_node_t *tree,
-					 struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint64_t rate, unit;
-	uint32_t burst, type, flags;
-
-	if (nftnl_mxml_num_parse(tree, "rate", MXML_DESCEND_FIRST, BASE_DEC,
-			       &rate, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_LIMIT_RATE, rate);
-
-	if (nftnl_mxml_num_parse(tree, "unit", MXML_DESCEND_FIRST, BASE_DEC,
-			       &unit, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_LIMIT_UNIT, unit);
-	if (nftnl_mxml_num_parse(tree, "burst", MXML_DESCEND_FIRST, BASE_DEC,
-			       &burst, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_BURST, burst);
-	if (nftnl_mxml_num_parse(tree, "type", MXML_DESCEND_FIRST, BASE_DEC,
-			       &type, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_TYPE, type);
-	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
-			       &flags, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_FLAGS, flags);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static const char *get_unit(uint64_t u)
 {
 	switch (u) {
@@ -259,7 +227,6 @@ static const char *limit_to_type(enum nft_limit_type type)
 	case NFT_LIMIT_PKT_BYTES:
 		return "bytes";
 	}
-	return "unknown";
 }
 
 static int nftnl_expr_limit_snprintf_default(char *buf, size_t len,
@@ -288,15 +255,36 @@ nftnl_expr_limit_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_limit_cmp(const struct nftnl_expr *e1,
+				 const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_limit *l1 = nftnl_expr_data(e1);
+	struct nftnl_expr_limit *l2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_RATE))
+		eq &= (l1->rate == l2->rate);
+	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_UNIT))
+		eq &= (l1->unit == l2->unit);
+	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_BURST))
+		eq &= (l1->burst == l2->burst);
+	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_TYPE))
+		eq &= (l1->type == l2->type);
+	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_FLAGS))
+		eq &= (l1->flags == l2->flags);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_limit = {
 	.name		= "limit",
 	.alloc_len	= sizeof(struct nftnl_expr_limit),
 	.max_attr	= NFTA_LIMIT_MAX,
 	.set		= nftnl_expr_limit_set,
+	.cmp		= nftnl_expr_limit_cmp,
 	.get		= nftnl_expr_limit_get,
 	.parse		= nftnl_expr_limit_parse,
 	.build		= nftnl_expr_limit_build,
 	.snprintf	= nftnl_expr_limit_snprintf,
-	.xml_parse	= nftnl_expr_limit_xml_parse,
 	.json_parse	= nftnl_expr_limit_json_parse,
 };

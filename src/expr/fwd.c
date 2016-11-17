@@ -116,23 +116,6 @@ static int nftnl_expr_fwd_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int nftnl_expr_fwd_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				    struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint32_t sreg_dev;
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_dev", &sreg_dev, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_FWD_SREG_DEV, sreg_dev);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_fwd_export(char *buf, size_t size,
 				 const struct nftnl_expr *e, int type)
 {
@@ -175,15 +158,28 @@ static int nftnl_expr_fwd_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_fwd_cmp(const struct nftnl_expr *e1,
+			       const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_fwd *f1 = nftnl_expr_data(e1);
+	struct nftnl_expr_fwd *f2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_FWD_SREG_DEV))
+		eq &= (f1->sreg_dev == f2->sreg_dev);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_fwd = {
 	.name		= "fwd",
 	.alloc_len	= sizeof(struct nftnl_expr_fwd),
 	.max_attr	= NFTA_FWD_MAX,
+	.cmp		= nftnl_expr_fwd_cmp,
 	.set		= nftnl_expr_fwd_set,
 	.get		= nftnl_expr_fwd_get,
 	.parse		= nftnl_expr_fwd_parse,
 	.build		= nftnl_expr_fwd_build,
 	.snprintf	= nftnl_expr_fwd_snprintf,
-	.xml_parse	= nftnl_expr_fwd_xml_parse,
 	.json_parse	= nftnl_expr_fwd_json_parse,
 };

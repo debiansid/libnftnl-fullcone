@@ -1,5 +1,5 @@
 /*
- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
@@ -157,32 +157,6 @@ nftnl_expr_redir_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int
-nftnl_expr_redir_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-			      struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint32_t reg, flags;
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_min", &reg,
-			       MXML_DESCEND, NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_REG_PROTO_MIN, reg);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg_proto_max", &reg,
-			       MXML_DESCEND, NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_REG_PROTO_MAX, reg);
-
-	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
-			       &flags, NFTNL_TYPE_U32, NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_FLAGS, flags);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_redir_export(char *buf, size_t size,
 				   const struct nftnl_expr *e, int type)
 {
@@ -242,15 +216,32 @@ nftnl_expr_redir_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_redir_cmp(const struct nftnl_expr *e1,
+				 const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_redir *r1 = nftnl_expr_data(e1);
+	struct nftnl_expr_redir *r2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MIN))
+		eq &= (r1->sreg_proto_min== r2->sreg_proto_min);
+	if (e1->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MAX))
+		eq &= (r1->sreg_proto_max== r2->sreg_proto_max);
+	if (e1->flags & (1 << NFTNL_EXPR_REDIR_FLAGS))
+		eq &= (r1->flags== r2->flags);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_redir = {
 	.name		= "redir",
 	.alloc_len	= sizeof(struct nftnl_expr_redir),
 	.max_attr	= NFTA_REDIR_MAX,
+	.cmp		= nftnl_expr_redir_cmp,
 	.set		= nftnl_expr_redir_set,
 	.get		= nftnl_expr_redir_get,
 	.parse		= nftnl_expr_redir_parse,
 	.build		= nftnl_expr_redir_build,
 	.snprintf	= nftnl_expr_redir_snprintf,
-	.xml_parse	= nftnl_expr_redir_xml_parse,
 	.json_parse	= nftnl_expr_redir_json_parse,
 };

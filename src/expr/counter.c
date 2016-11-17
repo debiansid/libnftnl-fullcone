@@ -137,28 +137,6 @@ nftnl_expr_counter_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int
-nftnl_expr_counter_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	uint64_t pkts, bytes;
-
-	if (nftnl_mxml_num_parse(tree, "pkts", MXML_DESCEND_FIRST, BASE_DEC,
-			       &pkts, NFTNL_TYPE_U64, NFTNL_XML_MAND,  err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_CTR_PACKETS, pkts);
-
-	if (nftnl_mxml_num_parse(tree, "bytes", MXML_DESCEND_FIRST, BASE_DEC,
-			       &bytes, NFTNL_TYPE_U64, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_CTR_BYTES, bytes);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_counter_export(char *buf, size_t size,
 				     const struct nftnl_expr *e, int type)
 {
@@ -198,15 +176,30 @@ static int nftnl_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_counter_cmp(const struct nftnl_expr *e1,
+				   const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_counter *c1 = nftnl_expr_data(e1);
+	struct nftnl_expr_counter *c2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_CTR_PACKETS))
+		eq &= (c1->pkts == c2->pkts);
+	if (e1->flags & (1 << NFTNL_EXPR_CTR_BYTES))
+		eq &= (c1->pkts == c2->pkts);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_counter = {
 	.name		= "counter",
 	.alloc_len	= sizeof(struct nftnl_expr_counter),
 	.max_attr	= NFTA_COUNTER_MAX,
+	.cmp		= nftnl_expr_counter_cmp,
 	.set		= nftnl_expr_counter_set,
 	.get		= nftnl_expr_counter_get,
 	.parse		= nftnl_expr_counter_parse,
 	.build		= nftnl_expr_counter_build,
 	.snprintf	= nftnl_expr_counter_snprintf,
-	.xml_parse	= nftnl_expr_counter_xml_parse,
 	.json_parse	= nftnl_expr_counter_json_parse,
 };

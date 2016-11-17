@@ -79,7 +79,7 @@ bool nftnl_trace_is_set(const struct nftnl_trace *t, uint16_t attr)
 static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
 {
 	const struct nlattr **tb = data;
-	enum nft_trace_attibutes type = mnl_attr_get_type(attr);
+	enum nft_trace_attributes type = mnl_attr_get_type(attr);
 
 	if (mnl_attr_type_valid(attr, NFTA_TRACE_MAX) < 0)
 		return MNL_CB_OK;
@@ -165,13 +165,13 @@ const void *nftnl_trace_get_data(const struct nftnl_trace *trace,
 		*data_len = sizeof(uint32_t);
 		return &trace->type;
 	case NFTNL_TRACE_CHAIN:
-		*data_len = strlen(trace->chain);
+		*data_len = strlen(trace->chain) + 1;
 		return trace->chain;
 	case NFTNL_TRACE_TABLE:
-		*data_len = strlen(trace->table);
+		*data_len = strlen(trace->table) + 1;
 		return trace->table;
 	case NFTNL_TRACE_JUMP_TARGET:
-		*data_len = strlen(trace->jump_target);
+		*data_len = strlen(trace->jump_target) + 1;
 		return trace->jump_target;
 	case NFTNL_TRACE_TRANSPORT_HEADER:
 		*data_len = trace->th.len;
@@ -296,8 +296,8 @@ static int nftnl_trace_parse_verdict_cb(const struct nlattr *attr, void *data)
 	return MNL_CB_OK;
 }
 
-static void
-nftnl_trace_parse_verdict(const struct nlattr *attr, struct nftnl_trace *t)
+static int nftnl_trace_parse_verdict(const struct nlattr *attr,
+				     struct nftnl_trace *t)
 {
 	struct nlattr *tb[NFTA_VERDICT_MAX+1];
 
@@ -315,13 +315,16 @@ nftnl_trace_parse_verdict(const struct nlattr *attr, struct nftnl_trace *t)
 		if (!tb[NFTA_VERDICT_CHAIN])
 			abi_breakage();
 		t->jump_target = strdup(mnl_attr_get_str(tb[NFTA_VERDICT_CHAIN]));
-		if (t->jump_target)
-			t->flags |= (1 << NFTNL_TRACE_JUMP_TARGET);
+		if (!t->jump_target)
+			return -1;
+
+		t->flags |= (1 << NFTNL_TRACE_JUMP_TARGET);
 		break;
 	}
+	return 0;
 }
-
 EXPORT_SYMBOL(nftnl_trace_nlmsg_parse);
+
 int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 {
 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
@@ -347,11 +350,17 @@ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 
 	if (tb[NFTA_TRACE_TABLE]) {
 		t->table = strdup(mnl_attr_get_str(tb[NFTA_TRACE_TABLE]));
+		if (!t->table)
+			return -1;
+
 		t->flags |= (1 << NFTNL_TRACE_TABLE);
 	}
 
 	if (tb[NFTA_TRACE_CHAIN]) {
 		t->chain = strdup(mnl_attr_get_str(tb[NFTA_TRACE_CHAIN]));
+		if (!t->chain)
+			return -1;
+
 		t->flags |= (1 << NFTNL_TRACE_CHAIN);
 	}
 
@@ -385,8 +394,9 @@ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 		t->flags |= (1 << NFTNL_TRACE_RULE_HANDLE);
 	}
 
-	if (tb[NFTA_TRACE_VERDICT])
-		nftnl_trace_parse_verdict(tb[NFTA_TRACE_VERDICT], t);
+	if (tb[NFTA_TRACE_VERDICT] &&
+	    nftnl_trace_parse_verdict(tb[NFTA_TRACE_VERDICT], t) < 0)
+		return -1;
 
 	if (nftnl_trace_nlmsg_parse_hdrdata(tb[NFTA_TRACE_LL_HEADER], &t->ll))
 		t->flags |= (1 << NFTNL_TRACE_LL_HEADER);
@@ -398,12 +408,12 @@ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 		t->flags |= (1 << NFTNL_TRACE_TRANSPORT_HEADER);
 
 	if (tb[NFTA_TRACE_NFPROTO]) {
-		t->nfproto = ntohs(mnl_attr_get_u16(tb[NFTA_TRACE_NFPROTO]));
+		t->nfproto = ntohl(mnl_attr_get_u32(tb[NFTA_TRACE_NFPROTO]));
 		t->flags |= (1 << NFTNL_TRACE_NFPROTO);
 	}
 
 	if (tb[NFTA_TRACE_POLICY]) {
-		t->policy = ntohs(mnl_attr_get_u16(tb[NFTA_TRACE_POLICY]));
+		t->policy = ntohl(mnl_attr_get_u32(tb[NFTA_TRACE_POLICY]));
 		t->flags |= (1 << NFTNL_TRACE_POLICY);
 	}
 
