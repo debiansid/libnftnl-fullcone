@@ -1,5 +1,6 @@
 libnftnl.so.4 libnftnl4 #MINVER#
  LIBNFTNL_4.1@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ LIBNFTNL_4.2@LIBNFTNL_4.2 1.0.6+snapshot20161117-1
  LIBNFTNL_4@LIBNFTNL_4 1.0.5
  nft_batch_alloc@LIBNFTNL_4 1.0.5
  nft_batch_begin@LIBNFTNL_4 1.0.5
@@ -261,6 +262,7 @@ libnftnl.so.4 libnftnl4 #MINVER#
  nftnl_chain_snprintf@LIBNFTNL_4 1.0.5
  nftnl_chain_unset@LIBNFTNL_4 1.0.5
  nftnl_expr_alloc@LIBNFTNL_4 1.0.5
+ nftnl_expr_cmp@LIBNFTNL_4.2 1.0.6+snapshot20161117-1
  nftnl_expr_foreach@LIBNFTNL_4 1.0.5
  nftnl_expr_free@LIBNFTNL_4 1.0.5
  nftnl_expr_get@LIBNFTNL_4 1.0.5
@@ -291,6 +293,7 @@ libnftnl.so.4 libnftnl4 #MINVER#
  nftnl_parse_perror@LIBNFTNL_4 1.0.5
  nftnl_rule_add_expr@LIBNFTNL_4 1.0.5
  nftnl_rule_alloc@LIBNFTNL_4 1.0.5
+ nftnl_rule_cmp@LIBNFTNL_4.2 1.0.6+snapshot20161117-1
  nftnl_rule_fprintf@LIBNFTNL_4 1.0.5
  nftnl_rule_free@LIBNFTNL_4 1.0.5
  nftnl_rule_get@LIBNFTNL_4 1.0.5
