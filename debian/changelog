@@ -1,3 +1,11 @@
+libnftnl (1.0.6+snapshot20161117-1) unstable; urgency=medium
+
+  * [f58caed] New upstream version 1.0.6+snapshot20161117
+  * [087181e] d/patches: drop patch 'drop-xml-tests-patch'.
+  * [96649f3] d/libnftnl4.symbols: refresh file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Thu, 17 Nov 2016 11:05:49 +0100
+
 libnftnl (1.0.6-3) unstable; urgency=medium
 
   * [6b0ecb8] d/rules: don't run testsuite at buildtime in big endian arches
