@@ -1,3 +1,12 @@
+libnftnl (1.0.7-1) unstable; urgency=medium
+
+  * [7b8a6bc] d/libnftnl4.symbols: delete debian revision from symbols
+  * [656dbef] New upstream version 1.0.7
+  * [695d39c] libnftnl: refresh symbols file
+  * [cdb457d] d/copyright: refresh file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 21 Dec 2016 12:46:36 +0100
+
 libnftnl (1.0.6+snapshot20161117-1) unstable; urgency=medium
 
   * [f58caed] New upstream version 1.0.6+snapshot20161117
