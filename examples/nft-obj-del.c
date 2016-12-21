@@ -1,5 +1,5 @@
 /*
- * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+ * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
@@ -18,32 +18,13 @@
 #include <linux/netfilter/nf_tables.h>
 
 #include <libmnl/libmnl.h>
-#include <libnftnl/set.h>
+#include <libnftnl/object.h>
 
-int main(int argc, char *argv[])
+static struct nftnl_obj *obj_del_parse(int argc, char *argv[])
 {
-	struct mnl_socket *nl;
-	char buf[MNL_SOCKET_BUFFER_SIZE];
-	struct mnl_nlmsg_batch *batch;
-	struct nlmsghdr *nlh;
-	uint32_t portid, seq, family;
-	struct nftnl_set *s;
-	struct nftnl_set_elem *e;
-	uint16_t data;
-	int ret;
+	struct nftnl_obj *t;
+	uint16_t family;
 
-	if (argc != 4) {
-		fprintf(stderr, "%s <family> <table> <set>\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
-	s = nftnl_set_alloc();
-	if (s == NULL) {
-		perror("OOM");
-		exit(EXIT_FAILURE);
-	}
-
-	seq = time(NULL);
 	if (strcmp(argv[1], "ip") == 0)
 		family = NFPROTO_IPV4;
 	else if (strcmp(argv[1], "ip6") == 0)
@@ -54,44 +35,56 @@ int main(int argc, char *argv[])
 		family = NFPROTO_ARP;
 	else {
 		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
-	nftnl_set_set(s, NFTNL_SET_TABLE, argv[2]);
-	nftnl_set_set(s, NFTNL_SET_NAME, argv[3]);
-
-	/* Add to dummy elements to set */
-	e = nftnl_set_elem_alloc();
-	if (e == NULL) {
+	t = nftnl_obj_alloc();
+	if (t == NULL) {
 		perror("OOM");
+		return NULL;
+	}
+
+	nftnl_obj_set_str(t, NFTNL_OBJ_TABLE, argv[2]);
+	nftnl_obj_set_str(t, NFTNL_OBJ_NAME, argv[3]);
+	nftnl_obj_set_u32(t, NFTNL_OBJ_TYPE, NFT_OBJECT_COUNTER);
+	nftnl_obj_set_u32(t, NFTNL_OBJ_FAMILY, family);
+
+	return t;
+}
+
+int main(int argc, char *argv[])
+{
+	struct mnl_socket *nl;
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct nlmsghdr *nlh;
+	uint32_t portid, seq, obj_seq, family;
+	struct nftnl_obj *t;
+	struct mnl_nlmsg_batch *batch;
+	int ret;
+
+	if (argc != 4) {
+		fprintf(stderr, "%s <family> <table> <name>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
-	data = 0x1;
-	nftnl_set_elem_set(e, NFTNL_SET_ELEM_KEY, &data, sizeof(data));
-	nftnl_set_elem_add(s, e);
-
-	e = nftnl_set_elem_alloc();
-	if (e == NULL) {
-		perror("OOM");
+	t = obj_del_parse(argc, argv);
+	if (t == NULL)
 		exit(EXIT_FAILURE);
-	}
-	data = 0x2;
-	nftnl_set_elem_set(e, NFTNL_SET_ELEM_KEY, &data, sizeof(data));
-	nftnl_set_elem_add(s, e);
 
+	seq = time(NULL);
 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
 
 	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
 	mnl_nlmsg_batch_next(batch);
 
+	obj_seq = seq;
+	family = nftnl_obj_get_u32(t, NFTNL_OBJ_FAMILY);
 	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-				    NFT_MSG_NEWSETELEM, family,
-				    NLM_F_CREATE | NLM_F_EXCL | NLM_F_ACK,
+				    NFT_MSG_DELOBJ, family, NLM_F_ACK,
 				    seq++);
-	nftnl_set_elems_nlmsg_build_payload(nlh, s);
-	nftnl_set_free(s);
+	nftnl_obj_nlmsg_build_payload(nlh, t);
 	mnl_nlmsg_batch_next(batch);
+	nftnl_obj_free(t);
 
 	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
 	mnl_nlmsg_batch_next(batch);
@@ -118,7 +111,7 @@ int main(int argc, char *argv[])
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
+		ret = mnl_cb_run(buf, ret, obj_seq, portid, NULL, NULL);
 		if (ret <= 0)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));

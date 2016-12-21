@@ -1,12 +1,10 @@
 /*
- * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+ * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
- * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
 
 #include <stdlib.h>
@@ -42,10 +40,16 @@ static struct nftnl_set *setup_set(uint8_t family, const char *table,
 	nftnl_set_set_str(s, NFTNL_SET_TABLE, table);
 	nftnl_set_set_str(s, NFTNL_SET_NAME, name);
 	nftnl_set_set_u32(s, NFTNL_SET_FAMILY, family);
-	nftnl_set_set_u32(s, NFTNL_SET_KEY_LEN, sizeof(uint16_t));
-	/* inet service type, see nftables/include/datatypes.h */
+	nftnl_set_set_u32(s, NFTNL_SET_KEY_LEN, 2);
+	/* See nftables/include/datatype.h, where TYPE_INET_SERVICE is 13. We
+	 * should place these datatypes in a public header so third party
+	 * applications still work with nftables.
+	 */
 	nftnl_set_set_u32(s, NFTNL_SET_KEY_TYPE, 13);
+	nftnl_set_set_u32(s, NFTNL_SET_DATA_LEN, 2);
+	nftnl_set_set_u32(s, NFTNL_SET_DATA_TYPE, 13);
 	nftnl_set_set_u32(s, NFTNL_SET_ID, 1);
+	nftnl_set_set_u32(s, NFTNL_SET_FLAGS, NFT_SET_CONSTANT | NFT_SET_MAP);
 
 	return s;
 }

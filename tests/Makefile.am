@@ -6,6 +6,7 @@ EXTRA_DIST =		test-script.sh			\
 check_PROGRAMS = 	nft-parsing-test		\
 			nft-table-test			\
 			nft-chain-test			\
+			nft-object-test			\
 			nft-rule-test			\
 			nft-set-test			\
 			nft-expr_bitwise-test		\
@@ -25,6 +26,7 @@ check_PROGRAMS = 	nft-parsing-test		\
 			nft-expr_meta-test		\
 			nft-expr_numgen-test		\
 			nft-expr_nat-test		\
+			nft-expr_objref-test		\
 			nft-expr_payload-test		\
 			nft-expr_queue-test		\
 			nft-expr_range-test             \
@@ -42,6 +44,9 @@ nft_table_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_chain_test_SOURCES = nft-chain-test.c
 nft_chain_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_object_test_SOURCES = nft-object-test.c
+nft_object_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_rule_test_SOURCES = nft-rule-test.c
 nft_rule_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -99,6 +104,9 @@ nft_expr_numgen_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_expr_nat_test_SOURCES = nft-expr_nat-test.c
 nft_expr_nat_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_expr_objref_test_SOURCES = nft-expr_objref-test.c
+nft_expr_objref_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_expr_payload_test_SOURCES = nft-expr_payload-test.c
 nft_expr_payload_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}

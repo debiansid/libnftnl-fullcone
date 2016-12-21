@@ -19,6 +19,7 @@
 ./nft-expr_range-test
 ./nft-expr_redir-test
 ./nft-expr_nat-test
+./nft-expr_objref-test
 ./nft-expr_payload-test
 ./nft-expr_quota-test
 ./nft-expr_reject-test
@@ -27,4 +28,5 @@
 ./nft-rule-test
 ./nft-set-test
 ./nft-table-test
+./nft-object-test
 ./nft-parsing-test -d jsonfiles
