@@ -173,8 +173,6 @@ LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -258,7 +256,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-noinst_HEADERS = nfnetlink.h nf_tables.h nf_tables_compat.h
+noinst_HEADERS = nfnetlink.h nf_tables.h nf_tables_compat.h nf_log.h
 all: all-am
 
 .SUFFIXES:

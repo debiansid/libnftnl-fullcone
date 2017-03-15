@@ -5,9 +5,9 @@ noinst_HEADERS = internal.h	\
 		 buffer.h	\
 		 data_reg.h	\
 		 expr_ops.h	\
+		 obj.h		\
 		 linux_list.h	\
 		 set.h		\
-		 xml.h		\
 		 common.h	\
 		 expr.h		\
 		 json.h		\

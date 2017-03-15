@@ -1,3 +1,36 @@
+libnftnl (1.0.7-1) unstable; urgency=medium
+
+  * [7b8a6bc] d/libnftnl4.symbols: delete debian revision from symbols
+  * [656dbef] New upstream version 1.0.7
+  * [695d39c] libnftnl: refresh symbols file
+  * [cdb457d] d/copyright: refresh file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 21 Dec 2016 12:46:36 +0100
+
+libnftnl (1.0.6+snapshot20161117-1) unstable; urgency=medium
+
+  * [f58caed] New upstream version 1.0.6+snapshot20161117
+  * [087181e] d/patches: drop patch 'drop-xml-tests-patch'.
+  * [96649f3] d/libnftnl4.symbols: refresh file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Thu, 17 Nov 2016 11:05:49 +0100
+
+libnftnl (1.0.6-3) unstable; urgency=medium
+
+  * [6b0ecb8] d/rules: don't run testsuite at buildtime in big endian arches
+    (Closes: #841352)
+  * [ec015a9] libnftnl: bindnow hardened build
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 21 Oct 2016 11:20:23 +0200
+
+libnftnl (1.0.6-2) unstable; urgency=medium
+
+  * [daa2393] d/rules: run tests and fail the build if the tests fail
+  * [74ac377] d/: update email address to 'arturo@debian.org'
+  * [aa177d6] libnftnl: disable XML parsing
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 10 Oct 2016 11:41:08 +0200
+
 libnftnl (1.0.6-1~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.

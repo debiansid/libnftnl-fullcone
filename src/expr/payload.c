@@ -32,6 +32,7 @@ struct nftnl_expr_payload {
 	uint32_t		len;
 	uint32_t		csum_type;
 	uint32_t		csum_offset;
+	uint32_t		csum_flags;
 };
 
 static int
@@ -61,6 +62,9 @@ nftnl_expr_payload_set(struct nftnl_expr *e, uint16_t type,
 		break;
 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
 		payload->csum_offset = *((uint32_t *)data);
+		break;
+	case NFTNL_EXPR_PAYLOAD_FLAGS:
+		payload->csum_flags = *((uint32_t *)data);
 		break;
 	default:
 		return -1;
@@ -96,6 +100,9 @@ nftnl_expr_payload_get(const struct nftnl_expr *e, uint16_t type,
 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
 		*data_len = sizeof(payload->csum_offset);
 		return &payload->csum_offset;
+	case NFTNL_EXPR_PAYLOAD_FLAGS:
+		*data_len = sizeof(payload->csum_flags);
+		return &payload->csum_flags;
 	}
 	return NULL;
 }
@@ -116,6 +123,7 @@ static int nftnl_expr_payload_cb(const struct nlattr *attr, void *data)
 	case NFTA_PAYLOAD_LEN:
 	case NFTA_PAYLOAD_CSUM_TYPE:
 	case NFTA_PAYLOAD_CSUM_OFFSET:
+	case NFTA_PAYLOAD_CSUM_FLAGS:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
@@ -146,6 +154,9 @@ nftnl_expr_payload_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
 		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_OFFSET,
 				 htonl(payload->csum_offset));
+	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
+		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_FLAGS,
+				 htonl(payload->csum_flags));
 }
 
 static int
@@ -159,7 +170,7 @@ nftnl_expr_payload_parse(struct nftnl_expr *e, struct nlattr *attr)
 
 	if (tb[NFTA_PAYLOAD_SREG]) {
 		payload->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_SREG]));
-		e->flags |= (1 << NFT_EXPR_PAYLOAD_SREG);
+		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_SREG);
 	}
 	if (tb[NFTA_PAYLOAD_DREG]) {
 		payload->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_DREG]));
@@ -184,6 +195,10 @@ nftnl_expr_payload_parse(struct nftnl_expr *e, struct nlattr *attr)
 	if (tb[NFTA_PAYLOAD_CSUM_OFFSET]) {
 		payload->csum_offset = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_OFFSET]));
 		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET);
+	}
+	if (tb[NFTA_PAYLOAD_CSUM_FLAGS]) {
+		payload->csum_flags = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_FLAGS]));
+		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_FLAGS);
 	}
 	return 0;
 }
@@ -251,45 +266,6 @@ nftnl_expr_payload_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-static int
-nftnl_expr_payload_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *base_str;
-	int32_t base;
-	uint32_t dreg, offset, len;
-
-	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
-			       NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_DREG, dreg);
-
-	base_str = nftnl_mxml_str_parse(tree, "base", MXML_DESCEND_FIRST,
-				      NFTNL_XML_MAND, err);
-	if (base_str != NULL) {
-		base = nftnl_str2base(base_str);
-		if (base < 0)
-			return -1;
-
-		nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_BASE, base);
-	}
-
-	if (nftnl_mxml_num_parse(tree, "offset", MXML_DESCEND_FIRST, BASE_DEC,
-			       &offset, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET, offset);
-
-
-	if (nftnl_mxml_num_parse(tree, "len", MXML_DESCEND_FIRST, BASE_DEC,
-			       &len, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_LEN, len);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_payload_export(char *buf, size_t size, uint32_t flags,
 				     const struct nftnl_expr *e, int type)
 {
@@ -317,11 +293,12 @@ nftnl_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
 	switch (type) {
 	case NFTNL_OUTPUT_DEFAULT:
 		if (payload->sreg)
-			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u ",
+			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u csum_flags 0x%x ",
 					payload->sreg,
 					payload->len, base2str(payload->base),
 					payload->offset, payload->csum_type,
-					payload->csum_offset);
+					payload->csum_offset,
+					payload->csum_flags);
 		else
 			return snprintf(buf, len, "load %ub @ %s header + %u => reg %u ",
 					payload->len, base2str(payload->base),
@@ -335,15 +312,42 @@ nftnl_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_payload_cmp(const struct nftnl_expr *e1,
+				   const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_payload *p1 = nftnl_expr_data(e1);
+	struct nftnl_expr_payload *p2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_SREG))
+		eq &= (p1->sreg == p2->sreg);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_DREG))
+		eq &= (p1->dreg == p2->dreg);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_BASE))
+		eq &= (p1->base == p2->base);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_OFFSET))
+		eq &= (p1->offset == p2->offset);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_LEN))
+		eq &= (p1->len == p2->len);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_TYPE))
+		eq &= (p1->csum_type == p2->csum_type);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
+		eq &= (p1->csum_offset == p2->csum_offset);
+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
+		eq &= (p1->csum_flags == p2->csum_flags);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_payload = {
 	.name		= "payload",
 	.alloc_len	= sizeof(struct nftnl_expr_payload),
 	.max_attr	= NFTA_PAYLOAD_MAX,
+	.cmp		= nftnl_expr_payload_cmp,
 	.set		= nftnl_expr_payload_set,
 	.get		= nftnl_expr_payload_get,
 	.parse		= nftnl_expr_payload_parse,
 	.build		= nftnl_expr_payload_build,
 	.snprintf	= nftnl_expr_payload_snprintf,
-	.xml_parse	= nftnl_expr_payload_xml_parse,
 	.json_parse	= nftnl_expr_payload_json_parse,
 };

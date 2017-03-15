@@ -80,8 +80,9 @@ host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/Make_global.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/build-aux/depcomp
 check_PROGRAMS = nft-parsing-test$(EXEEXT) nft-table-test$(EXEEXT) \
-	nft-chain-test$(EXEEXT) nft-rule-test$(EXEEXT) \
-	nft-set-test$(EXEEXT) nft-expr_bitwise-test$(EXEEXT) \
+	nft-chain-test$(EXEEXT) nft-object-test$(EXEEXT) \
+	nft-rule-test$(EXEEXT) nft-set-test$(EXEEXT) \
+	nft-expr_bitwise-test$(EXEEXT) \
 	nft-expr_byteorder-test$(EXEEXT) \
 	nft-expr_counter-test$(EXEEXT) nft-expr_cmp-test$(EXEEXT) \
 	nft-expr_ct-test$(EXEEXT) nft-expr_dup-test$(EXEEXT) \
@@ -89,10 +90,12 @@ check_PROGRAMS = nft-parsing-test$(EXEEXT) nft-table-test$(EXEEXT) \
 	nft-expr_immediate-test$(EXEEXT) nft-expr_limit-test$(EXEEXT) \
 	nft-expr_lookup-test$(EXEEXT) nft-expr_log-test$(EXEEXT) \
 	nft-expr_match-test$(EXEEXT) nft-expr_masq-test$(EXEEXT) \
-	nft-expr_meta-test$(EXEEXT) nft-expr_nat-test$(EXEEXT) \
+	nft-expr_meta-test$(EXEEXT) nft-expr_numgen-test$(EXEEXT) \
+	nft-expr_nat-test$(EXEEXT) nft-expr_objref-test$(EXEEXT) \
 	nft-expr_payload-test$(EXEEXT) nft-expr_queue-test$(EXEEXT) \
+	nft-expr_range-test$(EXEEXT) nft-expr_quota-test$(EXEEXT) \
 	nft-expr_redir-test$(EXEEXT) nft-expr_reject-test$(EXEEXT) \
-	nft-expr_target-test$(EXEEXT)
+	nft-expr_target-test$(EXEEXT) nft-expr_hash-test$(EXEEXT)
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gcc4_visibility.m4 \
@@ -147,7 +150,12 @@ am_nft_expr_fwd_test_OBJECTS = nft-expr_fwd-test.$(OBJEXT)
 nft_expr_fwd_test_OBJECTS = $(am_nft_expr_fwd_test_OBJECTS)
 nft_expr_fwd_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
-am_nft_expr_immediate_test_OBJECTS = nft-expr_counter-test.$(OBJEXT)
+am_nft_expr_hash_test_OBJECTS = nft-expr_hash-test.$(OBJEXT)
+nft_expr_hash_test_OBJECTS = $(am_nft_expr_hash_test_OBJECTS)
+nft_expr_hash_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_expr_immediate_test_OBJECTS =  \
+	nft-expr_immediate-test.$(OBJEXT)
 nft_expr_immediate_test_OBJECTS =  \
 	$(am_nft_expr_immediate_test_OBJECTS)
 nft_expr_immediate_test_DEPENDENCIES = ../src/libnftnl.la \
@@ -160,7 +168,7 @@ am_nft_expr_log_test_OBJECTS = nft-expr_log-test.$(OBJEXT)
 nft_expr_log_test_OBJECTS = $(am_nft_expr_log_test_OBJECTS)
 nft_expr_log_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
-am_nft_expr_lookup_test_OBJECTS = nft-expr_limit-test.$(OBJEXT)
+am_nft_expr_lookup_test_OBJECTS = nft-expr_lookup-test.$(OBJEXT)
 nft_expr_lookup_test_OBJECTS = $(am_nft_expr_lookup_test_OBJECTS)
 nft_expr_lookup_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
@@ -180,6 +188,14 @@ am_nft_expr_nat_test_OBJECTS = nft-expr_nat-test.$(OBJEXT)
 nft_expr_nat_test_OBJECTS = $(am_nft_expr_nat_test_OBJECTS)
 nft_expr_nat_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
+am_nft_expr_numgen_test_OBJECTS = nft-expr_numgen-test.$(OBJEXT)
+nft_expr_numgen_test_OBJECTS = $(am_nft_expr_numgen_test_OBJECTS)
+nft_expr_numgen_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_expr_objref_test_OBJECTS = nft-expr_objref-test.$(OBJEXT)
+nft_expr_objref_test_OBJECTS = $(am_nft_expr_objref_test_OBJECTS)
+nft_expr_objref_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
 am_nft_expr_payload_test_OBJECTS = nft-expr_payload-test.$(OBJEXT)
 nft_expr_payload_test_OBJECTS = $(am_nft_expr_payload_test_OBJECTS)
 nft_expr_payload_test_DEPENDENCIES = ../src/libnftnl.la \
@@ -187,6 +203,14 @@ nft_expr_payload_test_DEPENDENCIES = ../src/libnftnl.la \
 am_nft_expr_queue_test_OBJECTS = nft-expr_queue-test.$(OBJEXT)
 nft_expr_queue_test_OBJECTS = $(am_nft_expr_queue_test_OBJECTS)
 nft_expr_queue_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_expr_quota_test_OBJECTS = nft-expr_quota-test.$(OBJEXT)
+nft_expr_quota_test_OBJECTS = $(am_nft_expr_quota_test_OBJECTS)
+nft_expr_quota_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_expr_range_test_OBJECTS = nft-expr_range-test.$(OBJEXT)
+nft_expr_range_test_OBJECTS = $(am_nft_expr_range_test_OBJECTS)
+nft_expr_range_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
 am_nft_expr_redir_test_OBJECTS = nft-expr_redir-test.$(OBJEXT)
 nft_expr_redir_test_OBJECTS = $(am_nft_expr_redir_test_OBJECTS)
@@ -200,11 +224,14 @@ am_nft_expr_target_test_OBJECTS = nft-expr_target-test.$(OBJEXT)
 nft_expr_target_test_OBJECTS = $(am_nft_expr_target_test_OBJECTS)
 nft_expr_target_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
+am_nft_object_test_OBJECTS = nft-object-test.$(OBJEXT)
+nft_object_test_OBJECTS = $(am_nft_object_test_OBJECTS)
+nft_object_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
 am_nft_parsing_test_OBJECTS = nft-parsing-test.$(OBJEXT)
 nft_parsing_test_OBJECTS = $(am_nft_parsing_test_OBJECTS)
 nft_parsing_test_DEPENDENCIES = ../src/libnftnl.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_nft_rule_test_OBJECTS = nft-rule-test.$(OBJEXT)
 nft_rule_test_OBJECTS = $(am_nft_rule_test_OBJECTS)
 nft_rule_test_DEPENDENCIES = ../src/libnftnl.la $(am__DEPENDENCIES_1)
@@ -253,32 +280,40 @@ SOURCES = $(nft_chain_test_SOURCES) $(nft_expr_bitwise_test_SOURCES) \
 	$(nft_expr_cmp_test_SOURCES) $(nft_expr_counter_test_SOURCES) \
 	$(nft_expr_ct_test_SOURCES) $(nft_expr_dup_test_SOURCES) \
 	$(nft_expr_exthdr_test_SOURCES) $(nft_expr_fwd_test_SOURCES) \
+	$(nft_expr_hash_test_SOURCES) \
 	$(nft_expr_immediate_test_SOURCES) \
 	$(nft_expr_limit_test_SOURCES) $(nft_expr_log_test_SOURCES) \
 	$(nft_expr_lookup_test_SOURCES) $(nft_expr_masq_test_SOURCES) \
 	$(nft_expr_match_test_SOURCES) $(nft_expr_meta_test_SOURCES) \
-	$(nft_expr_nat_test_SOURCES) $(nft_expr_payload_test_SOURCES) \
-	$(nft_expr_queue_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
+	$(nft_expr_nat_test_SOURCES) $(nft_expr_numgen_test_SOURCES) \
+	$(nft_expr_objref_test_SOURCES) \
+	$(nft_expr_payload_test_SOURCES) \
+	$(nft_expr_queue_test_SOURCES) $(nft_expr_quota_test_SOURCES) \
+	$(nft_expr_range_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
 	$(nft_expr_reject_test_SOURCES) \
-	$(nft_expr_target_test_SOURCES) $(nft_parsing_test_SOURCES) \
-	$(nft_rule_test_SOURCES) $(nft_set_test_SOURCES) \
-	$(nft_table_test_SOURCES)
+	$(nft_expr_target_test_SOURCES) $(nft_object_test_SOURCES) \
+	$(nft_parsing_test_SOURCES) $(nft_rule_test_SOURCES) \
+	$(nft_set_test_SOURCES) $(nft_table_test_SOURCES)
 DIST_SOURCES = $(nft_chain_test_SOURCES) \
 	$(nft_expr_bitwise_test_SOURCES) \
 	$(nft_expr_byteorder_test_SOURCES) \
 	$(nft_expr_cmp_test_SOURCES) $(nft_expr_counter_test_SOURCES) \
 	$(nft_expr_ct_test_SOURCES) $(nft_expr_dup_test_SOURCES) \
 	$(nft_expr_exthdr_test_SOURCES) $(nft_expr_fwd_test_SOURCES) \
+	$(nft_expr_hash_test_SOURCES) \
 	$(nft_expr_immediate_test_SOURCES) \
 	$(nft_expr_limit_test_SOURCES) $(nft_expr_log_test_SOURCES) \
 	$(nft_expr_lookup_test_SOURCES) $(nft_expr_masq_test_SOURCES) \
 	$(nft_expr_match_test_SOURCES) $(nft_expr_meta_test_SOURCES) \
-	$(nft_expr_nat_test_SOURCES) $(nft_expr_payload_test_SOURCES) \
-	$(nft_expr_queue_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
+	$(nft_expr_nat_test_SOURCES) $(nft_expr_numgen_test_SOURCES) \
+	$(nft_expr_objref_test_SOURCES) \
+	$(nft_expr_payload_test_SOURCES) \
+	$(nft_expr_queue_test_SOURCES) $(nft_expr_quota_test_SOURCES) \
+	$(nft_expr_range_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
 	$(nft_expr_reject_test_SOURCES) \
-	$(nft_expr_target_test_SOURCES) $(nft_parsing_test_SOURCES) \
-	$(nft_rule_test_SOURCES) $(nft_set_test_SOURCES) \
-	$(nft_table_test_SOURCES)
+	$(nft_expr_target_test_SOURCES) $(nft_object_test_SOURCES) \
+	$(nft_parsing_test_SOURCES) $(nft_rule_test_SOURCES) \
+	$(nft_set_test_SOURCES) $(nft_table_test_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -345,8 +380,6 @@ LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -451,19 +484,20 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 5:0:1
+LIBVERSION = 6:0:2
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 EXTRA_DIST = test-script.sh			\
-			jsonfiles			\
-			xmlfiles
+			jsonfiles
 
 nft_parsing_test_SOURCES = nft-parsing-test.c
-nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBXML_LIBS} ${LIBJSON_LIBS}
+nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBJSON_LIBS}
 nft_table_test_SOURCES = nft-table-test.c
 nft_table_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_chain_test_SOURCES = nft-chain-test.c
 nft_chain_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_object_test_SOURCES = nft-object-test.c
+nft_object_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_rule_test_SOURCES = nft-rule-test.c
 nft_rule_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_set_test_SOURCES = nft-set-test.c
@@ -484,11 +518,11 @@ nft_expr_dup_test_SOURCES = nft-expr_dup-test.c
 nft_expr_dup_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_fwd_test_SOURCES = nft-expr_fwd-test.c
 nft_expr_fwd_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-nft_expr_immediate_test_SOURCES = nft-expr_counter-test.c
+nft_expr_immediate_test_SOURCES = nft-expr_immediate-test.c
 nft_expr_immediate_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_limit_test_SOURCES = nft-expr_limit-test.c
 nft_expr_limit_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-nft_expr_lookup_test_SOURCES = nft-expr_limit-test.c
+nft_expr_lookup_test_SOURCES = nft-expr_lookup-test.c
 nft_expr_lookup_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_log_test_SOURCES = nft-expr_log-test.c
 nft_expr_log_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -498,18 +532,28 @@ nft_expr_masq_test_SOURCES = nft-expr_masq-test.c
 nft_expr_masq_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_meta_test_SOURCES = nft-expr_meta-test.c
 nft_expr_meta_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_expr_numgen_test_SOURCES = nft-expr_numgen-test.c
+nft_expr_numgen_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_nat_test_SOURCES = nft-expr_nat-test.c
 nft_expr_nat_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_expr_objref_test_SOURCES = nft-expr_objref-test.c
+nft_expr_objref_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_payload_test_SOURCES = nft-expr_payload-test.c
 nft_expr_payload_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_queue_test_SOURCES = nft-expr_queue-test.c
 nft_expr_queue_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_expr_quota_test_SOURCES = nft-expr_quota-test.c
+nft_expr_quota_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_expr_range_test_SOURCES = nft-expr_range-test.c
+nft_expr_range_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_reject_test_SOURCES = nft-expr_reject-test.c
 nft_expr_reject_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_redir_test_SOURCES = nft-expr_redir-test.c
 nft_expr_redir_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_target_test_SOURCES = nft-expr_target-test.c
 nft_expr_target_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_expr_hash_test_SOURCES = nft-expr_hash-test.c
+nft_expr_hash_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 all: all-am
 
 .SUFFIXES:
@@ -591,6 +635,10 @@ nft-expr_fwd-test$(EXEEXT): $(nft_expr_fwd_test_OBJECTS) $(nft_expr_fwd_test_DEP
 	@rm -f nft-expr_fwd-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_fwd_test_OBJECTS) $(nft_expr_fwd_test_LDADD) $(LIBS)
 
+nft-expr_hash-test$(EXEEXT): $(nft_expr_hash_test_OBJECTS) $(nft_expr_hash_test_DEPENDENCIES) $(EXTRA_nft_expr_hash_test_DEPENDENCIES) 
+	@rm -f nft-expr_hash-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_expr_hash_test_OBJECTS) $(nft_expr_hash_test_LDADD) $(LIBS)
+
 nft-expr_immediate-test$(EXEEXT): $(nft_expr_immediate_test_OBJECTS) $(nft_expr_immediate_test_DEPENDENCIES) $(EXTRA_nft_expr_immediate_test_DEPENDENCIES) 
 	@rm -f nft-expr_immediate-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_immediate_test_OBJECTS) $(nft_expr_immediate_test_LDADD) $(LIBS)
@@ -623,6 +671,14 @@ nft-expr_nat-test$(EXEEXT): $(nft_expr_nat_test_OBJECTS) $(nft_expr_nat_test_DEP
 	@rm -f nft-expr_nat-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_nat_test_OBJECTS) $(nft_expr_nat_test_LDADD) $(LIBS)
 
+nft-expr_numgen-test$(EXEEXT): $(nft_expr_numgen_test_OBJECTS) $(nft_expr_numgen_test_DEPENDENCIES) $(EXTRA_nft_expr_numgen_test_DEPENDENCIES) 
+	@rm -f nft-expr_numgen-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_expr_numgen_test_OBJECTS) $(nft_expr_numgen_test_LDADD) $(LIBS)
+
+nft-expr_objref-test$(EXEEXT): $(nft_expr_objref_test_OBJECTS) $(nft_expr_objref_test_DEPENDENCIES) $(EXTRA_nft_expr_objref_test_DEPENDENCIES) 
+	@rm -f nft-expr_objref-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_expr_objref_test_OBJECTS) $(nft_expr_objref_test_LDADD) $(LIBS)
+
 nft-expr_payload-test$(EXEEXT): $(nft_expr_payload_test_OBJECTS) $(nft_expr_payload_test_DEPENDENCIES) $(EXTRA_nft_expr_payload_test_DEPENDENCIES) 
 	@rm -f nft-expr_payload-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_payload_test_OBJECTS) $(nft_expr_payload_test_LDADD) $(LIBS)
@@ -630,6 +686,14 @@ nft-expr_payload-test$(EXEEXT): $(nft_expr_payload_test_OBJECTS) $(nft_expr_payl
 nft-expr_queue-test$(EXEEXT): $(nft_expr_queue_test_OBJECTS) $(nft_expr_queue_test_DEPENDENCIES) $(EXTRA_nft_expr_queue_test_DEPENDENCIES) 
 	@rm -f nft-expr_queue-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_queue_test_OBJECTS) $(nft_expr_queue_test_LDADD) $(LIBS)
+
+nft-expr_quota-test$(EXEEXT): $(nft_expr_quota_test_OBJECTS) $(nft_expr_quota_test_DEPENDENCIES) $(EXTRA_nft_expr_quota_test_DEPENDENCIES) 
+	@rm -f nft-expr_quota-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_expr_quota_test_OBJECTS) $(nft_expr_quota_test_LDADD) $(LIBS)
+
+nft-expr_range-test$(EXEEXT): $(nft_expr_range_test_OBJECTS) $(nft_expr_range_test_DEPENDENCIES) $(EXTRA_nft_expr_range_test_DEPENDENCIES) 
+	@rm -f nft-expr_range-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_expr_range_test_OBJECTS) $(nft_expr_range_test_LDADD) $(LIBS)
 
 nft-expr_redir-test$(EXEEXT): $(nft_expr_redir_test_OBJECTS) $(nft_expr_redir_test_DEPENDENCIES) $(EXTRA_nft_expr_redir_test_DEPENDENCIES) 
 	@rm -f nft-expr_redir-test$(EXEEXT)
@@ -642,6 +706,10 @@ nft-expr_reject-test$(EXEEXT): $(nft_expr_reject_test_OBJECTS) $(nft_expr_reject
 nft-expr_target-test$(EXEEXT): $(nft_expr_target_test_OBJECTS) $(nft_expr_target_test_DEPENDENCIES) $(EXTRA_nft_expr_target_test_DEPENDENCIES) 
 	@rm -f nft-expr_target-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_target_test_OBJECTS) $(nft_expr_target_test_LDADD) $(LIBS)
+
+nft-object-test$(EXEEXT): $(nft_object_test_OBJECTS) $(nft_object_test_DEPENDENCIES) $(EXTRA_nft_object_test_DEPENDENCIES) 
+	@rm -f nft-object-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_object_test_OBJECTS) $(nft_object_test_LDADD) $(LIBS)
 
 nft-parsing-test$(EXEEXT): $(nft_parsing_test_OBJECTS) $(nft_parsing_test_DEPENDENCIES) $(EXTRA_nft_parsing_test_DEPENDENCIES) 
 	@rm -f nft-parsing-test$(EXEEXT)
@@ -674,17 +742,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_dup-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_exthdr-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_fwd-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_hash-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_immediate-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_limit-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_log-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_lookup-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_masq-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_match-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_meta-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_nat-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_numgen-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_objref-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_payload-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_queue-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_quota-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_range-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_redir-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_reject-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_target-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-object-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-parsing-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-set-test.Po@am__quote@

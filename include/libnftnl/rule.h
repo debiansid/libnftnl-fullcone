@@ -33,12 +33,12 @@ enum nftnl_rule_attr {
 
 void nftnl_rule_unset(struct nftnl_rule *r, uint16_t attr);
 bool nftnl_rule_is_set(const struct nftnl_rule *r, uint16_t attr);
-void nftnl_rule_set(struct nftnl_rule *r, uint16_t attr, const void *data);
-void nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
-			    const void *data, uint32_t data_len);
+int nftnl_rule_set(struct nftnl_rule *r, uint16_t attr, const void *data);
+int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
+			const void *data, uint32_t data_len);
 void nftnl_rule_set_u32(struct nftnl_rule *r, uint16_t attr, uint32_t val);
 void nftnl_rule_set_u64(struct nftnl_rule *r, uint16_t attr, uint64_t val);
-void nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const char *str);
+int nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const char *str);
 
 const void *nftnl_rule_get(const struct nftnl_rule *r, uint16_t attr);
 const void *nftnl_rule_get_data(const struct nftnl_rule *r, uint16_t attr,
@@ -49,6 +49,8 @@ uint32_t nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr);
 uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr);
 
 void nftnl_rule_add_expr(struct nftnl_rule *r, struct nftnl_expr *expr);
+
+bool nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2);
 
 struct nlmsghdr;
 
@@ -70,7 +72,7 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
 
 struct nftnl_expr_iter;
 
-struct nftnl_expr_iter *nftnl_expr_iter_create(struct nftnl_rule *r);
+struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r);
 struct nftnl_expr *nftnl_expr_iter_next(struct nftnl_expr_iter *iter);
 void nftnl_expr_iter_destroy(struct nftnl_expr_iter *iter);
 
@@ -86,7 +88,7 @@ int nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list, int (*cb)(struct 
 
 struct nftnl_rule_list_iter;
 
-struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(struct nftnl_rule_list *l);
+struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(const struct nftnl_rule_list *l);
 struct nftnl_rule *nftnl_rule_list_iter_cur(struct nftnl_rule_list_iter *iter);
 struct nftnl_rule *nftnl_rule_list_iter_next(struct nftnl_rule_list_iter *iter);
 void nftnl_rule_list_iter_destroy(const struct nftnl_rule_list_iter *iter);
@@ -153,7 +155,7 @@ int nft_rule_expr_foreach(struct nft_rule *r,
 
 struct nft_rule_expr_iter;
 
-struct nft_rule_expr_iter *nft_rule_expr_iter_create(struct nft_rule *r);
+struct nft_rule_expr_iter *nft_rule_expr_iter_create(const struct nft_rule *r);
 struct nft_rule_expr *nft_rule_expr_iter_next(struct nft_rule_expr_iter *iter);
 void nft_rule_expr_iter_destroy(struct nft_rule_expr_iter *iter);
 
@@ -169,7 +171,7 @@ int nft_rule_list_foreach(struct nft_rule_list *rule_list, int (*cb)(struct nft_
 
 struct nft_rule_list_iter;
 
-struct nft_rule_list_iter *nft_rule_list_iter_create(struct nft_rule_list *l);
+struct nft_rule_list_iter *nft_rule_list_iter_create(const struct nft_rule_list *l);
 struct nft_rule *nft_rule_list_iter_cur(struct nft_rule_list_iter *iter);
 struct nft_rule *nft_rule_list_iter_next(struct nft_rule_list_iter *iter);
 void nft_rule_list_iter_destroy(struct nft_rule_list_iter *iter);

@@ -1,6 +1,6 @@
 /*
  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
@@ -33,7 +33,7 @@ static const char *const nftnl_family_str[NFPROTO_NUMPROTO] = {
 
 const char *nftnl_family2str(uint32_t family)
 {
-	if (nftnl_family_str[family] == NULL)
+	if (family >= NFPROTO_NUMPROTO || !nftnl_family_str[family])
 		return "unknown";
 
 	return nftnl_family_str[family];
@@ -267,6 +267,14 @@ out:
 		xfree(buf);
 
 	return ret;
+}
+
+void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
+				const char *filename, int line)
+{
+	fprintf(stderr, "libnftnl: attribute %d > %d (maximum) assertion failed in %s:%d\n",
+		attr, attr_max, filename, line);
+	exit(EXIT_FAILURE);
 }
 
 void __nftnl_assert_fail(uint16_t attr, const char *filename, int line)

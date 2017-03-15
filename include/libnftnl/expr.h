@@ -20,13 +20,13 @@ struct nftnl_expr *nftnl_expr_alloc(const char *name);
 void nftnl_expr_free(const struct nftnl_expr *expr);
 
 bool nftnl_expr_is_set(const struct nftnl_expr *expr, uint16_t type);
-void nftnl_expr_set(struct nftnl_expr *expr, uint16_t type, const void *data, uint32_t data_len);
+int nftnl_expr_set(struct nftnl_expr *expr, uint16_t type, const void *data, uint32_t data_len);
 #define nftnl_expr_set_data nftnl_expr_set
 void nftnl_expr_set_u8(struct nftnl_expr *expr, uint16_t type, uint8_t data);
 void nftnl_expr_set_u16(struct nftnl_expr *expr, uint16_t type, uint16_t data);
 void nftnl_expr_set_u32(struct nftnl_expr *expr, uint16_t type, uint32_t data);
 void nftnl_expr_set_u64(struct nftnl_expr *expr, uint16_t type, uint64_t data);
-void nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str);
+int nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str);
 
 const void *nftnl_expr_get(const struct nftnl_expr *expr, uint16_t type, uint32_t *data_len);
 #define nftnl_expr_get_data nftnl_expr_get
@@ -35,6 +35,8 @@ uint16_t nftnl_expr_get_u16(const struct nftnl_expr *expr, uint16_t type);
 uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type);
 uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type);
 const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type);
+
+bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2);
 
 int nftnl_expr_snprintf(char *buf, size_t buflen, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
 
@@ -46,6 +48,14 @@ enum {
 	NFTNL_EXPR_PAYLOAD_SREG,
 	NFTNL_EXPR_PAYLOAD_CSUM_TYPE,
 	NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
+	NFTNL_EXPR_PAYLOAD_FLAGS,
+};
+
+enum {
+	NFTNL_EXPR_NG_DREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_NG_MODULUS,
+	NFTNL_EXPR_NG_TYPE,
+	NFTNL_EXPR_NG_OFFSET,
 };
 
 enum {
@@ -55,9 +65,21 @@ enum {
 };
 
 enum {
+	NFTNL_EXPR_RT_KEY	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_RT_DREG,
+};
+
+enum {
 	NFTNL_EXPR_CMP_SREG	= NFTNL_EXPR_BASE,
 	NFTNL_EXPR_CMP_OP,
 	NFTNL_EXPR_CMP_DATA,
+};
+
+enum {
+	NFTNL_EXPR_RANGE_SREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_RANGE_OP,
+	NFTNL_EXPR_RANGE_FROM_DATA,
+	NFTNL_EXPR_RANGE_TO_DATA,
 };
 
 enum {
@@ -107,6 +129,7 @@ enum {
 	NFTNL_EXPR_LOOKUP_DREG,
 	NFTNL_EXPR_LOOKUP_SET,
 	NFTNL_EXPR_LOOKUP_SET_ID,
+	NFTNL_EXPR_LOOKUP_FLAGS,
 };
 
 enum {
@@ -167,6 +190,13 @@ enum {
 	NFTNL_EXPR_QUEUE_NUM	= NFTNL_EXPR_BASE,
 	NFTNL_EXPR_QUEUE_TOTAL,
 	NFTNL_EXPR_QUEUE_FLAGS,
+	NFTNL_EXPR_QUEUE_SREG_QNUM,
+};
+
+enum {
+	NFTNL_EXPR_QUOTA_BYTES	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_QUOTA_FLAGS,
+	NFTNL_EXPR_QUOTA_CONSUMED,
 };
 
 enum {
@@ -188,6 +218,29 @@ enum {
 
 enum {
 	NFTNL_EXPR_FWD_SREG_DEV = NFTNL_EXPR_BASE,
+};
+
+enum {
+	NFTNL_EXPR_HASH_SREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_HASH_DREG,
+	NFTNL_EXPR_HASH_LEN,
+	NFTNL_EXPR_HASH_MODULUS,
+	NFTNL_EXPR_HASH_SEED,
+	NFTNL_EXPR_HASH_OFFSET,
+};
+
+enum {
+	NFTNL_EXPR_FIB_DREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_FIB_RESULT,
+	NFTNL_EXPR_FIB_FLAGS,
+};
+
+enum {
+	NFTNL_EXPR_OBJREF_IMM_TYPE	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_OBJREF_IMM_NAME,
+	NFTNL_EXPR_OBJREF_SET_SREG,
+	NFTNL_EXPR_OBJREF_SET_NAME,
+	NFTNL_EXPR_OBJREF_SET_ID,
 };
 
 /*
@@ -237,6 +290,11 @@ enum {
 	NFT_EXPR_META_KEY	= NFT_RULE_EXPR_ATTR_BASE,
 	NFT_EXPR_META_DREG,
 	NFT_EXPR_META_SREG,
+};
+
+enum {
+	NFT_EXPR_RT_KEY		= NFT_RULE_EXPR_ATTR_BASE,
+	NFT_EXPR_RT_DREG,
 };
 
 enum {

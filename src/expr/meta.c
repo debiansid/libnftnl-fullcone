@@ -215,38 +215,6 @@ static int nftnl_expr_meta_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-
-static int nftnl_expr_meta_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-					struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *key_str;
-	int key;
-	uint32_t dreg, sreg;
-
-	key_str = nftnl_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
-				     NFTNL_XML_MAND, err);
-	if (key_str != NULL) {
-		key = str2meta_key(key_str);
-		if (key >= 0)
-			nftnl_expr_set_u32(e, NFTNL_EXPR_META_KEY, key);
-	}
-
-	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_META_DREG, dreg);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_META_SREG, sreg);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int
 nftnl_expr_meta_snprintf_default(char *buf, size_t len,
 				 const struct nftnl_expr *e)
@@ -296,15 +264,32 @@ nftnl_expr_meta_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_meta_cmp(const struct nftnl_expr *e1,
+				     const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_meta *m1 = nftnl_expr_data(e1);
+	struct nftnl_expr_meta *m2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_META_KEY))
+		eq &= (m1->key == m2->key);
+	if (e1->flags & (1 << NFTNL_EXPR_META_DREG))
+		eq &= (m1->dreg == m2->dreg);
+	if (e1->flags & (1 << NFTNL_EXPR_META_SREG))
+		eq &= (m1->sreg == m2->sreg);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_meta = {
 	.name		= "meta",
 	.alloc_len	= sizeof(struct nftnl_expr_meta),
 	.max_attr	= NFTA_META_MAX,
+	.cmp		= nftnl_expr_meta_cmp,
 	.set		= nftnl_expr_meta_set,
 	.get		= nftnl_expr_meta_get,
 	.parse		= nftnl_expr_meta_parse,
 	.build		= nftnl_expr_meta_build,
 	.snprintf	= nftnl_expr_meta_snprintf,
-	.xml_parse 	= nftnl_expr_meta_xml_parse,
 	.json_parse 	= nftnl_expr_meta_json_parse,
 };

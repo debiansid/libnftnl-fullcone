@@ -26,6 +26,7 @@ struct nftnl_expr_lookup {
 	enum nft_registers	dreg;
 	char			*set_name;
 	uint32_t		set_id;
+	uint32_t		flags;
 };
 
 static int
@@ -43,9 +44,14 @@ nftnl_expr_lookup_set(struct nftnl_expr *e, uint16_t type,
 		break;
 	case NFTNL_EXPR_LOOKUP_SET:
 		lookup->set_name = strdup((const char *)data);
+		if (!lookup->set_name)
+			return -1;
 		break;
 	case NFTNL_EXPR_LOOKUP_SET_ID:
 		lookup->set_id = *((uint32_t *)data);
+		break;
+	case NFTNL_EXPR_LOOKUP_FLAGS:
+		lookup->flags = *((uint32_t *)data);
 		break;
 	default:
 		return -1;
@@ -67,9 +73,14 @@ nftnl_expr_lookup_get(const struct nftnl_expr *e, uint16_t type,
 		*data_len = sizeof(lookup->dreg);
 		return &lookup->dreg;
 	case NFTNL_EXPR_LOOKUP_SET:
+		*data_len = strlen(lookup->set_name) + 1;
 		return lookup->set_name;
 	case NFTNL_EXPR_LOOKUP_SET_ID:
+		*data_len = sizeof(lookup->set_id);
 		return &lookup->set_id;
+	case NFTNL_EXPR_LOOKUP_FLAGS:
+		*data_len = sizeof(lookup->flags);
+		return &lookup->flags;
 	}
 	return NULL;
 }
@@ -86,6 +97,7 @@ static int nftnl_expr_lookup_cb(const struct nlattr *attr, void *data)
 	case NFTA_LOOKUP_SREG:
 	case NFTA_LOOKUP_DREG:
 	case NFTA_LOOKUP_SET_ID:
+	case NFTA_LOOKUP_FLAGS:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
@@ -110,10 +122,11 @@ nftnl_expr_lookup_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_DREG, htonl(lookup->dreg));
 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET))
 		mnl_attr_put_strz(nlh, NFTA_LOOKUP_SET, lookup->set_name);
-	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID)) {
+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID))
 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_SET_ID,
 				 htonl(lookup->set_id));
-	}
+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
+		mnl_attr_put_u32(nlh, NFTA_LOOKUP_FLAGS, htonl(lookup->flags));
 }
 
 static int
@@ -137,12 +150,18 @@ nftnl_expr_lookup_parse(struct nftnl_expr *e, struct nlattr *attr)
 	if (tb[NFTA_LOOKUP_SET]) {
 		lookup->set_name =
 			strdup(mnl_attr_get_str(tb[NFTA_LOOKUP_SET]));
+		if (!lookup->set_name)
+			return -1;
 		e->flags |= (1 << NFTNL_EXPR_LOOKUP_SET);
 	}
 	if (tb[NFTA_LOOKUP_SET_ID]) {
 		lookup->set_id =
 			ntohl(mnl_attr_get_u32(tb[NFTA_LOOKUP_SET_ID]));
 		e->flags |= (1 << NFTNL_EXPR_LOOKUP_SET_ID);
+	}
+	if (tb[NFTA_LOOKUP_FLAGS]) {
+		lookup->flags = ntohl(mnl_attr_get_u32(tb[NFTA_LOOKUP_FLAGS]));
+		e->flags |= (1 << NFTNL_EXPR_LOOKUP_FLAGS);
 	}
 
 	return ret;
@@ -154,7 +173,7 @@ nftnl_expr_lookup_json_parse(struct nftnl_expr *e, json_t *root,
 {
 #ifdef JSON_PARSING
 	const char *set_name;
-	uint32_t sreg, dreg;
+	uint32_t sreg, dreg, flags;
 
 	set_name = nftnl_jansson_parse_str(root, "set", err);
 	if (set_name != NULL)
@@ -166,33 +185,9 @@ nftnl_expr_lookup_json_parse(struct nftnl_expr *e, json_t *root,
 	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &dreg, err) == 0)
 		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_DREG, dreg);
 
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int
-nftnl_expr_lookup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-			       struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *set_name;
-	uint32_t sreg, dreg;
-
-	set_name = nftnl_mxml_str_parse(tree, "set", MXML_DESCEND_FIRST,
-				      NFTNL_XML_MAND, err);
-	if (set_name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_LOOKUP_SET, set_name);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND, NFTNL_XML_MAND,
-			       err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_SREG, sreg);
-
-	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND, NFTNL_XML_OPT,
-			       err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_DREG, dreg);
+	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32,
+				    &flags, err) == 0)
+		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_FLAGS, flags);
 
 	return 0;
 #else
@@ -214,6 +209,8 @@ nftnl_expr_lookup_export(char *buf, size_t size,
 		nftnl_buf_u32(&b, type, l->sreg, SREG);
 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_DREG))
 		nftnl_buf_u32(&b, type, l->dreg, DREG);
+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
+		nftnl_buf_u32(&b, type, l->flags, FLAGS);
 
 	return nftnl_buf_done(&b);
 }
@@ -228,9 +225,13 @@ nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
 	ret = snprintf(buf, len, "reg %u set %s ", l->sreg, l->set_name);
 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-
 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_DREG)) {
 		ret = snprintf(buf+offset, len, "dreg %u ", l->dreg);
+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	}
+
+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS)) {
+		ret = snprintf(buf + offset, len, "0x%x ", l->flags);
 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 	}
 
@@ -261,16 +262,37 @@ static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
 	xfree(lookup->set_name);
 }
 
+static bool nftnl_expr_lookup_cmp(const struct nftnl_expr *e1,
+				  const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_lookup *l1 = nftnl_expr_data(e1);
+	struct nftnl_expr_lookup *l2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SREG))
+		eq &= (l1->sreg == l2->sreg);
+	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_DREG))
+		eq &= (l1->dreg == l2->dreg);
+	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SET))
+		eq &= !strcmp(l1->set_name, l2->set_name);
+	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID))
+		eq &= (l1->set_id == l2->set_id);
+	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
+		eq &= (l1->flags == l2->flags);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_lookup = {
 	.name		= "lookup",
 	.alloc_len	= sizeof(struct nftnl_expr_lookup),
 	.max_attr	= NFTA_LOOKUP_MAX,
 	.free		= nftnl_expr_lookup_free,
+	.cmp		= nftnl_expr_lookup_cmp,
 	.set		= nftnl_expr_lookup_set,
 	.get		= nftnl_expr_lookup_get,
 	.parse		= nftnl_expr_lookup_parse,
 	.build		= nftnl_expr_lookup_build,
 	.snprintf	= nftnl_expr_lookup_snprintf,
-	.xml_parse	= nftnl_expr_lookup_xml_parse,
 	.json_parse	= nftnl_expr_lookup_json_parse,
 };

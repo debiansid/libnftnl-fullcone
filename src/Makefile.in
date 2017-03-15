@@ -122,18 +122,19 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libnftnl_la_OBJECTS = utils.lo batch.lo buffer.lo common.lo gen.lo \
-	table.lo trace.lo chain.lo rule.lo set.lo set_elem.lo \
-	ruleset.lo mxml.lo jansson.lo udata.lo expr.lo expr_ops.lo \
-	expr/bitwise.lo expr/byteorder.lo expr/cmp.lo expr/counter.lo \
-	expr/ct.lo expr/data_reg.lo expr/dup.lo expr/exthdr.lo \
-	expr/fwd.lo expr/limit.lo expr/log.lo expr/lookup.lo \
-	expr/dynset.lo expr/immediate.lo expr/match.lo expr/meta.lo \
-	expr/nat.lo expr/payload.lo expr/queue.lo expr/reject.lo \
-	expr/target.lo expr/masq.lo expr/redir.lo
+	table.lo trace.lo chain.lo object.lo rule.lo set.lo \
+	set_elem.lo ruleset.lo jansson.lo udata.lo expr.lo expr_ops.lo \
+	expr/bitwise.lo expr/byteorder.lo expr/cmp.lo expr/range.lo \
+	expr/counter.lo expr/ct.lo expr/data_reg.lo expr/dup.lo \
+	expr/exthdr.lo expr/fib.lo expr/fwd.lo expr/limit.lo \
+	expr/log.lo expr/lookup.lo expr/dynset.lo expr/immediate.lo \
+	expr/match.lo expr/meta.lo expr/numgen.lo expr/nat.lo \
+	expr/objref.lo expr/payload.lo expr/queue.lo expr/quota.lo \
+	expr/reject.lo expr/rt.lo expr/target.lo expr/masq.lo \
+	expr/redir.lo expr/hash.lo obj/counter.lo obj/quota.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -244,8 +245,6 @@ LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -350,11 +349,11 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 5:0:1
+LIBVERSION = 6:0:2
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 lib_LTLIBRARIES = libnftnl.la
-libnftnl_la_LIBADD = ${LIBMNL_LIBS} ${LIBXML_LIBS} ${LIBJSON_LIBS}
+libnftnl_la_LIBADD = ${LIBMNL_LIBS} ${LIBJSON_LIBS}
 libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
@@ -366,11 +365,11 @@ libnftnl_la_SOURCES = utils.c		\
 		      table.c		\
 		      trace.c		\
 		      chain.c		\
+		      object.c		\
 		      rule.c		\
 		      set.c		\
 		      set_elem.c	\
 		      ruleset.c		\
-		      mxml.c		\
 		      jansson.c		\
 		      udata.c		\
 		      expr.c		\
@@ -378,11 +377,13 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/bitwise.c	\
 		      expr/byteorder.c	\
 		      expr/cmp.c	\
+		      expr/range.c	\
 		      expr/counter.c	\
 		      expr/ct.c		\
 		      expr/data_reg.c	\
 		      expr/dup.c	\
 		      expr/exthdr.c	\
+		      expr/fib.c	\
 		      expr/fwd.c	\
 		      expr/limit.c	\
 		      expr/log.c	\
@@ -391,13 +392,20 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/immediate.c	\
 		      expr/match.c	\
 		      expr/meta.c	\
+		      expr/numgen.c	\
 		      expr/nat.c	\
+		      expr/objref.c	\
 		      expr/payload.c	\
 		      expr/queue.c	\
+		      expr/quota.c	\
 		      expr/reject.c	\
+		      expr/rt.c		\
 		      expr/target.c	\
 		      expr/masq.c	\
 		      expr/redir.c	\
+		      expr/hash.c	\
+		      obj/counter.c	\
+		      obj/quota.c	\
 		      libnftnl.map
 
 all: all-am
@@ -479,11 +487,13 @@ expr/$(DEPDIR)/$(am__dirstamp):
 expr/bitwise.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/byteorder.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/cmp.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/range.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/counter.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/ct.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/data_reg.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/dup.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/exthdr.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/fib.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/fwd.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/limit.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/log.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -492,13 +502,26 @@ expr/dynset.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/immediate.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/match.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/meta.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/numgen.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/nat.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/objref.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/payload.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/queue.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/quota.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/reject.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/rt.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/target.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/masq.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/redir.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/hash.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+obj/$(am__dirstamp):
+	@$(MKDIR_P) obj
+	@: > obj/$(am__dirstamp)
+obj/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) obj/$(DEPDIR)
+	@: > obj/$(DEPDIR)/$(am__dirstamp)
+obj/counter.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/quota.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 
 libnftnl.la: $(libnftnl_la_OBJECTS) $(libnftnl_la_DEPENDENCIES) $(EXTRA_libnftnl_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnftnl_la_LINK) -rpath $(libdir) $(libnftnl_la_OBJECTS) $(libnftnl_la_LIBADD) $(LIBS)
@@ -507,6 +530,8 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f expr/*.$(OBJEXT)
 	-rm -f expr/*.lo
+	-rm -f obj/*.$(OBJEXT)
+	-rm -f obj/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -519,7 +544,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_ops.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jansson.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mxml.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rule.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ruleset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set.Plo@am__quote@
@@ -537,7 +562,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/dynset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/exthdr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/fib.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/fwd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/hash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/immediate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/limit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/log.Plo@am__quote@
@@ -546,11 +573,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/match.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/meta.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/nat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/numgen.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/objref.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/payload.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/queue.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/quota.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/range.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/redir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/reject.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/rt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/target.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/counter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/quota.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -582,6 +616,7 @@ mostlyclean-libtool:
 clean-libtool:
 	-rm -rf .libs _libs
 	-rm -rf expr/.libs expr/_libs
+	-rm -rf obj/.libs obj/_libs
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -700,6 +735,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f expr/$(DEPDIR)/$(am__dirstamp)
 	-rm -f expr/$(am__dirstamp)
+	-rm -f obj/$(DEPDIR)/$(am__dirstamp)
+	-rm -f obj/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -710,7 +747,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) expr/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) expr/$(DEPDIR) obj/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -756,7 +793,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) expr/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) expr/$(DEPDIR) obj/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

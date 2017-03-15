@@ -1,5 +1,7 @@
 libnftnl.so.4 libnftnl4 #MINVER#
  LIBNFTNL_4.1@LIBNFTNL_4.1 1.0.5+snapshot20160416
+ LIBNFTNL_4.2@LIBNFTNL_4.2 1.0.6+snapshot20161117
+ LIBNFTNL_4.3@LIBNFTNL_4.3 1.0.7
  LIBNFTNL_4@LIBNFTNL_4 1.0.5
  nft_batch_alloc@LIBNFTNL_4 1.0.5
  nft_batch_begin@LIBNFTNL_4 1.0.5
@@ -261,6 +263,7 @@ libnftnl.so.4 libnftnl4 #MINVER#
  nftnl_chain_snprintf@LIBNFTNL_4 1.0.5
  nftnl_chain_unset@LIBNFTNL_4 1.0.5
  nftnl_expr_alloc@LIBNFTNL_4 1.0.5
+ nftnl_expr_cmp@LIBNFTNL_4.2 1.0.6+snapshot20161117
  nftnl_expr_foreach@LIBNFTNL_4 1.0.5
  nftnl_expr_free@LIBNFTNL_4 1.0.5
  nftnl_expr_get@LIBNFTNL_4 1.0.5
@@ -286,11 +289,39 @@ libnftnl.so.4 libnftnl4 #MINVER#
  nftnl_gen_nlmsg_parse@LIBNFTNL_4 1.0.5
  nftnl_gen_snprintf@LIBNFTNL_4 1.0.5
  nftnl_nlmsg_build_hdr@LIBNFTNL_4 1.0.5
+ nftnl_obj_alloc@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_fprintf@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_free@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_get@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_get_str@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_get_u32@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_get_u64@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_is_set@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_add@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_add_tail@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_alloc@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_del@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_foreach@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_free@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_is_empty@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_iter_create@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_iter_destroy@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_list_iter_next@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_nlmsg_build_payload@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_nlmsg_parse@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_parse@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_parse_file@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_set@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_set_str@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_set_u32@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_set_u64@LIBNFTNL_4.3 1.0.7
+ nftnl_obj_snprintf@LIBNFTNL_4.3 1.0.7
  nftnl_parse_err_alloc@LIBNFTNL_4 1.0.5
  nftnl_parse_err_free@LIBNFTNL_4 1.0.5
  nftnl_parse_perror@LIBNFTNL_4 1.0.5
  nftnl_rule_add_expr@LIBNFTNL_4 1.0.5
  nftnl_rule_alloc@LIBNFTNL_4 1.0.5
+ nftnl_rule_cmp@LIBNFTNL_4.2 1.0.6+snapshot20161117
  nftnl_rule_fprintf@LIBNFTNL_4 1.0.5
  nftnl_rule_free@LIBNFTNL_4 1.0.5
  nftnl_rule_get@LIBNFTNL_4 1.0.5

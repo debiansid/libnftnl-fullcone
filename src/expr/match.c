@@ -49,7 +49,7 @@ nftnl_expr_match_set(struct nftnl_expr *e, uint16_t type,
 		mt->rev = *((uint32_t *)data);
 		break;
 	case NFTNL_EXPR_MT_INFO:
-		if (mt->data)
+		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
 			xfree(mt->data);
 
 		mt->data = data;
@@ -146,7 +146,7 @@ static int nftnl_expr_match_parse(struct nftnl_expr *e, struct nlattr *attr)
 		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_MATCH_INFO]);
 		void *match_data;
 
-		if (match->data)
+		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
 			xfree(match->data);
 
 		match_data = calloc(1, len);
@@ -181,26 +181,6 @@ static int nftnl_expr_match_json_parse(struct nftnl_expr *e, json_t *root,
 #endif
 }
 
-
-static int nftnl_expr_match_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-					 struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *name;
-
-	name = nftnl_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
-				  NFTNL_XML_MAND, err);
-	if (name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_MT_NAME, name);
-
-	/* mt->info is ignored until other solution is reached */
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
 
 static int nftnl_expr_match_export(char *buf, size_t size,
 				   const struct nftnl_expr *e, int type)
@@ -240,16 +220,35 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
 	xfree(match->data);
 }
 
+static bool nftnl_expr_match_cmp(const struct nftnl_expr *e1,
+				 const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_match *m1 = nftnl_expr_data(e1);
+	struct nftnl_expr_match *m2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_MT_NAME))
+		eq &= !strcmp(m1->name, m2->name);
+	if (e1->flags & (1 << NFTNL_EXPR_MT_REV))
+		eq &= (m1->rev == m2->rev);
+	if (e1->flags & (1 << NFTNL_EXPR_MT_INFO)) {
+		eq &= (m1->data_len == m2->data_len);
+		eq &= !memcmp(m1->data, m2->data, m1->data_len);
+	}
+
+	return eq;
+}
+
 struct expr_ops expr_ops_match = {
 	.name		= "match",
 	.alloc_len	= sizeof(struct nftnl_expr_match),
 	.max_attr	= NFTA_MATCH_MAX,
 	.free		= nftnl_expr_match_free,
+	.cmp		= nftnl_expr_match_cmp,
 	.set		= nftnl_expr_match_set,
 	.get		= nftnl_expr_match_get,
 	.parse		= nftnl_expr_match_parse,
 	.build		= nftnl_expr_match_build,
 	.snprintf	= nftnl_expr_match_snprintf,
-	.xml_parse 	= nftnl_expr_match_xml_parse,
 	.json_parse 	= nftnl_expr_match_json_parse,
 };

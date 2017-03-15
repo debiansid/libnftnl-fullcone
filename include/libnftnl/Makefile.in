@@ -201,8 +201,6 @@ LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -290,6 +288,7 @@ pkginclude_HEADERS = batch.h		\
 		     table.h		\
 		     trace.h		\
 		     chain.h		\
+		     object.h		\
 		     rule.h		\
 		     expr.h		\
 		     set.h		\

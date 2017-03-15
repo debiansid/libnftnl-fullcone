@@ -173,7 +173,7 @@ static const char *ctkey2str_array[NFT_CT_MAX] = {
 
 static const char *ctkey2str(uint32_t ctkey)
 {
-	if (ctkey > NFT_CT_MAX)
+	if (ctkey >= NFT_CT_MAX)
 		return "unknown";
 
 	return ctkey2str_array[ctkey];
@@ -263,53 +263,6 @@ err:
 }
 
 
-static int nftnl_expr_ct_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
-				      struct nftnl_parse_err *err)
-{
-#ifdef XML_PARSING
-	const char *key_str, *dir_str;
-	int key;
-	uint8_t dir;
-	uint32_t dreg, sreg;
-
-	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_CT_DREG, dreg);
-
-	if (nftnl_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
-			       NFTNL_XML_OPT, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_CT_SREG, sreg);
-
-	key_str = nftnl_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
-				     NFTNL_XML_MAND, err);
-	if (key_str != NULL) {
-		key = str2ctkey(key_str);
-		if (key < 0)
-			return -1;
-
-		nftnl_expr_set_u32(e, NFTNL_EXPR_CT_KEY, key);
-	}
-	dir_str = nftnl_mxml_str_parse(tree, "dir", MXML_DESCEND_FIRST,
-				     NFTNL_XML_OPT, err);
-	if (dir_str != NULL) {
-		if (str2ctdir(dir_str, &dir) != 0) {
-			err->node_name = "dir";
-			err->error = NFTNL_PARSE_EBADTYPE;
-			goto err;
-		}
-		nftnl_expr_set_u8(e, NFTNL_EXPR_CT_DIR, dir);
-	}
-
-	return 0;
-err:
-	errno = EINVAL;
-	return -1;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int
 nftnl_expr_ct_export(char *buf, size_t size, const struct nftnl_expr *e,
 		     int type)
@@ -373,15 +326,34 @@ nftnl_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
 	return -1;
 }
 
+static bool nftnl_expr_ct_cmp(const struct nftnl_expr *e1,
+			      const struct nftnl_expr *e2)
+{
+	struct nftnl_expr_ct *c1 = nftnl_expr_data(e1);
+	struct nftnl_expr_ct *c2 = nftnl_expr_data(e2);
+	bool eq = true;
+
+	if (e1->flags & (1 << NFTNL_EXPR_CT_KEY))
+		eq &= (c1->key == c2->key);
+	if (e1->flags & (1 << NFTNL_EXPR_CT_DREG))
+		eq &= (c1->dreg == c2->dreg);
+	if (e1->flags & (1 << NFTNL_EXPR_CT_SREG))
+		eq &= (c1->sreg == c2->sreg);
+	if (e1->flags & (1 << NFTNL_EXPR_CT_DIR))
+		eq &= (c1->dir == c2->dir);
+
+	return eq;
+}
+
 struct expr_ops expr_ops_ct = {
 	.name		= "ct",
 	.alloc_len	= sizeof(struct nftnl_expr_ct),
 	.max_attr	= NFTA_CT_MAX,
+	.cmp		= nftnl_expr_ct_cmp,
 	.set		= nftnl_expr_ct_set,
 	.get		= nftnl_expr_ct_get,
 	.parse		= nftnl_expr_ct_parse,
 	.build		= nftnl_expr_ct_build,
 	.snprintf	= nftnl_expr_ct_snprintf,
-	.xml_parse	= nftnl_expr_ct_xml_parse,
 	.json_parse	= nftnl_expr_ct_json_parse,
 };

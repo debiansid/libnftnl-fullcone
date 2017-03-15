@@ -37,13 +37,13 @@ enum nftnl_chain_attr {
 bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr);
 void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr);
 void nftnl_chain_set(struct nftnl_chain *t, uint16_t attr, const void *data);
-void nftnl_chain_set_data(struct nftnl_chain *t, uint16_t attr,
+int nftnl_chain_set_data(struct nftnl_chain *t, uint16_t attr,
 			     const void *data, uint32_t data_len);
 void nftnl_chain_set_u8(struct nftnl_chain *t, uint16_t attr, uint8_t data);
 void nftnl_chain_set_u32(struct nftnl_chain *t, uint16_t attr, uint32_t data);
 void nftnl_chain_set_s32(struct nftnl_chain *t, uint16_t attr, int32_t data);
 void nftnl_chain_set_u64(struct nftnl_chain *t, uint16_t attr, uint64_t data);
-void nftnl_chain_set_str(struct nftnl_chain *t, uint16_t attr, const char *str);
+int nftnl_chain_set_str(struct nftnl_chain *t, uint16_t attr, const char *str);
 
 const void *nftnl_chain_get(const struct nftnl_chain *c, uint16_t attr);
 const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
@@ -81,7 +81,7 @@ void nftnl_chain_list_del(struct nftnl_chain *c);
 
 struct nftnl_chain_list_iter;
 
-struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(struct nftnl_chain_list *l);
+struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(const struct nftnl_chain_list *l);
 struct nftnl_chain *nftnl_chain_list_iter_next(struct nftnl_chain_list_iter *iter);
 void nftnl_chain_list_iter_destroy(struct nftnl_chain_list_iter *iter);
 
@@ -158,7 +158,7 @@ void nft_chain_list_del(struct nft_chain *c);
 
 struct nft_chain_list_iter;
 
-struct nft_chain_list_iter *nft_chain_list_iter_create(struct nft_chain_list *l);
+struct nft_chain_list_iter *nft_chain_list_iter_create(const struct nft_chain_list *l);
 struct nft_chain *nft_chain_list_iter_next(struct nft_chain_list_iter *iter);
 void nft_chain_list_iter_destroy(struct nft_chain_list_iter *iter);
 

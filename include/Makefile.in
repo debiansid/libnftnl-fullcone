@@ -215,8 +215,6 @@ LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -306,9 +304,9 @@ noinst_HEADERS = internal.h	\
 		 buffer.h	\
 		 data_reg.h	\
 		 expr_ops.h	\
+		 obj.h		\
 		 linux_list.h	\
 		 set.h		\
-		 xml.h		\
 		 common.h	\
 		 expr.h		\
 		 json.h		\

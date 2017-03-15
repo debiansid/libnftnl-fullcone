@@ -39,6 +39,9 @@ static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
 	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_QUEUE_TOTAL) !=
 	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_QUEUE_TOTAL))
 		print_err("Expr NFTNL_EXPR_QUEUE_TOTAL mismatches");
+	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_QUEUE_FLAGS) !=
+	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_QUEUE_FLAGS))
+		print_err("Expr NFTNL_EXPR_QUEUE_FLAGS mismatches");
 }
 
 int main(int argc, char *argv[])
@@ -58,9 +61,9 @@ int main(int argc, char *argv[])
 	if (ex == NULL)
 		print_err("OOM");
 
-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_NUM, 0x123);
-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_TOTAL, 0x2);
-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_FLAGS, 0x2);
+	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_NUM, 0x01010);
+	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_TOTAL, 0x1234);
+	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_FLAGS, 0x4321);
 
 	nftnl_rule_add_expr(a, ex);
 
