@@ -1,6 +1,7 @@
 Source: libnftnl
 Priority: extra
-Maintainer: Arturo Borrero Gonzalez <arturo@debian.org>
+Maintainer: Debian Netfilter Packaging Team <pkg-netfilter-team@lists.alioth.debian.org>
+Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>
 Build-Depends:
  debhelper (>= 9),
  dh-autoreconf,
@@ -11,8 +12,8 @@ Build-Depends:
 Standards-Version: 3.9.8
 Section: libs
 Homepage: http://git.netfilter.org/libnftnl
-Vcs-Git: https://github.com/aborrero/pkg-libnftnl.git
-Vcs-Browser: https://github.com/aborrero/pkg-libnftnl
+Vcs-Git: https://anonscm.debian.org/git/pkg-netfilter/pkg-libnftnl.git
+Vcs-Browser: https://anonscm.debian.org/git/pkg-netfilter/pkg-libnftnl.git
 
 Package: libnftnl4
 Architecture: linux-any
