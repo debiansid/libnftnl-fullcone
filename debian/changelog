@@ -1,3 +1,20 @@
+libnftnl (1.0.7-2) unstable; urgency=medium
+
+  [ Arturo Borrero Gonzalez ]
+  * [34e97e2] d/control: move package to pkg-netfilter
+
+  [ Helmut Grohne ]
+  * [b60a9b1] d/rules: libnftnl FTCBFS: configures for the build architecture
+    (Closes: #872326)
+  * [c05f390] d/rules: honour DEB_BUILD_OPTIONS=nocheck (Closes: #872326)
+
+  [ Arturo Borrero Gonzalez ]
+  * [71d7ec2] libnftnl: switch to use dbgsym package
+  * [5fea681] d/control: bump std-version to 4.0.1
+  * [c833dd7] d/: wrap-and-sort
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Thu, 17 Aug 2017 10:56:49 +0200
+
 libnftnl (1.0.7-1) unstable; urgency=medium
 
   * [7b8a6bc] d/libnftnl4.symbols: delete debian revision from symbols
