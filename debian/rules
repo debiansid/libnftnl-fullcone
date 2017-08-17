@@ -18,10 +18,12 @@ override_dh_auto_configure:
 override_dh_strip:
 	dh_strip --dbg-package=libnftnl4-dbg
 
+ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
 override_dh_auto_test:
 	dh_auto_test
 
 	# there are json testsuites issues in big endian arches
 ifeq (little,$(DEB_BUILD_ARCH_ENDIAN))
 	sh -c "cd tests; set -e; ./test-script.sh"
+endif
 endif
