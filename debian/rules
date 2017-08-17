@@ -7,14 +7,13 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 DEB_BUILD_ARCH_ENDIAN ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH_ENDIAN)
 
 %:
 	dh $@ --with autoreconf
 
 override_dh_auto_configure:
-	./configure --prefix=/usr --libdir=/usr/lib/$(DEB_HOST_MULTIARCH) --with-json-parsing --disable-silent-rules
+	dh_auto_configure -- --with-json-parsing
 
 override_dh_strip:
 	dh_strip --dbg-package=libnftnl4-dbg
