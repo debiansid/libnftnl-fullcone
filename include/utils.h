@@ -11,10 +11,8 @@
 #ifdef HAVE_VISIBILITY_HIDDEN
 #	define __visible	__attribute__((visibility("default")))
 #	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible;
-#	define EXPORT_SYMBOL_ALIAS(x, y)	typeof(x) (x) __visible; __typeof (y) y __attribute ((alias (#x), visibility ("default")))
 #else
 #	define EXPORT_SYMBOL
-#	define EXPORT_SYMBOL_ALIAS
 #endif
 
 #define __noreturn	__attribute__((__noreturn__))
@@ -52,14 +50,13 @@ void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
 		__nftnl_assert_attr_exists(_attr, _attr_max, __FILE__, __LINE__);	\
 })
 
-#define SNPRINTF_BUFFER_SIZE(ret, size, len, offset)	\
+#define SNPRINTF_BUFFER_SIZE(ret, remain, offset)	\
 	if (ret < 0)					\
 		ret = 0;				\
 	offset += ret;					\
-	if (ret > len)					\
-		ret = len;				\
-	size += ret;					\
-	len -= ret;
+	if (ret > remain)				\
+		ret = remain;				\
+	remain -= ret;					\
 
 const char *nftnl_family2str(uint32_t family);
 int nftnl_str2family(const char *family);

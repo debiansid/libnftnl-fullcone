@@ -32,7 +32,7 @@ struct nftnl_expr_ct {
 #define IP_CT_DIR_REPLY		1
 
 #ifndef NFT_CT_MAX
-#define NFT_CT_MAX (NFT_CT_BYTES + 1)
+#define NFT_CT_MAX (NFT_CT_EVENTMASK + 1)
 #endif
 
 static int
@@ -169,6 +169,9 @@ static const char *ctkey2str_array[NFT_CT_MAX] = {
 	[NFT_CT_LABELS]		= "label",
 	[NFT_CT_PKTS]		= "packets",
 	[NFT_CT_BYTES]		= "bytes",
+	[NFT_CT_AVGPKT]		= "avgpkt",
+	[NFT_CT_ZONE]		= "zone",
+	[NFT_CT_EVENTMASK]	= "event",
 };
 
 static const char *ctkey2str(uint32_t ctkey)
@@ -286,25 +289,25 @@ static int
 nftnl_expr_ct_snprintf_default(char *buf, size_t size,
 			       const struct nftnl_expr *e)
 {
-	int ret, len = size, offset = 0;
+	int ret, remain = size, offset = 0;
 	struct nftnl_expr_ct *ct = nftnl_expr_data(e);
 
 	if (e->flags & (1 << NFTNL_EXPR_CT_SREG)) {
 		ret = snprintf(buf, size, "set %s with reg %u ",
 				ctkey2str(ct->key), ct->sreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (e->flags & (1 << NFTNL_EXPR_CT_DREG)) {
-		ret = snprintf(buf, len, "load %s => reg %u ",
+		ret = snprintf(buf, remain, "load %s => reg %u ",
 			       ctkey2str(ct->key), ct->dreg);
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (nftnl_expr_is_set(e, NFTNL_EXPR_CT_DIR)) {
-		ret = snprintf(buf+offset, len, ", dir %s ",
+		ret = snprintf(buf + offset, remain, ", dir %s ",
 			       ctdir2str(ct->dir));
-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	return offset;
