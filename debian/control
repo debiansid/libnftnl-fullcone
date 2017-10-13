@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 9.20160114),
                libmnl-dev,
                libtool,
                pkg-config
-Standards-Version: 4.0.1
+Standards-Version: 4.1.1
 Section: libs
 Homepage: https://git.netfilter.org/libnftnl
 Vcs-Git: https://anonscm.debian.org/git/pkg-netfilter/pkg-libnftnl.git
