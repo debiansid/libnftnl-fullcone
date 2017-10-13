@@ -172,7 +172,7 @@ nftnl_expr_byteorder_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return ret;
 }
 
-static char *expr_byteorder_str[] = {
+static const char *expr_byteorder_str[] = {
 	[NFT_BYTEORDER_HTON] = "hton",
 	[NFT_BYTEORDER_NTOH] = "ntoh",
 };
@@ -258,12 +258,12 @@ static int nftnl_expr_byteorder_snprintf_default(char *buf, size_t size,
 						 const struct nftnl_expr *e)
 {
 	struct nftnl_expr_byteorder *byteorder = nftnl_expr_data(e);
-	int len = size, offset = 0, ret;
+	int remain = size, offset = 0, ret;
 
-	ret = snprintf(buf, len, "reg %u = %s(reg %u, %u, %u) ",
+	ret = snprintf(buf, remain, "reg %u = %s(reg %u, %u, %u) ",
 		       byteorder->dreg, bo2str(byteorder->op),
 		       byteorder->sreg, byteorder->size, byteorder->len);
-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	return offset;
 }

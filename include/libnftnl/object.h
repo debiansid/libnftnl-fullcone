@@ -34,6 +34,20 @@ enum {
 	NFTNL_OBJ_QUOTA_FLAGS,
 };
 
+enum {
+	NFTNL_OBJ_CT_HELPER_NAME = NFTNL_OBJ_BASE,
+	NFTNL_OBJ_CT_HELPER_L3PROTO,
+	NFTNL_OBJ_CT_HELPER_L4PROTO,
+};
+
+enum {
+	NFTNL_OBJ_LIMIT_RATE	= NFTNL_OBJ_BASE,
+	NFTNL_OBJ_LIMIT_UNIT,
+	NFTNL_OBJ_LIMIT_BURST,
+	NFTNL_OBJ_LIMIT_TYPE,
+	NFTNL_OBJ_LIMIT_FLAGS,
+};
+
 struct nftnl_obj;
 
 struct nftnl_obj *nftnl_obj_alloc(void);
@@ -44,12 +58,16 @@ void nftnl_obj_unset(struct nftnl_obj *ne, uint16_t attr);
 void nftnl_obj_set_data(struct nftnl_obj *ne, uint16_t attr, const void *data,
 			uint32_t data_len);
 void nftnl_obj_set(struct nftnl_obj *ne, uint16_t attr, const void *data);
+void nftnl_obj_set_u8(struct nftnl_obj *ne, uint16_t attr, uint8_t val);
+void nftnl_obj_set_u16(struct nftnl_obj *ne, uint16_t attr, uint16_t val);
 void nftnl_obj_set_u32(struct nftnl_obj *ne, uint16_t attr, uint32_t val);
 void nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val);
 void nftnl_obj_set_str(struct nftnl_obj *ne, uint16_t attr, const char *str);
 const void *nftnl_obj_get_data(struct nftnl_obj *ne, uint16_t attr,
 			       uint32_t *data_len);
 const void *nftnl_obj_get(struct nftnl_obj *ne, uint16_t attr);
+uint8_t nftnl_obj_get_u8(struct nftnl_obj *ne, uint16_t attr);
+uint16_t nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr);
 uint32_t nftnl_obj_get_u32(struct nftnl_obj *ne, uint16_t attr);
 uint64_t nftnl_obj_get_u64(struct nftnl_obj *obj, uint16_t attr);
 const char *nftnl_obj_get_str(struct nftnl_obj *ne, uint16_t attr);

@@ -22,25 +22,34 @@
 #include <errno.h>
 #include "internal.h"
 
-struct nlmsghdr *nftnl_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
-				     uint16_t type, uint32_t seq)
+static struct nlmsghdr *__nftnl_nlmsg_build_hdr(char *buf, uint16_t type,
+						uint16_t family,
+						uint16_t flags, uint32_t seq,
+						uint16_t res_id)
 {
 	struct nlmsghdr *nlh;
 	struct nfgenmsg *nfh;
 
 	nlh = mnl_nlmsg_put_header(buf);
-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+	nlh->nlmsg_type = type;
+	nlh->nlmsg_flags = NLM_F_REQUEST | flags;
 	nlh->nlmsg_seq = seq;
 
 	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
 	nfh->nfgen_family = family;
 	nfh->version = NFNETLINK_V0;
-	nfh->res_id = 0;
+	nfh->res_id = res_id;
 
 	return nlh;
 }
-EXPORT_SYMBOL_ALIAS(nftnl_nlmsg_build_hdr, nft_nlmsg_build_hdr);
+
+struct nlmsghdr *nftnl_nlmsg_build_hdr(char *buf, uint16_t type, uint16_t family,
+				       uint16_t flags, uint32_t seq)
+{
+	return __nftnl_nlmsg_build_hdr(buf, (NFNL_SUBSYS_NFTABLES << 8) | type,
+				       family, flags, seq, 0);
+}
+EXPORT_SYMBOL(nftnl_nlmsg_build_hdr);
 
 struct nftnl_parse_err *nftnl_parse_err_alloc(void)
 {
@@ -54,13 +63,13 @@ struct nftnl_parse_err *nftnl_parse_err_alloc(void)
 
 	return err;
 }
-EXPORT_SYMBOL_ALIAS(nftnl_parse_err_alloc, nft_parse_err_alloc);
+EXPORT_SYMBOL(nftnl_parse_err_alloc);
 
 void nftnl_parse_err_free(struct nftnl_parse_err *err)
 {
 	xfree(err);
 }
-EXPORT_SYMBOL_ALIAS(nftnl_parse_err_free, nft_parse_err_free);
+EXPORT_SYMBOL(nftnl_parse_err_free);
 
 int nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
 {
@@ -80,7 +89,7 @@ int nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
 		return fprintf(stderr, "%s: Undefined error\n", msg);
 	}
 }
-EXPORT_SYMBOL_ALIAS(nftnl_parse_perror, nft_parse_perror);
+EXPORT_SYMBOL(nftnl_parse_perror);
 
 int nftnl_cmd_header_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
 			    uint32_t flags)
@@ -156,33 +165,19 @@ int nftnl_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
 			   nftnl_cmd_footer_fprintf_cb);
 }
 
-static void nftnl_batch_build_hdr(char *buf, uint16_t type, uint32_t seq)
+struct nlmsghdr *nftnl_batch_begin(char *buf, uint32_t seq)
 {
-	struct nlmsghdr *nlh;
-	struct nfgenmsg *nfg;
-
-	nlh = mnl_nlmsg_put_header(buf);
-	nlh->nlmsg_type = type;
-	nlh->nlmsg_flags = NLM_F_REQUEST;
-	nlh->nlmsg_seq = seq;
-
-	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
-	nfg->nfgen_family = AF_UNSPEC;
-	nfg->version = NFNETLINK_V0;
-	nfg->res_id = NFNL_SUBSYS_NFTABLES;
+	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, AF_UNSPEC,
+				       0, seq, NFNL_SUBSYS_NFTABLES);
 }
+EXPORT_SYMBOL(nftnl_batch_begin);
 
-void nftnl_batch_begin(char *buf, uint32_t seq)
+struct nlmsghdr *nftnl_batch_end(char *buf, uint32_t seq)
 {
-	nftnl_batch_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, seq);
+	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_END, AF_UNSPEC,
+				       0, seq, NFNL_SUBSYS_NFTABLES);
 }
-EXPORT_SYMBOL_ALIAS(nftnl_batch_begin, nft_batch_begin);
-
-void nftnl_batch_end(char *buf, uint32_t seq)
-{
-	nftnl_batch_build_hdr(buf, NFNL_MSG_BATCH_END, seq);
-}
-EXPORT_SYMBOL_ALIAS(nftnl_batch_end, nft_batch_end);
+EXPORT_SYMBOL(nftnl_batch_end);
 
 int nftnl_batch_is_supported(void)
 {
@@ -241,4 +236,4 @@ err:
 	mnl_nlmsg_batch_stop(b);
 	return -1;
 }
-EXPORT_SYMBOL_ALIAS(nftnl_batch_is_supported, nft_batch_is_supported);
+EXPORT_SYMBOL(nftnl_batch_is_supported);
