@@ -1,8 +1,10 @@
 libnftnl (1.0.8-1) unstable; urgency=medium
 
   * [9138a65] New upstream version 1.0.8
+  * [8ea7602] libnftnl: bump package soname from 4 to 7
+  * [7704b86] libnftnl: bump std-version to 4.1.1
 
- -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 13 Oct 2017 13:16:40 +0200
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 13 Oct 2017 15:36:16 +0200
 
 libnftnl (1.0.7-2) unstable; urgency=medium
 
