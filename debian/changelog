@@ -1,3 +1,9 @@
+libnftnl (1.0.8-1~bpo9+1) stretch-backports; urgency=medium
+
+  * Rebuild for stretch-backports.
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 27 Oct 2017 11:37:19 +0200
+
 libnftnl (1.0.8-1) unstable; urgency=medium
 
   * [9138a65] New upstream version 1.0.8
