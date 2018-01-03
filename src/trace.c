@@ -301,7 +301,8 @@ static int nftnl_trace_parse_verdict(const struct nlattr *attr,
 {
 	struct nlattr *tb[NFTA_VERDICT_MAX+1];
 
-	mnl_attr_parse_nested(attr, nftnl_trace_parse_verdict_cb, tb);
+	if (mnl_attr_parse_nested(attr, nftnl_trace_parse_verdict_cb, tb) < 0)
+		return -1;
 
 	if (!tb[NFTA_VERDICT_CODE])
 		abi_breakage();
@@ -323,8 +324,8 @@ static int nftnl_trace_parse_verdict(const struct nlattr *attr,
 	}
 	return 0;
 }
-EXPORT_SYMBOL(nftnl_trace_nlmsg_parse);
 
+EXPORT_SYMBOL(nftnl_trace_nlmsg_parse);
 int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 {
 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);

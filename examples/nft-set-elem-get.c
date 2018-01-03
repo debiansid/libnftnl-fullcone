@@ -54,8 +54,6 @@ int main(int argc, char *argv[])
 	uint32_t portid, seq, family;
 	uint32_t type = NFTNL_OUTPUT_DEFAULT;
 	struct nftnl_set *t = NULL;
-	struct nftnl_set_elem *e;
-	uint16_t data;
 	int ret;
 
 	if (argc < 4 || argc > 5) {
@@ -86,21 +84,9 @@ int main(int argc, char *argv[])
 		type = NFTNL_OUTPUT_JSON;
 
 	nlh = nftnl_set_nlmsg_build_hdr(buf, NFT_MSG_GETSETELEM, family,
-					NLM_F_ACK, seq);
+					NLM_F_DUMP|NLM_F_ACK, seq);
 	nftnl_set_set(t, NFTNL_SET_NAME, argv[3]);
 	nftnl_set_set(t, NFTNL_SET_TABLE, argv[2]);
-
-	/* Add to dummy elements to set */
-	e = nftnl_set_elem_alloc();
-	if (e == NULL) {
-		perror("OOM");
-		exit(EXIT_FAILURE);
-	}
-
-	data = htons(1);
-	nftnl_set_elem_set(e, NFTNL_SET_ELEM_KEY, &data, sizeof(data));
-	nftnl_set_elem_add(t, e);
-
 	nftnl_set_elems_nlmsg_build_payload(nlh, t);
 	nftnl_set_free(t);
 
