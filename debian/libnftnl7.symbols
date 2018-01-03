@@ -1,5 +1,6 @@
 libnftnl.so.7 libnftnl7 #MINVER#
  LIBNFTNL_5@LIBNFTNL_5 1.0.8
+ LIBNFTNL_6@LIBNFTNL_6 1.0.9
  nftnl_batch_alloc@LIBNFTNL_5 1.0.8
  nftnl_batch_begin@LIBNFTNL_5 1.0.8
  nftnl_batch_buffer@LIBNFTNL_5 1.0.8
@@ -47,6 +48,7 @@ libnftnl.so.7 libnftnl7 #MINVER#
  nftnl_expr_alloc@LIBNFTNL_5 1.0.8
  nftnl_expr_cmp@LIBNFTNL_5 1.0.8
  nftnl_expr_foreach@LIBNFTNL_5 1.0.8
+ nftnl_expr_fprintf@LIBNFTNL_6 1.0.9
  nftnl_expr_free@LIBNFTNL_5 1.0.8
  nftnl_expr_get@LIBNFTNL_5 1.0.8
  nftnl_expr_get_str@LIBNFTNL_5 1.0.8
