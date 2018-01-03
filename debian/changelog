@@ -1,3 +1,11 @@
+libnftnl (1.0.9-1) experimental; urgency=medium
+
+  * [e866ce5] d/control: update git URLs
+  * [68fc561] New upstream version 1.0.9
+  * [f18952b] libnftnl: refresh symbols file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 03 Jan 2018 12:34:36 +0100
+
 libnftnl (1.0.8-1) unstable; urgency=medium
 
   * [9138a65] New upstream version 1.0.8
