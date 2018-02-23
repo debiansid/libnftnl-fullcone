@@ -1,3 +1,10 @@
+libnftnl (1.0.9-2~bpo9+1) stretch-backports; urgency=medium
+
+  * Rebuild for stretch-backports.
+  * [0827e7f] d/control: relax depends on debhelper 11 for stretch-backports
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 23 Feb 2018 19:19:17 +0100
+
 libnftnl (1.0.9-2) unstable; urgency=medium
 
   * [3376f15] d/compat: bump to v11
