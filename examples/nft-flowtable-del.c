@@ -1,14 +1,3 @@
-/*
- * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
- */
-
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
@@ -18,20 +7,20 @@
 #include <linux/netfilter/nf_tables.h>
 
 #include <libmnl/libmnl.h>
-#include <libnftnl/chain.h>
+#include <libnftnl/flowtable.h>
 
-static struct nftnl_chain *chain_del_parse(int argc, char *argv[])
+static struct nftnl_flowtable *flowtable_del_parse(int argc, char *argv[])
 {
-	struct nftnl_chain *t;
+	struct nftnl_flowtable *t;
 
-	t = nftnl_chain_alloc();
+	t = nftnl_flowtable_alloc();
 	if (t == NULL) {
 		perror("OOM");
 		return NULL;
 	}
 
-	nftnl_chain_set(t, NFTNL_CHAIN_TABLE, argv[2]);
-	nftnl_chain_set(t, NFTNL_CHAIN_NAME, argv[3]);
+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_TABLE, argv[2]);
+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_NAME, argv[3]);
 
 	return t;
 }
@@ -42,12 +31,12 @@ int main(int argc, char *argv[])
 	struct mnl_nlmsg_batch *batch;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh;
-	uint32_t portid, seq, chain_seq;
-	struct nftnl_chain *t;
-	int ret, family;
+	uint32_t portid, seq, flowtable_seq;
+	struct nftnl_flowtable *t;
+	int ret, family, batching;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: %s <family> <table> <chain>\n",
+		fprintf(stderr, "Usage: %s <family> <table> <flowtable>\n",
 			argv[0]);
 		exit(EXIT_FAILURE);
 	}
@@ -65,26 +54,36 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	t = chain_del_parse(argc, argv);
+	t = flowtable_del_parse(argc, argv);
 	if (t == NULL)
 		exit(EXIT_FAILURE);
+
+	batching = nftnl_batch_is_supported();
+	if (batching < 0) {
+		perror("cannot talk to nfnetlink");
+		exit(EXIT_FAILURE);
+	}
 
 	seq = time(NULL);
 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
 
-	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-	mnl_nlmsg_batch_next(batch);
+	if (batching) {
+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
+		mnl_nlmsg_batch_next(batch);
+	}
 
-	chain_seq = seq;
-	nlh = nftnl_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-					NFT_MSG_DELCHAIN, family,
+	flowtable_seq = seq;
+	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+					NFT_MSG_DELFLOWTABLE, family,
 					NLM_F_ACK, seq++);
-	nftnl_chain_nlmsg_build_payload(nlh, t);
-	nftnl_chain_free(t);
+	nftnl_flowtable_nlmsg_build_payload(nlh, t);
+	nftnl_flowtable_free(t);
 	mnl_nlmsg_batch_next(batch);
 
-	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-	mnl_nlmsg_batch_next(batch);
+	if (batching) {
+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+		mnl_nlmsg_batch_next(batch);
+	}
 
 	nl = mnl_socket_open(NETLINK_NETFILTER);
 	if (nl == NULL) {
@@ -108,7 +107,7 @@ int main(int argc, char *argv[])
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, chain_seq, portid, NULL, NULL);
+		ret = mnl_cb_run(buf, ret, flowtable_seq, portid, NULL, NULL);
 		if (ret <= 0)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
