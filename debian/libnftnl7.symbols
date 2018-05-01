@@ -1,6 +1,7 @@
 libnftnl.so.7 libnftnl7 #MINVER#
  LIBNFTNL_5@LIBNFTNL_5 1.0.8
  LIBNFTNL_6@LIBNFTNL_6 1.0.9
+ LIBNFTNL_7@LIBNFTNL_7 1.1.0
  nftnl_batch_alloc@LIBNFTNL_5 1.0.8
  nftnl_batch_begin@LIBNFTNL_5 1.0.8
  nftnl_batch_buffer@LIBNFTNL_5 1.0.8
@@ -67,6 +68,31 @@ libnftnl.so.7 libnftnl7 #MINVER#
  nftnl_expr_set_u64@LIBNFTNL_5 1.0.8
  nftnl_expr_set_u8@LIBNFTNL_5 1.0.8
  nftnl_expr_snprintf@LIBNFTNL_5 1.0.8
+ nftnl_flowtable_alloc@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_fprintf@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_free@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_get@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_get_s32@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_get_str@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_get_u32@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_is_set@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_add@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_add_tail@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_alloc@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_del@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_foreach@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_free@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_list_is_empty@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_nlmsg_build_payload@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_nlmsg_parse@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_parse@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_parse_file@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_set@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_set_s32@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_set_str@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_set_u32@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_snprintf@LIBNFTNL_7 1.1.0
+ nftnl_flowtable_unset@LIBNFTNL_7 1.1.0
  nftnl_gen_alloc@LIBNFTNL_5 1.0.8
  nftnl_gen_fprintf@LIBNFTNL_5 1.0.8
  nftnl_gen_free@LIBNFTNL_5 1.0.8
@@ -219,6 +245,7 @@ libnftnl.so.7 libnftnl7 #MINVER#
  nftnl_table_get_data@LIBNFTNL_5 1.0.8
  nftnl_table_get_str@LIBNFTNL_5 1.0.8
  nftnl_table_get_u32@LIBNFTNL_5 1.0.8
+ nftnl_table_get_u64@LIBNFTNL_5 1.1.0
  nftnl_table_get_u8@LIBNFTNL_5 1.0.8
  nftnl_table_is_set@LIBNFTNL_5 1.0.8
  nftnl_table_list_add@LIBNFTNL_5 1.0.8
@@ -239,6 +266,7 @@ libnftnl.so.7 libnftnl7 #MINVER#
  nftnl_table_set_data@LIBNFTNL_5 1.0.8
  nftnl_table_set_str@LIBNFTNL_5 1.0.8
  nftnl_table_set_u32@LIBNFTNL_5 1.0.8
+ nftnl_table_set_u64@LIBNFTNL_5 1.1.0
  nftnl_table_set_u8@LIBNFTNL_5 1.0.8
  nftnl_table_snprintf@LIBNFTNL_5 1.0.8
  nftnl_table_unset@LIBNFTNL_5 1.0.8
