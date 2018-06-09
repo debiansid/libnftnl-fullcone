@@ -1,3 +1,10 @@
+libnftnl (1.1.1-1) unstable; urgency=medium
+
+  * [68872c5] New upstream version 1.1.1
+  * [db3c44a] d/libnftnl7.symbols: refresh
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Sat, 09 Jun 2018 14:39:39 +0200
+
 libnftnl (1.1.0-1) unstable; urgency=medium
 
   * [f37463c] New upstream version 1.1.0
