@@ -137,14 +137,15 @@ am_libnftnl_la_OBJECTS = utils.lo batch.lo buffer.lo flowtable.lo \
 	common.lo gen.lo table.lo trace.lo chain.lo object.lo rule.lo \
 	set.lo set_elem.lo ruleset.lo jansson.lo udata.lo expr.lo \
 	expr_ops.lo expr/bitwise.lo expr/byteorder.lo expr/cmp.lo \
-	expr/range.lo expr/counter.lo expr/ct.lo expr/data_reg.lo \
-	expr/dup.lo expr/exthdr.lo expr/flow_offload.lo expr/fib.lo \
-	expr/fwd.lo expr/limit.lo expr/log.lo expr/lookup.lo \
-	expr/dynset.lo expr/immediate.lo expr/match.lo expr/meta.lo \
-	expr/numgen.lo expr/nat.lo expr/objref.lo expr/payload.lo \
-	expr/queue.lo expr/quota.lo expr/reject.lo expr/rt.lo \
-	expr/target.lo expr/masq.lo expr/redir.lo expr/hash.lo \
-	obj/counter.lo obj/ct_helper.lo obj/quota.lo obj/limit.lo
+	expr/range.lo expr/connlimit.lo expr/counter.lo expr/ct.lo \
+	expr/data_reg.lo expr/dup.lo expr/exthdr.lo \
+	expr/flow_offload.lo expr/fib.lo expr/fwd.lo expr/limit.lo \
+	expr/log.lo expr/lookup.lo expr/dynset.lo expr/immediate.lo \
+	expr/match.lo expr/meta.lo expr/numgen.lo expr/nat.lo \
+	expr/objref.lo expr/payload.lo expr/queue.lo expr/quota.lo \
+	expr/reject.lo expr/rt.lo expr/target.lo expr/masq.lo \
+	expr/redir.lo expr/hash.lo expr/socket.lo obj/counter.lo \
+	obj/ct_helper.lo obj/quota.lo obj/limit.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -363,7 +364,7 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 9:0:2
+LIBVERSION = 10:0:3
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 lib_LTLIBRARIES = libnftnl.la
@@ -393,6 +394,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/byteorder.c	\
 		      expr/cmp.c	\
 		      expr/range.c	\
+		      expr/connlimit.c	\
 		      expr/counter.c	\
 		      expr/ct.c		\
 		      expr/data_reg.c	\
@@ -420,6 +422,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/masq.c	\
 		      expr/redir.c	\
 		      expr/hash.c	\
+		      expr/socket.c	\
 		      obj/counter.c	\
 		      obj/ct_helper.c	\
 		      obj/quota.c	\
@@ -505,6 +508,7 @@ expr/bitwise.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/byteorder.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/cmp.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/range.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/connlimit.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/counter.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/ct.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/data_reg.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -533,6 +537,7 @@ expr/target.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/masq.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/redir.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/hash.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/socket.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 obj/$(am__dirstamp):
 	@$(MKDIR_P) obj
 	@: > obj/$(am__dirstamp)
@@ -578,6 +583,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/bitwise.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/byteorder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/cmp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/connlimit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/counter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/ct.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/data_reg.Plo@am__quote@
@@ -605,6 +611,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/redir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/reject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/rt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/target.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/counter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_helper.Plo@am__quote@
