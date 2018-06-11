@@ -8,6 +8,7 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 libnftnl_la_SOURCES = utils.c		\
 		      batch.c		\
 		      buffer.c		\
+		      flowtable.c	\
 		      common.c		\
 		      gen.c		\
 		      table.c		\
@@ -26,11 +27,13 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/byteorder.c	\
 		      expr/cmp.c	\
 		      expr/range.c	\
+		      expr/connlimit.c	\
 		      expr/counter.c	\
 		      expr/ct.c		\
 		      expr/data_reg.c	\
 		      expr/dup.c	\
 		      expr/exthdr.c	\
+		      expr/flow_offload.c \
 		      expr/fib.c	\
 		      expr/fwd.c	\
 		      expr/limit.c	\
@@ -52,6 +55,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/masq.c	\
 		      expr/redir.c	\
 		      expr/hash.c	\
+		      expr/socket.c	\
 		      obj/counter.c	\
 		      obj/ct_helper.c	\
 		      obj/quota.c	\

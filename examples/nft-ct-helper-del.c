@@ -18,20 +18,34 @@
 #include <linux/netfilter/nf_tables.h>
 
 #include <libmnl/libmnl.h>
-#include <libnftnl/chain.h>
+#include <libnftnl/object.h>
 
-static struct nftnl_chain *chain_del_parse(int argc, char *argv[])
+static struct nftnl_obj *ct_helper_del_parse(int argc, char *argv[])
 {
-	struct nftnl_chain *t;
+	struct nftnl_obj *t;
+	uint16_t family;
 
-	t = nftnl_chain_alloc();
+	if (strcmp(argv[1], "ip") == 0)
+		family = NFPROTO_IPV4;
+	else if (strcmp(argv[1], "ip6") == 0)
+		family = NFPROTO_IPV6;
+	else if (strcmp(argv[1], "inet") == 0)
+		family = NFPROTO_INET;
+	else {
+		fprintf(stderr, "Unknown family: ip, ip6, inet\n");
+		return NULL;
+	}
+
+	t = nftnl_obj_alloc();
 	if (t == NULL) {
 		perror("OOM");
 		return NULL;
 	}
 
-	nftnl_chain_set(t, NFTNL_CHAIN_TABLE, argv[2]);
-	nftnl_chain_set(t, NFTNL_CHAIN_NAME, argv[3]);
+	nftnl_obj_set_str(t, NFTNL_OBJ_TABLE, argv[2]);
+	nftnl_obj_set_str(t, NFTNL_OBJ_NAME, argv[3]);
+	nftnl_obj_set_u32(t, NFTNL_OBJ_TYPE, NFT_OBJECT_CT_HELPER);
+	nftnl_obj_set_u32(t, NFTNL_OBJ_FAMILY, family);
 
 	return t;
 }
@@ -39,33 +53,19 @@ static struct nftnl_chain *chain_del_parse(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	struct mnl_socket *nl;
-	struct mnl_nlmsg_batch *batch;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh;
-	uint32_t portid, seq, chain_seq;
-	struct nftnl_chain *t;
-	int ret, family;
+	uint32_t portid, seq, obj_seq, family;
+	struct nftnl_obj *t;
+	struct mnl_nlmsg_batch *batch;
+	int ret;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: %s <family> <table> <chain>\n",
-			argv[0]);
+		fprintf(stderr, "%s <family> <table> <name>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
-	if (strcmp(argv[1], "ip") == 0)
-		family = NFPROTO_IPV4;
-	else if (strcmp(argv[1], "ip6") == 0)
-		family = NFPROTO_IPV6;
-	else if (strcmp(argv[1], "bridge") == 0)
-		family = NFPROTO_BRIDGE;
-	else if (strcmp(argv[1], "arp") == 0)
-		family = NFPROTO_ARP;
-	else {
-		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-		exit(EXIT_FAILURE);
-	}
-
-	t = chain_del_parse(argc, argv);
+	t = ct_helper_del_parse(argc, argv);
 	if (t == NULL)
 		exit(EXIT_FAILURE);
 
@@ -75,13 +75,14 @@ int main(int argc, char *argv[])
 	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
 	mnl_nlmsg_batch_next(batch);
 
-	chain_seq = seq;
-	nlh = nftnl_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-					NFT_MSG_DELCHAIN, family,
-					NLM_F_ACK, seq++);
-	nftnl_chain_nlmsg_build_payload(nlh, t);
-	nftnl_chain_free(t);
+	obj_seq = seq;
+	family = nftnl_obj_get_u32(t, NFTNL_OBJ_FAMILY);
+	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+				    NFT_MSG_DELOBJ, family, NLM_F_ACK,
+				    seq++);
+	nftnl_obj_nlmsg_build_payload(nlh, t);
 	mnl_nlmsg_batch_next(batch);
+	nftnl_obj_free(t);
 
 	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
 	mnl_nlmsg_batch_next(batch);
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, chain_seq, portid, NULL, NULL);
+		ret = mnl_cb_run(buf, ret, obj_seq, portid, NULL, NULL);
 		if (ret <= 0)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));

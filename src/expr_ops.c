@@ -7,6 +7,7 @@
 extern struct expr_ops expr_ops_bitwise;
 extern struct expr_ops expr_ops_byteorder;
 extern struct expr_ops expr_ops_cmp;
+extern struct expr_ops expr_ops_connlimit;
 extern struct expr_ops expr_ops_counter;
 extern struct expr_ops expr_ops_ct;
 extern struct expr_ops expr_ops_dup;
@@ -33,6 +34,8 @@ extern struct expr_ops expr_ops_target;
 extern struct expr_ops expr_ops_dynset;
 extern struct expr_ops expr_ops_hash;
 extern struct expr_ops expr_ops_fib;
+extern struct expr_ops expr_ops_flow;
+extern struct expr_ops expr_ops_socket;
 
 static struct expr_ops expr_ops_notrack = {
 	.name	= "notrack",
@@ -42,6 +45,7 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_bitwise,
 	&expr_ops_byteorder,
 	&expr_ops_cmp,
+	&expr_ops_connlimit,
 	&expr_ops_counter,
 	&expr_ops_ct,
 	&expr_ops_dup,
@@ -69,6 +73,8 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_hash,
 	&expr_ops_fib,
 	&expr_ops_objref,
+	&expr_ops_flow,
+	&expr_ops_socket,
 	NULL,
 };
 

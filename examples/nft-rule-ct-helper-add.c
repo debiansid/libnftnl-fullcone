@@ -29,62 +29,25 @@
 #include <libnftnl/rule.h>
 #include <libnftnl/expr.h>
 
-static void add_payload(struct nftnl_rule *r, uint32_t base, uint32_t dreg,
-			uint32_t offset, uint32_t len)
+static void add_ct_helper(struct nftnl_rule *r, const char *obj_name)
 {
 	struct nftnl_expr *e;
 
-	e = nftnl_expr_alloc("payload");
+	e = nftnl_expr_alloc("objref");
 	if (e == NULL) {
-		perror("expr payload oom");
+		perror("expr objref oom");
 		exit(EXIT_FAILURE);
 	}
-
-	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_BASE, base);
-	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_DREG, dreg);
-	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET, offset);
-	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_LEN, len);
-
-	nftnl_rule_add_expr(r, e);
-}
-
-static void add_cmp(struct nftnl_rule *r, uint32_t sreg, uint32_t op,
-		    const void *data, uint32_t data_len)
-{
-	struct nftnl_expr *e;
-
-	e = nftnl_expr_alloc("cmp");
-	if (e == NULL) {
-		perror("expr cmp oom");
-		exit(EXIT_FAILURE);
-	}
-
-	nftnl_expr_set_u32(e, NFTNL_EXPR_CMP_SREG, sreg);
-	nftnl_expr_set_u32(e, NFTNL_EXPR_CMP_OP, op);
-	nftnl_expr_set(e, NFTNL_EXPR_CMP_DATA, data, data_len);
-
-	nftnl_rule_add_expr(r, e);
-}
-
-static void add_counter(struct nftnl_rule *r)
-{
-	struct nftnl_expr *e;
-
-	e = nftnl_expr_alloc("counter");
-	if (e == NULL) {
-		perror("expr counter oom");
-		exit(EXIT_FAILURE);
-	}
+	nftnl_expr_set_str(e, NFTNL_EXPR_OBJREF_IMM_NAME, obj_name);
+	nftnl_expr_set_u32(e, NFTNL_EXPR_OBJREF_IMM_TYPE, 3);
 
 	nftnl_rule_add_expr(r, e);
 }
 
 static struct nftnl_rule *setup_rule(uint8_t family, const char *table,
-				   const char *chain, const char *handle)
+				   const char *chain, const char *handle, const char *obj_name)
 {
 	struct nftnl_rule *r = NULL;
-	uint8_t proto;
-	uint16_t dport;
 	uint64_t handle_num;
 
 	r = nftnl_rule_alloc();
@@ -102,17 +65,7 @@ static struct nftnl_rule *setup_rule(uint8_t family, const char *table,
 		nftnl_rule_set_u64(r, NFTNL_RULE_POSITION, handle_num);
 	}
 
-	proto = IPPROTO_TCP;
-	add_payload(r, NFT_PAYLOAD_NETWORK_HEADER, NFT_REG_1,
-		    offsetof(struct iphdr, protocol), sizeof(uint8_t));
-	add_cmp(r, NFT_REG_1, NFT_CMP_EQ, &proto, sizeof(uint8_t));
-
-	dport = htons(22);
-	add_payload(r, NFT_PAYLOAD_TRANSPORT_HEADER, NFT_REG_1,
-		    offsetof(struct tcphdr, dest), sizeof(uint16_t));
-	add_cmp(r, NFT_REG_1, NFT_CMP_EQ, &dport, sizeof(uint16_t));
-
-	add_counter(r);
+	add_ct_helper(r, obj_name);
 
 	return r;
 }
@@ -128,11 +81,10 @@ int main(int argc, char *argv[])
 	uint32_t seq = time(NULL);
 	int ret;
 
-	if (argc < 4 || argc > 5) {
-		fprintf(stderr, "Usage: %s <family> <table> <chain>\n", argv[0]);
+	if (argc < 5 || argc > 6) {
+		fprintf(stderr, "Usage: %s <family> <table> <chain> <name>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
-
 	if (strcmp(argv[1], "ip") == 0)
 		family = NFPROTO_IPV4;
 	else if (strcmp(argv[1], "ip6") == 0)
@@ -142,10 +94,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (argc != 5)
-		r = setup_rule(family, argv[2], argv[3], NULL);
+	if (argc != 6)
+		r = setup_rule(family, argv[2], argv[3], NULL, argv[4]);
 	else
-		r = setup_rule(family, argv[2], argv[3], argv[4]);
+		r = setup_rule(family, argv[2], argv[3], argv[4], argv[5]);
 
 	nl = mnl_socket_open(NETLINK_NETFILTER);
 	if (nl == NULL) {

@@ -90,7 +90,7 @@ host_triplet = @host@
 check_PROGRAMS = nft-parsing-test$(EXEEXT) nft-table-test$(EXEEXT) \
 	nft-chain-test$(EXEEXT) nft-object-test$(EXEEXT) \
 	nft-rule-test$(EXEEXT) nft-set-test$(EXEEXT) \
-	nft-expr_bitwise-test$(EXEEXT) \
+	nft-flowtable-test$(EXEEXT) nft-expr_bitwise-test$(EXEEXT) \
 	nft-expr_byteorder-test$(EXEEXT) \
 	nft-expr_counter-test$(EXEEXT) nft-expr_cmp-test$(EXEEXT) \
 	nft-expr_ct-test$(EXEEXT) nft-expr_dup-test$(EXEEXT) \
@@ -233,6 +233,10 @@ am_nft_expr_target_test_OBJECTS = nft-expr_target-test.$(OBJEXT)
 nft_expr_target_test_OBJECTS = $(am_nft_expr_target_test_OBJECTS)
 nft_expr_target_test_DEPENDENCIES = ../src/libnftnl.la \
 	$(am__DEPENDENCIES_1)
+am_nft_flowtable_test_OBJECTS = nft-flowtable-test.$(OBJEXT)
+nft_flowtable_test_OBJECTS = $(am_nft_flowtable_test_OBJECTS)
+nft_flowtable_test_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
 am_nft_object_test_OBJECTS = nft-object-test.$(OBJEXT)
 nft_object_test_OBJECTS = $(am_nft_object_test_OBJECTS)
 nft_object_test_DEPENDENCIES = ../src/libnftnl.la \
@@ -300,9 +304,10 @@ SOURCES = $(nft_chain_test_SOURCES) $(nft_expr_bitwise_test_SOURCES) \
 	$(nft_expr_queue_test_SOURCES) $(nft_expr_quota_test_SOURCES) \
 	$(nft_expr_range_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
 	$(nft_expr_reject_test_SOURCES) \
-	$(nft_expr_target_test_SOURCES) $(nft_object_test_SOURCES) \
-	$(nft_parsing_test_SOURCES) $(nft_rule_test_SOURCES) \
-	$(nft_set_test_SOURCES) $(nft_table_test_SOURCES)
+	$(nft_expr_target_test_SOURCES) $(nft_flowtable_test_SOURCES) \
+	$(nft_object_test_SOURCES) $(nft_parsing_test_SOURCES) \
+	$(nft_rule_test_SOURCES) $(nft_set_test_SOURCES) \
+	$(nft_table_test_SOURCES)
 DIST_SOURCES = $(nft_chain_test_SOURCES) \
 	$(nft_expr_bitwise_test_SOURCES) \
 	$(nft_expr_byteorder_test_SOURCES) \
@@ -320,9 +325,10 @@ DIST_SOURCES = $(nft_chain_test_SOURCES) \
 	$(nft_expr_queue_test_SOURCES) $(nft_expr_quota_test_SOURCES) \
 	$(nft_expr_range_test_SOURCES) $(nft_expr_redir_test_SOURCES) \
 	$(nft_expr_reject_test_SOURCES) \
-	$(nft_expr_target_test_SOURCES) $(nft_object_test_SOURCES) \
-	$(nft_parsing_test_SOURCES) $(nft_rule_test_SOURCES) \
-	$(nft_set_test_SOURCES) $(nft_table_test_SOURCES)
+	$(nft_expr_target_test_SOURCES) $(nft_flowtable_test_SOURCES) \
+	$(nft_object_test_SOURCES) $(nft_parsing_test_SOURCES) \
+	$(nft_rule_test_SOURCES) $(nft_set_test_SOURCES) \
+	$(nft_table_test_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -497,7 +503,7 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 8:0:1
+LIBVERSION = 10:0:3
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 EXTRA_DIST = test-script.sh			\
@@ -515,6 +521,8 @@ nft_rule_test_SOURCES = nft-rule-test.c
 nft_rule_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_set_test_SOURCES = nft-set-test.c
 nft_set_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_flowtable_test_SOURCES = nft-flowtable-test.c
+nft_flowtable_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_bitwise_test_SOURCES = nft-expr_bitwise-test.c
 nft_expr_bitwise_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_expr_byteorder_test_SOURCES = nft-expr_byteorder-test.c
@@ -719,6 +727,10 @@ nft-expr_target-test$(EXEEXT): $(nft_expr_target_test_OBJECTS) $(nft_expr_target
 	@rm -f nft-expr_target-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_expr_target_test_OBJECTS) $(nft_expr_target_test_LDADD) $(LIBS)
 
+nft-flowtable-test$(EXEEXT): $(nft_flowtable_test_OBJECTS) $(nft_flowtable_test_DEPENDENCIES) $(EXTRA_nft_flowtable_test_DEPENDENCIES) 
+	@rm -f nft-flowtable-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_flowtable_test_OBJECTS) $(nft_flowtable_test_LDADD) $(LIBS)
+
 nft-object-test$(EXEEXT): $(nft_object_test_OBJECTS) $(nft_object_test_DEPENDENCIES) $(EXTRA_nft_object_test_DEPENDENCIES) 
 	@rm -f nft-object-test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_object_test_OBJECTS) $(nft_object_test_LDADD) $(LIBS)
@@ -772,6 +784,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_redir-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_reject-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-expr_target-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-flowtable-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-object-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-parsing-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-test.Po@am__quote@
