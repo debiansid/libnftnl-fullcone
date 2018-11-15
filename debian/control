@@ -12,7 +12,7 @@ Homepage: https://git.netfilter.org/libnftnl
 Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
 Vcs-Browser: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
 
-Package: libnftnl7
+Package: libnftnl11
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
@@ -29,7 +29,7 @@ Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libnftnl7 (= ${binary:Version}), pkg-config, ${misc:Depends}
+Depends: libnftnl11 (= ${binary:Version}), pkg-config, ${misc:Depends}
 Description: Development files for libnftnl
  libnftnl is the low-level library for Netfilter 4th generation
  framework nftables.
