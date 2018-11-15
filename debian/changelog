@@ -1,3 +1,14 @@
+libnftnl (1.1.2-1~exp1) experimental; urgency=medium
+
+  * [f3e2c03] d/control: mark libnftnl-dev as Multi-Arch: same
+  * [e79eda4] New upstream version 1.1.2
+  * [84b2a3d] d/control: bump std-versions to 4.2.1
+  * [691caf9] d/patches: drop tests-fail-on-error.patch
+  * [3469abb] libnftnl: cleanup JSON/XML support
+  * [1037106] libnftnl: bump SONAME, introduce libnftnl11
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Thu, 15 Nov 2018 11:38:47 +0100
+
 libnftnl (1.1.1-1) unstable; urgency=medium
 
   * [68872c5] New upstream version 1.1.1
