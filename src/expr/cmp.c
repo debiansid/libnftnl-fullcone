@@ -36,10 +36,10 @@ nftnl_expr_cmp_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_CMP_SREG:
-		cmp->sreg = *((uint32_t *)data);
+		memcpy(&cmp->sreg, data, sizeof(cmp->sreg));
 		break;
 	case NFTNL_EXPR_CMP_OP:
-		cmp->op = *((uint32_t *)data);
+		memcpy(&cmp->op, data, sizeof(cmp->op));
 		break;
 	case NFTNL_EXPR_CMP_DATA:
 		memcpy(&cmp->data.val, data, data_len);
@@ -176,55 +176,6 @@ static inline int nftnl_str2cmp(const char *op)
 	}
 }
 
-static int nftnl_expr_cmp_json_parse(struct nftnl_expr *e, json_t *root,
-					struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	struct nftnl_expr_cmp *cmp = nftnl_expr_data(e);
-	const char *op;
-	uint32_t uval32;
-	int base;
-
-	if (nftnl_jansson_parse_val(root, "sreg", NFTNL_TYPE_U32, &uval32,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_CMP_SREG, uval32);
-
-	op = nftnl_jansson_parse_str(root, "op", err);
-	if (op != NULL) {
-		base = nftnl_str2cmp(op);
-		if (base < 0)
-			return -1;
-
-		nftnl_expr_set_u32(e, NFTNL_EXPR_CMP_OP, base);
-	}
-
-	if (nftnl_jansson_data_reg_parse(root, "data",
-				       &cmp->data, err) == DATA_VALUE)
-		e->flags |= (1 << NFTNL_EXPR_CMP_DATA);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_cmp_export(char *buf, size_t size,
-				 const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_cmp *cmp = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_CMP_SREG))
-		nftnl_buf_u32(&b, type, cmp->sreg, SREG);
-	if (e->flags & (1 << NFTNL_EXPR_CMP_OP))
-		nftnl_buf_str(&b, type, cmp2str(cmp->op), OP);
-	if (e->flags & (1 << NFTNL_EXPR_CMP_DATA))
-		nftnl_buf_reg(&b, type, &cmp->data, DATA_VALUE, DATA);
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_cmp_snprintf_default(char *buf, size_t size,
 					   const struct nftnl_expr *e)
 {
@@ -251,39 +202,19 @@ nftnl_expr_cmp_snprintf(char *buf, size_t size, uint32_t type,
 		return nftnl_expr_cmp_snprintf_default(buf, size, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_cmp_export(buf, size, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_cmp_cmp(const struct nftnl_expr *e1,
-			       const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_cmp *c1 = nftnl_expr_data(e1);
-	struct nftnl_expr_cmp *c2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_CMP_DATA))
-		eq &= nftnl_data_reg_cmp(&c1->data, &c2->data, DATA_VALUE);
-	if (e1->flags & (1 << NFTNL_EXPR_CMP_SREG))
-		eq &= (c1->sreg == c2->sreg);
-	if (e1->flags & (1 << NFTNL_EXPR_CMP_OP))
-		eq &= (c1->op == c2->op);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_cmp = {
 	.name		= "cmp",
 	.alloc_len	= sizeof(struct nftnl_expr_cmp),
 	.max_attr	= NFTA_CMP_MAX,
-	.cmp		= nftnl_expr_cmp_cmp,
 	.set		= nftnl_expr_cmp_set,
 	.get		= nftnl_expr_cmp_get,
 	.parse		= nftnl_expr_cmp_parse,
 	.build		= nftnl_expr_cmp_build,
 	.snprintf	= nftnl_expr_cmp_snprintf,
-	.json_parse	= nftnl_expr_cmp_json_parse,
 };

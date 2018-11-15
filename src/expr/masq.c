@@ -34,13 +34,13 @@ nftnl_expr_masq_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_MASQ_FLAGS:
-		masq->flags = *((uint32_t *)data);
+		memcpy(&masq->flags, data, sizeof(masq->flags));
 		break;
 	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
-		masq->sreg_proto_min = *((uint32_t *)data);
+		memcpy(&masq->sreg_proto_min, data, sizeof(masq->sreg_proto_min));
 		break;
 	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
-		masq->sreg_proto_max = *((uint32_t *)data);
+		memcpy(&masq->sreg_proto_max, data, sizeof(masq->sreg_proto_max));
 		break;
 	default:
 		return -1;
@@ -131,46 +131,6 @@ nftnl_expr_masq_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int
-nftnl_expr_masq_json_parse(struct nftnl_expr *e, json_t *root,
-			      struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint32_t reg, flags;
-
-	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &flags,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
-	if (nftnl_jansson_parse_reg(root, "sreg_proto_min", NFTNL_TYPE_U32,
-				    &reg, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN, reg);
-	if (nftnl_jansson_parse_reg(root, "sreg_proto_max", NFTNL_TYPE_U32,
-				    &reg, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX, reg);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_masq_export(char *buf, size_t size,
-				  const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_masq *masq = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
-		nftnl_buf_u32(&b, type, masq->flags, FLAGS);
-	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
-		nftnl_buf_u32(&b, type, masq->sreg_proto_min, SREG_PROTO_MIN);
-	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
-		nftnl_buf_u32(&b, type, masq->sreg_proto_max, SREG_PROTO_MAX);
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_masq_snprintf_default(char *buf, size_t len,
 					    const struct nftnl_expr *e)
 {
@@ -195,39 +155,19 @@ static int nftnl_expr_masq_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_masq_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_masq_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_masq_cmp(const struct nftnl_expr *e1,
-				const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_masq *m1 = nftnl_expr_data(e1);
-	struct nftnl_expr_masq *m2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
-		eq &= (m1->flags == m2->flags);
-	if (e1->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
-		eq &= (m1->sreg_proto_min == m2->sreg_proto_min);
-	if (e1->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
-		eq &= (m1->sreg_proto_max == m2->sreg_proto_max);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_masq = {
 	.name		= "masq",
 	.alloc_len	= sizeof(struct nftnl_expr_masq),
 	.max_attr	= NFTA_MASQ_MAX,
-	.cmp		= nftnl_expr_masq_cmp,
 	.set		= nftnl_expr_masq_set,
 	.get		= nftnl_expr_masq_get,
 	.parse		= nftnl_expr_masq_parse,
 	.build		= nftnl_expr_masq_build,
 	.snprintf	= nftnl_expr_masq_snprintf,
-	.json_parse	= nftnl_expr_masq_json_parse,
 };

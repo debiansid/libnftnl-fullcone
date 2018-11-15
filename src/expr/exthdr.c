@@ -46,25 +46,25 @@ nftnl_expr_exthdr_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_EXTHDR_DREG:
-		exthdr->dreg = *((uint32_t *)data);
+		memcpy(&exthdr->dreg, data, sizeof(exthdr->dreg));
 		break;
 	case NFTNL_EXPR_EXTHDR_TYPE:
-		exthdr->type = *((uint8_t *)data);
+		memcpy(&exthdr->type, data, sizeof(exthdr->type));
 		break;
 	case NFTNL_EXPR_EXTHDR_OFFSET:
-		exthdr->offset = *((uint32_t *)data);
+		memcpy(&exthdr->offset, data, sizeof(exthdr->offset));
 		break;
 	case NFTNL_EXPR_EXTHDR_LEN:
-		exthdr->len = *((uint32_t *)data);
+		memcpy(&exthdr->len, data, sizeof(exthdr->len));
 		break;
 	case NFTNL_EXPR_EXTHDR_OP:
-		exthdr->op = *((uint32_t *)data);
+		memcpy(&exthdr->op, data, sizeof(exthdr->op));
 		break;
 	case NFTNL_EXPR_EXTHDR_FLAGS:
-		exthdr->flags = *((uint32_t *)data);
+		memcpy(&exthdr->flags, data, sizeof(exthdr->flags));
 		break;
 	case NFTNL_EXPR_EXTHDR_SREG:
-		exthdr->sreg = *((uint32_t *)data);
+		memcpy(&exthdr->sreg, data, sizeof(exthdr->sreg));
 		break;
 	default:
 		return -1;
@@ -205,24 +205,6 @@ static const char *op2str(uint8_t op)
 	}
 }
 
-static const char *type2str(uint32_t type)
-{
-	switch (type) {
-	case IPPROTO_HOPOPTS:
-		return "hopopts";
-	case IPPROTO_ROUTING:
-		return "routing";
-	case IPPROTO_FRAGMENT:
-		return "fragment";
-	case IPPROTO_DSTOPTS:
-		return "dstopts";
-	case IPPROTO_MH:
-		return "mh";
-	default:
-		return "unknown";
-	}
-}
-
 static inline int str2exthdr_op(const char* str)
 {
 	if (!strcmp(str, "tcpopt"))
@@ -246,75 +228,6 @@ static inline int str2exthdr_type(const char *str)
 		return IPPROTO_MH;
 
 	return -1;
-}
-
-static int
-nftnl_expr_exthdr_json_parse(struct nftnl_expr *e, json_t *root,
-				struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *exthdr_type;
-	uint32_t uval32;
-	int type;
-
-	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &uval32,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_DREG, uval32);
-
-	if (nftnl_jansson_parse_reg(root, "sreg", NFTNL_TYPE_U32, &uval32,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_SREG, uval32);
-
-	exthdr_type = nftnl_jansson_parse_str(root, "exthdr_type", err);
-	if (exthdr_type != NULL) {
-		type = str2exthdr_type(exthdr_type);
-		if (type < 0)
-			return -1;
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_TYPE, type);
-	}
-
-	if (nftnl_jansson_parse_val(root, "offset", NFTNL_TYPE_U32, &uval32,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_OFFSET, uval32);
-
-	if (nftnl_jansson_parse_val(root, "len", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_LEN, uval32);
-
-	if (nftnl_jansson_parse_val(root, "op", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_OP, uval32);
-
-	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_FLAGS, uval32);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_exthdr_export(char *buf, size_t len,
-				    const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_exthdr *exthdr = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, len);
-
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_DREG))
-		nftnl_buf_u32(&b, type, exthdr->dreg, DREG);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_SREG))
-		nftnl_buf_u32(&b, type, exthdr->dreg, SREG);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_TYPE))
-		nftnl_buf_str(&b, type, type2str(exthdr->type), EXTHDR_TYPE);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_OFFSET))
-		nftnl_buf_u32(&b, type, exthdr->offset, OFFSET);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
-		nftnl_buf_u32(&b, type, exthdr->len, LEN);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_OP))
-		nftnl_buf_u32(&b, type, exthdr->op, OP);
-	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_FLAGS))
-		nftnl_buf_u32(&b, type, exthdr->flags, FLAGS);
-
-	return nftnl_buf_done(&b);
 }
 
 static int nftnl_expr_exthdr_snprintf_default(char *buf, size_t len,
@@ -344,47 +257,19 @@ nftnl_expr_exthdr_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_exthdr_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_exthdr_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_exthdr_cmp(const struct nftnl_expr *e1,
-				  const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_exthdr *h1 = nftnl_expr_data(e1);
-	struct nftnl_expr_exthdr *h2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_DREG))
-		eq &= (h1->dreg == h2->dreg);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_SREG))
-		eq &= (h1->sreg == h2->sreg);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_OFFSET))
-		eq &= (h1->offset == h2->offset);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
-		eq &= (h1->len == h2->len);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_TYPE))
-		eq &= (h1->type == h2->type);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_OP))
-		eq &= (h1->op == h2->op);
-	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_FLAGS))
-		eq &= (h1->flags == h2->flags);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_exthdr = {
 	.name		= "exthdr",
 	.alloc_len	= sizeof(struct nftnl_expr_exthdr),
 	.max_attr	= NFTA_EXTHDR_MAX,
-	.cmp		= nftnl_expr_exthdr_cmp,
 	.set		= nftnl_expr_exthdr_set,
 	.get		= nftnl_expr_exthdr_get,
 	.parse		= nftnl_expr_exthdr_parse,
 	.build		= nftnl_expr_exthdr_build,
 	.snprintf	= nftnl_expr_exthdr_snprintf,
-	.json_parse	= nftnl_expr_exthdr_json_parse,
 };

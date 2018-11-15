@@ -46,7 +46,7 @@ nftnl_expr_target_set(struct nftnl_expr *e, uint16_t type,
 			 (const char *) data);
 		break;
 	case NFTNL_EXPR_TG_REV:
-		tg->rev = *((uint32_t *)data);
+		memcpy(&tg->rev, data, sizeof(tg->rev));
 		break;
 	case NFTNL_EXPR_TG_INFO:
 		if (e->flags & (1 << NFTNL_EXPR_TG_INFO))
@@ -165,36 +165,6 @@ static int nftnl_expr_target_parse(struct nftnl_expr *e, struct nlattr *attr)
 }
 
 static int
-nftnl_expr_target_json_parse(struct nftnl_expr *e, json_t *root,
-				struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *name;
-
-	name = nftnl_jansson_parse_str(root, "name", err);
-	if (name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_TG_NAME, name);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_rule_exp_target_export(char *buf, size_t size,
-				        const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_target *target = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_TG_NAME))
-		nftnl_buf_str(&b, type, target->name, NAME);
-
-	return nftnl_buf_done(&b);
-}
-
-static int
 nftnl_expr_target_snprintf(char *buf, size_t len, uint32_t type,
 			   uint32_t flags, const struct nftnl_expr *e)
 {
@@ -206,7 +176,6 @@ nftnl_expr_target_snprintf(char *buf, size_t len, uint32_t type,
 				target->name, target->rev);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_rule_exp_target_export(buf, len, e, type);
 	default:
 		break;
 	}
@@ -220,35 +189,14 @@ static void nftnl_expr_target_free(const struct nftnl_expr *e)
 	xfree(target->data);
 }
 
-static bool nftnl_expr_target_cmp(const struct nftnl_expr *e1,
-				  const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_target *t1 = nftnl_expr_data(e1);
-	struct nftnl_expr_target *t2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_TG_NAME))
-		eq &= !strcmp(t1->name, t2->name);
-	if (e1->flags & (1 << NFTNL_EXPR_TG_REV))
-		eq &= (t1->rev == t2->rev);
-	if (e1->flags & (1 << NFTNL_EXPR_TG_INFO)) {
-		eq &= (t1->data_len == t2->data_len);
-		eq &= !memcmp(t1->data, t2->data, t1->data_len);
-	}
-
-	return eq;
-}
-
 struct expr_ops expr_ops_target = {
 	.name		= "target",
 	.alloc_len	= sizeof(struct nftnl_expr_target),
 	.max_attr	= NFTA_TARGET_MAX,
 	.free		= nftnl_expr_target_free,
-	.cmp		= nftnl_expr_target_cmp,
 	.set		= nftnl_expr_target_set,
 	.get		= nftnl_expr_target_get,
 	.parse		= nftnl_expr_target_parse,
 	.build		= nftnl_expr_target_build,
 	.snprintf	= nftnl_expr_target_snprintf,
-	.json_parse	= nftnl_expr_target_json_parse,
 };

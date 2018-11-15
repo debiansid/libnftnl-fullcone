@@ -1,13 +1,12 @@
 include $(top_srcdir)/Make_global.am
 lib_LTLIBRARIES = libnftnl.la
 
-libnftnl_la_LIBADD = ${LIBMNL_LIBS} ${LIBJSON_LIBS}
+libnftnl_la_LIBADD = ${LIBMNL_LIBS}
 libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
 libnftnl_la_SOURCES = utils.c		\
 		      batch.c		\
-		      buffer.c		\
 		      flowtable.c	\
 		      common.c		\
 		      gen.c		\
@@ -19,7 +18,6 @@ libnftnl_la_SOURCES = utils.c		\
 		      set.c		\
 		      set_elem.c	\
 		      ruleset.c		\
-		      jansson.c		\
 		      udata.c		\
 		      expr.c		\
 		      expr_ops.c	\
@@ -45,6 +43,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/meta.c	\
 		      expr/numgen.c	\
 		      expr/nat.c	\
+		      expr/tproxy.c	\
 		      expr/objref.c	\
 		      expr/payload.c	\
 		      expr/queue.c	\
@@ -52,12 +51,18 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/reject.c	\
 		      expr/rt.c		\
 		      expr/target.c	\
+		      expr/tunnel.c	\
 		      expr/masq.c	\
 		      expr/redir.c	\
 		      expr/hash.c	\
 		      expr/socket.c	\
+		      expr/osf.c	\
+		      expr/xfrm.c	\
 		      obj/counter.c	\
 		      obj/ct_helper.c	\
 		      obj/quota.c	\
+		      obj/tunnel.c	\
 		      obj/limit.c	\
+		      obj/ct_timeout.c 	\
+		      obj/secmark.c	\
 		      libnftnl.map

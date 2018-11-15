@@ -36,8 +36,6 @@ uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type);
 uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type);
 const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type);
 
-bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2);
-
 int nftnl_expr_snprintf(char *buf, size_t buflen, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
 int nftnl_expr_fprintf(FILE *fp, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
 
@@ -75,6 +73,11 @@ enum {
 enum {
 	NFTNL_EXPR_SOCKET_KEY	= NFTNL_EXPR_BASE,
 	NFTNL_EXPR_SOCKET_DREG,
+};
+
+enum {
+	NFTNL_EXPR_TUNNEL_KEY	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_TUNNEL_DREG,
 };
 
 enum {
@@ -135,6 +138,12 @@ enum {
 	NFTNL_EXPR_NAT_REG_PROTO_MIN,
 	NFTNL_EXPR_NAT_REG_PROTO_MAX,
 	NFTNL_EXPR_NAT_FLAGS,
+};
+
+enum {
+	NFTNL_EXPR_TPROXY_FAMILY	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_TPROXY_REG_ADDR,
+	NFTNL_EXPR_TPROXY_REG_PORT,
 };
 
 enum {
@@ -266,6 +275,19 @@ enum {
 	NFTNL_EXPR_OBJREF_SET_SREG,
 	NFTNL_EXPR_OBJREF_SET_NAME,
 	NFTNL_EXPR_OBJREF_SET_ID,
+};
+
+enum {
+	NFTNL_EXPR_OSF_DREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_OSF_TTL,
+};
+
+enum {
+	NFTNL_EXPR_XFRM_DREG	= NFTNL_EXPR_BASE,
+	NFTNL_EXPR_XFRM_SREG,
+	NFTNL_EXPR_XFRM_KEY,
+	NFTNL_EXPR_XFRM_DIR,
+	NFTNL_EXPR_XFRM_SPNUM,
 };
 
 #ifdef __cplusplus

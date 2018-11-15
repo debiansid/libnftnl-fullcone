@@ -35,10 +35,10 @@ nftnl_expr_counter_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_CTR_BYTES:
-		ctr->bytes = *((uint64_t *)data);
+		memcpy(&ctr->bytes, data, sizeof(ctr->bytes));
 		break;
 	case NFTNL_EXPR_CTR_PACKETS:
-		ctr->pkts = *((uint64_t *)data);
+		memcpy(&ctr->pkts, data, sizeof(ctr->pkts));
 		break;
 	default:
 		return -1;
@@ -115,42 +115,6 @@ nftnl_expr_counter_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int
-nftnl_expr_counter_json_parse(struct nftnl_expr *e, json_t *root,
-				 struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint64_t uval64;
-
-	if (nftnl_jansson_parse_val(root, "pkts", NFTNL_TYPE_U64, &uval64,
-				  err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_CTR_PACKETS, uval64);
-
-	if (nftnl_jansson_parse_val(root, "bytes", NFTNL_TYPE_U64, &uval64,
-				  err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_CTR_BYTES, uval64);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_counter_export(char *buf, size_t size,
-				     const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_counter *ctr = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_CTR_PACKETS))
-		nftnl_buf_u64(&b, type, ctr->pkts, PKTS);
-	if (e->flags & (1 << NFTNL_EXPR_CTR_BYTES))
-		nftnl_buf_u64(&b, type, ctr->bytes, BYTES);
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_counter_snprintf_default(char *buf, size_t len,
 					       const struct nftnl_expr *e)
 {
@@ -169,37 +133,19 @@ static int nftnl_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_counter_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_counter_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_counter_cmp(const struct nftnl_expr *e1,
-				   const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_counter *c1 = nftnl_expr_data(e1);
-	struct nftnl_expr_counter *c2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_CTR_PACKETS))
-		eq &= (c1->pkts == c2->pkts);
-	if (e1->flags & (1 << NFTNL_EXPR_CTR_BYTES))
-		eq &= (c1->pkts == c2->pkts);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_counter = {
 	.name		= "counter",
 	.alloc_len	= sizeof(struct nftnl_expr_counter),
 	.max_attr	= NFTA_COUNTER_MAX,
-	.cmp		= nftnl_expr_counter_cmp,
 	.set		= nftnl_expr_counter_set,
 	.get		= nftnl_expr_counter_get,
 	.parse		= nftnl_expr_counter_parse,
 	.build		= nftnl_expr_counter_build,
 	.snprintf	= nftnl_expr_counter_snprintf,
-	.json_parse	= nftnl_expr_counter_json_parse,
 };

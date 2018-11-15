@@ -33,14 +33,14 @@ nftnl_expr_immediate_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_IMM_DREG:
-		imm->dreg = *((uint32_t *)data);
+		memcpy(&imm->dreg, data, sizeof(imm->dreg));
 		break;
 	case NFTNL_EXPR_IMM_DATA:
 		memcpy(&imm->data.val, data, data_len);
 		imm->data.len = data_len;
 		break;
 	case NFTNL_EXPR_IMM_VERDICT:
-		imm->data.verdict = *((uint32_t *)data);
+		memcpy(&imm->data.verdict, data, sizeof(imm->data.verdict));
 		break;
 	case NFTNL_EXPR_IMM_CHAIN:
 		if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
@@ -174,61 +174,6 @@ nftnl_expr_immediate_parse(struct nftnl_expr *e, struct nlattr *attr)
 }
 
 static int
-nftnl_expr_immediate_json_parse(struct nftnl_expr *e, json_t *root,
-				   struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
-	int datareg_type;
-	uint32_t reg;
-
-	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &reg, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_IMM_DREG, reg);
-
-	datareg_type = nftnl_jansson_data_reg_parse(root, "data",
-						  &imm->data, err);
-	if (datareg_type >= 0) {
-		switch (datareg_type) {
-		case DATA_VALUE:
-			e->flags |= (1 << NFTNL_EXPR_IMM_DATA);
-			break;
-		case DATA_VERDICT:
-			e->flags |= (1 << NFTNL_EXPR_IMM_VERDICT);
-			break;
-		case DATA_CHAIN:
-			e->flags |= (1 << NFTNL_EXPR_IMM_CHAIN);
-			break;
-		default:
-			return -1;
-		}
-	}
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int
-nftnl_expr_immediate_export(char *buf, size_t size, const struct nftnl_expr *e,
-			    int type)
-{
-	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_IMM_DREG))
-		nftnl_buf_u32(&b, type, imm->dreg, DREG);
-	if (e->flags & (1 << NFTNL_EXPR_IMM_DATA))
-		nftnl_buf_reg(&b, type, &imm->data, DATA_VALUE, DATA);
-	if (e->flags & (1 << NFTNL_EXPR_IMM_VERDICT))
-		nftnl_buf_reg(&b, type, &imm->data, DATA_VERDICT, DATA);
-	if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
-		nftnl_buf_reg(&b, type, &imm->data, DATA_CHAIN, DATA);
-
-	return nftnl_buf_done(&b);
-}
-
-static int
 nftnl_expr_immediate_snprintf_default(char *buf, size_t len,
 				      const struct nftnl_expr *e,
 				      uint32_t flags)
@@ -267,7 +212,6 @@ nftnl_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_immediate_snprintf_default(buf, len, e, flags);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_immediate_export(buf, len, e, type);
 	default:
 		break;
 	}
@@ -282,40 +226,14 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
 		nftnl_free_verdict(&imm->data);
 }
 
-static bool nftnl_expr_immediate_cmp(const struct nftnl_expr *e1,
-				     const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_immediate *i1 = nftnl_expr_data(e1);
-	struct nftnl_expr_immediate *i2 = nftnl_expr_data(e2);
-	bool eq = true;
-	int type = DATA_NONE;
-
-	if (e1->flags & (1 << NFTNL_EXPR_IMM_DREG))
-		eq &= (i1->dreg == i2->dreg);
-	if (e1->flags & (1 << NFTNL_EXPR_IMM_VERDICT))
-		if (e1->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
-			type = DATA_CHAIN;
-		else
-			type = DATA_VERDICT;
-	else if (e1->flags & (1 << NFTNL_EXPR_IMM_DATA))
-		type = DATA_VALUE;
-
-	if (type != DATA_NONE)
-		eq &= nftnl_data_reg_cmp(&i1->data, &i2->data, type);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_immediate = {
 	.name		= "immediate",
 	.alloc_len	= sizeof(struct nftnl_expr_immediate),
 	.max_attr	= NFTA_IMMEDIATE_MAX,
 	.free		= nftnl_expr_immediate_free,
-	.cmp		= nftnl_expr_immediate_cmp,
 	.set		= nftnl_expr_immediate_set,
 	.get		= nftnl_expr_immediate_get,
 	.parse		= nftnl_expr_immediate_parse,
 	.build		= nftnl_expr_immediate_build,
 	.snprintf	= nftnl_expr_immediate_snprintf,
-	.json_parse	= nftnl_expr_immediate_json_parse,
 };

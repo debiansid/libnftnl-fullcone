@@ -46,19 +46,19 @@ static int nftnl_expr_log_set(struct nftnl_expr *e, uint16_t type,
 			return -1;
 		break;
 	case NFTNL_EXPR_LOG_GROUP:
-		log->group = *((uint16_t *)data);
+		memcpy(&log->group, data, sizeof(log->group));
 		break;
 	case NFTNL_EXPR_LOG_SNAPLEN:
-		log->snaplen = *((uint32_t *)data);
+		memcpy(&log->snaplen, data, sizeof(log->snaplen));
 		break;
 	case NFTNL_EXPR_LOG_QTHRESHOLD:
-		log->qthreshold = *((uint16_t *)data);
+		memcpy(&log->qthreshold, data, sizeof(log->qthreshold));
 		break;
 	case NFTNL_EXPR_LOG_LEVEL:
-		log->level = *((uint32_t *)data);
+		memcpy(&log->level, data, sizeof(log->level));
 		break;
 	case NFTNL_EXPR_LOG_FLAGS:
-		log->flags = *((uint32_t *)data);
+		memcpy(&log->flags, data, sizeof(log->flags));
 		break;
 	default:
 		return -1;
@@ -186,45 +186,6 @@ nftnl_expr_log_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_expr_log_json_parse(struct nftnl_expr *e, json_t *root,
-					struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *prefix;
-	uint32_t snaplen, level, flags;
-	uint16_t group, qthreshold;
-
-	prefix = nftnl_jansson_parse_str(root, "prefix", err);
-	if (prefix != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_LOG_PREFIX, prefix);
-
-	if (nftnl_jansson_parse_val(root, "group", NFTNL_TYPE_U16, &group,
-				  err) == 0)
-		nftnl_expr_set_u16(e, NFTNL_EXPR_LOG_GROUP, group);
-
-	if (nftnl_jansson_parse_val(root, "snaplen", NFTNL_TYPE_U32, &snaplen,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LOG_SNAPLEN, snaplen);
-
-	if (nftnl_jansson_parse_val(root, "qthreshold", NFTNL_TYPE_U16,
-				  &qthreshold, err) == 0)
-		nftnl_expr_set_u16(e, NFTNL_EXPR_LOG_QTHRESHOLD, qthreshold);
-
-	if (nftnl_jansson_parse_val(root, "level", NFTNL_TYPE_U32, &level,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LOG_LEVEL, level);
-
-	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &flags,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LOG_FLAGS, flags);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_log_snprintf_default(char *buf, size_t size,
 					   const struct nftnl_expr *e)
 {
@@ -275,28 +236,6 @@ static int nftnl_expr_log_snprintf_default(char *buf, size_t size,
 	return offset;
 }
 
-static int nftnl_expr_log_export(char *buf, size_t size,
-				 const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_log *log = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_LOG_PREFIX))
-		nftnl_buf_str(&b, type, log->prefix, PREFIX);
-	if (e->flags & (1 << NFTNL_EXPR_LOG_GROUP))
-		nftnl_buf_u32(&b, type, log->group, GROUP);
-	if (e->flags & (1 << NFTNL_EXPR_LOG_SNAPLEN))
-		nftnl_buf_u32(&b, type, log->snaplen, SNAPLEN);
-	if (e->flags & (1 << NFTNL_EXPR_LOG_QTHRESHOLD))
-		nftnl_buf_u32(&b, type, log->qthreshold, QTHRESH);
-	if (e->flags & (1 << NFTNL_EXPR_LOG_LEVEL))
-		nftnl_buf_u32(&b, type, log->level, LEVEL);
-	if (e->flags & (1 << NFTNL_EXPR_LOG_FLAGS))
-		nftnl_buf_u32(&b, type, log->flags, FLAGS);
-
-	return nftnl_buf_done(&b);
-}
-
 static int
 nftnl_expr_log_snprintf(char *buf, size_t len, uint32_t type,
 			uint32_t flags, const struct nftnl_expr *e)
@@ -306,7 +245,6 @@ nftnl_expr_log_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_log_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_log_export(buf, len, e, type);
 	default:
 		break;
 	}
@@ -320,39 +258,14 @@ static void nftnl_expr_log_free(const struct nftnl_expr *e)
 	xfree(log->prefix);
 }
 
-static bool nftnl_expr_log_cmp(const struct nftnl_expr *e1,
-				     const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_log *l1 = nftnl_expr_data(e1);
-	struct nftnl_expr_log *l2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_SNAPLEN))
-		eq &= (l1->snaplen == l2->snaplen);
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_GROUP))
-		eq &= (l1->group == l2->group);
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_QTHRESHOLD))
-		eq &= (l1->qthreshold == l2->qthreshold);
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_LEVEL))
-		eq &= (l1->level == l2->level);
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_FLAGS))
-		eq &= (l1->flags == l2->flags);
-	if (e1->flags & (1 << NFTNL_EXPR_LOG_PREFIX))
-		eq &= !strcmp(l1->prefix, l2->prefix);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_log = {
 	.name		= "log",
 	.alloc_len	= sizeof(struct nftnl_expr_log),
 	.max_attr	= NFTA_LOG_MAX,
 	.free		= nftnl_expr_log_free,
-	.cmp		= nftnl_expr_log_cmp,
 	.set		= nftnl_expr_log_set,
 	.get		= nftnl_expr_log_get,
 	.parse		= nftnl_expr_log_parse,
 	.build		= nftnl_expr_log_build,
 	.snprintf	= nftnl_expr_log_snprintf,
-	.json_parse	= nftnl_expr_log_json_parse,
 };

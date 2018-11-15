@@ -1,10 +1,6 @@
 include $(top_srcdir)/Make_global.am
 
-EXTRA_DIST =		test-script.sh			\
-			jsonfiles
-
-check_PROGRAMS = 	nft-parsing-test		\
-			nft-table-test			\
+check_PROGRAMS = 	nft-table-test			\
 			nft-chain-test			\
 			nft-object-test			\
 			nft-rule-test			\
@@ -37,8 +33,7 @@ check_PROGRAMS = 	nft-parsing-test		\
 			nft-expr_target-test		\
 			nft-expr_hash-test
 
-nft_parsing_test_SOURCES = nft-parsing-test.c
-nft_parsing_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS} ${LIBJSON_LIBS}
+TESTS = $(check_PROGRAMS)
 
 nft_table_test_SOURCES = nft-table-test.c
 nft_table_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}

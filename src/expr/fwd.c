@@ -34,13 +34,13 @@ static int nftnl_expr_fwd_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_FWD_SREG_DEV:
-		fwd->sreg_dev = *((uint32_t *)data);
+		memcpy(&fwd->sreg_dev, data, sizeof(fwd->sreg_dev));
 		break;
 	case NFTNL_EXPR_FWD_SREG_ADDR:
-		fwd->sreg_addr = *((uint32_t *)data);
+		memcpy(&fwd->sreg_addr, data, sizeof(fwd->sreg_addr));
 		break;
 	case NFTNL_EXPR_FWD_NFPROTO:
-		fwd->nfproto = *((uint32_t *)data);
+		memcpy(&fwd->nfproto, data, sizeof(fwd->nfproto));
 		break;
 	default:
 		return -1;
@@ -126,46 +126,6 @@ static int nftnl_expr_fwd_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return ret;
 }
 
-static int nftnl_expr_fwd_json_parse(struct nftnl_expr *e, json_t *root,
-				     struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint32_t u32val;
-	int ret;
-
-	ret = nftnl_jansson_parse_val(root, "sreg_dev", NFTNL_TYPE_U32, &u32val, err);
-	if (ret >= 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_FWD_SREG_DEV, u32val);
-	ret = nftnl_jansson_parse_val(root, "sreg_addr", NFTNL_TYPE_U32, &u32val, err);
-	if (ret >= 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_FWD_SREG_ADDR, u32val);
-	ret = nftnl_jansson_parse_val(root, "nfproto", NFTNL_TYPE_U32, &u32val, err);
-	if (ret >= 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_FWD_NFPROTO, u32val);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_fwd_export(char *buf, size_t size,
-				 const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_fwd *fwd = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_FWD_SREG_DEV))
-		nftnl_buf_u32(&b, type, fwd->sreg_dev, "sreg_dev");
-	if (e->flags & (1 << NFTNL_EXPR_FWD_SREG_ADDR))
-		nftnl_buf_u32(&b, type, fwd->sreg_dev, "sreg_addr");
-	if (e->flags & (1 << NFTNL_EXPR_FWD_NFPROTO))
-		nftnl_buf_u32(&b, type, fwd->nfproto, "nfproto");
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_fwd_snprintf_default(char *buf, size_t len,
 					   const struct nftnl_expr *e,
 					   uint32_t flags)
@@ -200,39 +160,19 @@ static int nftnl_expr_fwd_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_fwd_snprintf_default(buf, len, e, flags);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_fwd_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_fwd_cmp(const struct nftnl_expr *e1,
-			       const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_fwd *f1 = nftnl_expr_data(e1);
-	struct nftnl_expr_fwd *f2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_FWD_SREG_DEV))
-		eq &= (f1->sreg_dev == f2->sreg_dev);
-	if (e1->flags & (1 << NFTNL_EXPR_FWD_SREG_ADDR))
-		eq &= (f1->sreg_addr == f2->sreg_addr);
-	if (e1->flags & (1 << NFTNL_EXPR_FWD_NFPROTO))
-		eq &= (f1->nfproto == f2->nfproto);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_fwd = {
 	.name		= "fwd",
 	.alloc_len	= sizeof(struct nftnl_expr_fwd),
 	.max_attr	= NFTA_FWD_MAX,
-	.cmp		= nftnl_expr_fwd_cmp,
 	.set		= nftnl_expr_fwd_set,
 	.get		= nftnl_expr_fwd_get,
 	.parse		= nftnl_expr_fwd_parse,
 	.build		= nftnl_expr_fwd_build,
 	.snprintf	= nftnl_expr_fwd_snprintf,
-	.json_parse	= nftnl_expr_fwd_json_parse,
 };

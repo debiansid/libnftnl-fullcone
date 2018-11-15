@@ -32,10 +32,10 @@ nftnl_expr_rt_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_RT_KEY:
-		rt->key = *((uint32_t *)data);
+		memcpy(&rt->key, data, sizeof(rt->key));
 		break;
 	case NFTNL_EXPR_RT_DREG:
-		rt->dreg = *((uint32_t *)data);
+		memcpy(&rt->dreg, data, sizeof(rt->dreg));
 		break;
 	default:
 		return -1;
@@ -117,6 +117,7 @@ static const char *rt_key2str_array[NFT_RT_MAX + 1] = {
 	[NFT_RT_NEXTHOP4]	= "nexthop4",
 	[NFT_RT_NEXTHOP6]	= "nexthop6",
 	[NFT_RT_TCPMSS]		= "tcpmss",
+	[NFT_RT_XFRM]		= "ipsec",
 };
 
 static const char *rt_key2str(uint8_t key)
@@ -140,34 +141,6 @@ static inline int str2rt_key(const char *str)
 	return -1;
 }
 
-static int nftnl_expr_rt_json_parse(struct nftnl_expr *e, json_t *root,
-				    struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *val_str;
-	uint32_t reg;
-	int val32;
-
-	val_str = nftnl_jansson_parse_str(root, "key", err);
-	if (val_str != NULL) {
-		val32 = str2rt_key(val_str);
-		if (val32 >= 0)
-			nftnl_expr_set_u32(e, NFTNL_EXPR_RT_KEY, val32);
-	}
-
-	if (nftnl_jansson_node_exist(root, "dreg")) {
-		if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &reg,
-					  err) == 0)
-			nftnl_expr_set_u32(e, NFTNL_EXPR_RT_DREG, reg);
-	}
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int
 nftnl_expr_rt_snprintf_default(char *buf, size_t len,
 			       const struct nftnl_expr *e)
@@ -181,20 +154,6 @@ nftnl_expr_rt_snprintf_default(char *buf, size_t len,
 	return 0;
 }
 
-static int nftnl_expr_rt_export(char *buf, size_t size,
-				  const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_rt *rt = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_RT_DREG))
-		nftnl_buf_u32(&b, type, rt->dreg, DREG);
-	if (e->flags & (1 << NFTNL_EXPR_RT_KEY))
-		nftnl_buf_str(&b, type, rt_key2str(rt->key), KEY);
-
-	return nftnl_buf_done(&b);
-}
-
 static int
 nftnl_expr_rt_snprintf(char *buf, size_t len, uint32_t type,
 		       uint32_t flags, const struct nftnl_expr *e)
@@ -204,37 +163,19 @@ nftnl_expr_rt_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_rt_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_rt_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_rt_cmp(const struct nftnl_expr *e1,
-			      const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_rt *r1 = nftnl_expr_data(e1);
-	struct nftnl_expr_rt *r2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_RT_KEY))
-		eq &= (r1->key == r2->key);
-	if (e1->flags & (1 << NFTNL_EXPR_RT_DREG))
-		eq &= (r1->dreg == r2->dreg);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_rt = {
 	.name		= "rt",
 	.alloc_len	= sizeof(struct nftnl_expr_rt),
 	.max_attr	= NFTA_RT_MAX,
-	.cmp		= nftnl_expr_rt_cmp,
 	.set		= nftnl_expr_rt_set,
 	.get		= nftnl_expr_rt_get,
 	.parse		= nftnl_expr_rt_parse,
 	.build		= nftnl_expr_rt_build,
 	.snprintf	= nftnl_expr_rt_snprintf,
-	.json_parse	= nftnl_expr_rt_json_parse,
 };

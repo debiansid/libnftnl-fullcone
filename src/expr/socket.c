@@ -32,10 +32,10 @@ nftnl_expr_socket_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_SOCKET_KEY:
-		socket->key = *((uint32_t *)data);
+		memcpy(&socket->key, data, sizeof(socket->key));
 		break;
 	case NFTNL_EXPR_SOCKET_DREG:
-		socket->dreg = *((uint32_t *)data);
+		memcpy(&socket->dreg, data, sizeof(socket->dreg));
 		break;
 	default:
 		return -1;
@@ -114,6 +114,7 @@ nftnl_expr_socket_parse(struct nftnl_expr *e, struct nlattr *attr)
 
 static const char *socket_key2str_array[NFT_SOCKET_MAX + 1] = {
 	[NFT_SOCKET_TRANSPARENT] = "transparent",
+	[NFT_SOCKET_MARK] = "mark",
 };
 
 static const char *socket_key2str(uint8_t key)
@@ -150,20 +151,6 @@ nftnl_expr_socket_snprintf_default(char *buf, size_t len,
 	return 0;
 }
 
-static int nftnl_expr_socket_export(char *buf, size_t size,
-				  const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_socket *socket = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_SOCKET_DREG))
-		nftnl_buf_u32(&b, type, socket->dreg, DREG);
-	if (e->flags & (1 << NFTNL_EXPR_SOCKET_KEY))
-		nftnl_buf_str(&b, type, socket_key2str(socket->key), KEY);
-
-	return nftnl_buf_done(&b);
-}
-
 static int
 nftnl_expr_socket_snprintf(char *buf, size_t len, uint32_t type,
 		       uint32_t flags, const struct nftnl_expr *e)
@@ -173,33 +160,16 @@ nftnl_expr_socket_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_socket_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_socket_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_socket_cmp(const struct nftnl_expr *e1,
-			      const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_socket *r1 = nftnl_expr_data(e1);
-	struct nftnl_expr_socket *r2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_SOCKET_KEY))
-		eq &= (r1->key == r2->key);
-	if (e1->flags & (1 << NFTNL_EXPR_SOCKET_DREG))
-		eq &= (r1->dreg == r2->dreg);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_socket = {
 	.name		= "socket",
 	.alloc_len	= sizeof(struct nftnl_expr_socket),
 	.max_attr	= NFTA_SOCKET_MAX,
-	.cmp		= nftnl_expr_socket_cmp,
 	.set		= nftnl_expr_socket_set,
 	.get		= nftnl_expr_socket_get,
 	.parse		= nftnl_expr_socket_parse,
