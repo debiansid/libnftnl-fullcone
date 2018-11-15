@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 11),
                libmnl-dev,
                libtool,
                pkg-config
-Standards-Version: 4.1.4
+Standards-Version: 4.2.1
 Section: libs
 Homepage: https://git.netfilter.org/libnftnl
 Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
