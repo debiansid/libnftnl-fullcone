@@ -219,8 +219,6 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBJSON_CFLAGS = @LIBJSON_CFLAGS@
-LIBJSON_LIBS = @LIBJSON_LIBS@
 LIBMNL_CFLAGS = @LIBMNL_CFLAGS@
 LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
@@ -322,7 +320,6 @@ noinst_HEADERS = internal.h	\
 		 set.h		\
 		 common.h	\
 		 expr.h		\
-		 json.h		\
 		 set_elem.h	\
 		 udata.h	\
 		 utils.h

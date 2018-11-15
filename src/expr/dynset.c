@@ -40,16 +40,16 @@ nftnl_expr_dynset_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_DYNSET_SREG_KEY:
-		dynset->sreg_key = *((uint32_t *)data);
+		memcpy(&dynset->sreg_key, data, sizeof(dynset->sreg_key));
 		break;
 	case NFTNL_EXPR_DYNSET_SREG_DATA:
-		dynset->sreg_data = *((uint32_t *)data);
+		memcpy(&dynset->sreg_data, data, sizeof(dynset->sreg_data));
 		break;
 	case NFTNL_EXPR_DYNSET_OP:
-		dynset->op = *((uint32_t *)data);
+		memcpy(&dynset->op, data, sizeof(dynset->op));
 		break;
 	case NFTNL_EXPR_DYNSET_TIMEOUT:
-		dynset->timeout = *((uint64_t *)data);
+		memcpy(&dynset->timeout, data, sizeof(dynset->timeout));
 		break;
 	case NFTNL_EXPR_DYNSET_SET_NAME:
 		dynset->set_name = strdup((const char *)data);
@@ -57,7 +57,7 @@ nftnl_expr_dynset_set(struct nftnl_expr *e, uint16_t type,
 			return -1;
 		break;
 	case NFTNL_EXPR_DYNSET_SET_ID:
-		dynset->set_id = *((uint32_t *)data);
+		memcpy(&dynset->set_id, data, sizeof(dynset->set_id));
 		break;
 	case NFTNL_EXPR_DYNSET_EXPR:
 		dynset->expr = (void *)data;
@@ -205,59 +205,6 @@ nftnl_expr_dynset_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return ret;
 }
 
-static int
-nftnl_expr_dynset_json_parse(struct nftnl_expr *e, json_t *root,
-				struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *set_name;
-	uint32_t uval32;
-	uint64_t uval64;
-
-	set_name = nftnl_jansson_parse_str(root, "set", err);
-	if (set_name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_DYNSET_SET_NAME, set_name);
-
-	if (nftnl_jansson_parse_reg(root, "sreg_key",
-				  NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_DYNSET_SREG_KEY, uval32);
-
-	if (nftnl_jansson_parse_reg(root, "sreg_data",
-				  NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_DYNSET_SREG_DATA, uval32);
-
-	if (nftnl_jansson_parse_val(root, "op", NFTNL_TYPE_U32, &uval32,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_DYNSET_OP, uval32);
-
-	if (nftnl_jansson_parse_val(root, "timeout", NFTNL_TYPE_U64, &uval64,
-				  err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_DYNSET_TIMEOUT, uval64);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int
-nftnl_expr_dynset_export(char *buf, size_t size,
-			 const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_DYNSET_SET_NAME))
-		nftnl_buf_str(&b, type, dynset->set_name, SET_NAME);
-	if (e->flags & (1 << NFTNL_EXPR_DYNSET_SREG_KEY))
-		nftnl_buf_u32(&b, type, dynset->sreg_key, SREG_KEY);
-	if (e->flags & (1 << NFTNL_EXPR_DYNSET_SREG_DATA))
-		nftnl_buf_u32(&b, type, dynset->sreg_data, SREG_DATA);
-
-	return nftnl_buf_done(&b);
-}
-
 static const char *op2str_array[] = {
 	[NFT_DYNSET_OP_ADD]		= "add",
 	[NFT_DYNSET_OP_UPDATE] 		= "update",
@@ -319,7 +266,6 @@ nftnl_expr_dynset_snprintf(char *buf, size_t size, uint32_t type,
 		return nftnl_expr_dynset_snprintf_default(buf, size, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_dynset_export(buf, size, e, type);
 	default:
 		break;
 	}
@@ -333,41 +279,14 @@ static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
 	xfree(dynset->set_name);
 }
 
-static bool nftnl_expr_dynset_cmp(const struct nftnl_expr *e1,
-				  const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_dynset *d1 = nftnl_expr_data(e1);
-	struct nftnl_expr_dynset *d2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SREG_KEY))
-		eq &= (d1->sreg_key == d2->sreg_key);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SREG_DATA))
-		eq &= (d1->sreg_data == d2->sreg_data);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_OP))
-		eq &= (d1->op == d2->op);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_TIMEOUT))
-		eq &= (d1->timeout == d2->timeout);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_EXPR))
-		eq &= nftnl_expr_cmp(d1->expr, d2->expr);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SET_NAME))
-		eq &= !strcmp(d1->set_name, d2->set_name);
-	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SET_ID))
-		eq &= (d1->set_id == d2->set_id);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_dynset = {
 	.name		= "dynset",
 	.alloc_len	= sizeof(struct nftnl_expr_dynset),
 	.max_attr	= NFTA_DYNSET_MAX,
 	.free		= nftnl_expr_dynset_free,
-	.cmp		= nftnl_expr_dynset_cmp,
 	.set		= nftnl_expr_dynset_set,
 	.get		= nftnl_expr_dynset_get,
 	.parse		= nftnl_expr_dynset_parse,
 	.build		= nftnl_expr_dynset_build,
 	.snprintf	= nftnl_expr_dynset_snprintf,
-	.json_parse	= nftnl_expr_dynset_json_parse,
 };

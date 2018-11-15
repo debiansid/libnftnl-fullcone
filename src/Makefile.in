@@ -131,21 +131,22 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libnftnl_la_OBJECTS = utils.lo batch.lo buffer.lo flowtable.lo \
-	common.lo gen.lo table.lo trace.lo chain.lo object.lo rule.lo \
-	set.lo set_elem.lo ruleset.lo jansson.lo udata.lo expr.lo \
-	expr_ops.lo expr/bitwise.lo expr/byteorder.lo expr/cmp.lo \
-	expr/range.lo expr/connlimit.lo expr/counter.lo expr/ct.lo \
-	expr/data_reg.lo expr/dup.lo expr/exthdr.lo \
-	expr/flow_offload.lo expr/fib.lo expr/fwd.lo expr/limit.lo \
-	expr/log.lo expr/lookup.lo expr/dynset.lo expr/immediate.lo \
-	expr/match.lo expr/meta.lo expr/numgen.lo expr/nat.lo \
-	expr/objref.lo expr/payload.lo expr/queue.lo expr/quota.lo \
-	expr/reject.lo expr/rt.lo expr/target.lo expr/masq.lo \
-	expr/redir.lo expr/hash.lo expr/socket.lo obj/counter.lo \
-	obj/ct_helper.lo obj/quota.lo obj/limit.lo
+am_libnftnl_la_OBJECTS = utils.lo batch.lo flowtable.lo common.lo \
+	gen.lo table.lo trace.lo chain.lo object.lo rule.lo set.lo \
+	set_elem.lo ruleset.lo udata.lo expr.lo expr_ops.lo \
+	expr/bitwise.lo expr/byteorder.lo expr/cmp.lo expr/range.lo \
+	expr/connlimit.lo expr/counter.lo expr/ct.lo expr/data_reg.lo \
+	expr/dup.lo expr/exthdr.lo expr/flow_offload.lo expr/fib.lo \
+	expr/fwd.lo expr/limit.lo expr/log.lo expr/lookup.lo \
+	expr/dynset.lo expr/immediate.lo expr/match.lo expr/meta.lo \
+	expr/numgen.lo expr/nat.lo expr/tproxy.lo expr/objref.lo \
+	expr/payload.lo expr/queue.lo expr/quota.lo expr/reject.lo \
+	expr/rt.lo expr/target.lo expr/tunnel.lo expr/masq.lo \
+	expr/redir.lo expr/hash.lo expr/socket.lo expr/osf.lo \
+	expr/xfrm.lo obj/counter.lo obj/ct_helper.lo obj/quota.lo \
+	obj/tunnel.lo obj/limit.lo obj/ct_timeout.lo obj/secmark.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -251,8 +252,6 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBJSON_CFLAGS = @LIBJSON_CFLAGS@
-LIBJSON_LIBS = @LIBJSON_LIBS@
 LIBMNL_CFLAGS = @LIBMNL_CFLAGS@
 LIBMNL_LIBS = @LIBMNL_LIBS@
 LIBOBJS = @LIBOBJS@
@@ -364,17 +363,16 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 10:0:3
+LIBVERSION = 11:0:0
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 lib_LTLIBRARIES = libnftnl.la
-libnftnl_la_LIBADD = ${LIBMNL_LIBS} ${LIBJSON_LIBS}
+libnftnl_la_LIBADD = ${LIBMNL_LIBS}
 libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
 		      -version-info $(LIBVERSION)
 
 libnftnl_la_SOURCES = utils.c		\
 		      batch.c		\
-		      buffer.c		\
 		      flowtable.c	\
 		      common.c		\
 		      gen.c		\
@@ -386,7 +384,6 @@ libnftnl_la_SOURCES = utils.c		\
 		      set.c		\
 		      set_elem.c	\
 		      ruleset.c		\
-		      jansson.c		\
 		      udata.c		\
 		      expr.c		\
 		      expr_ops.c	\
@@ -412,6 +409,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/meta.c	\
 		      expr/numgen.c	\
 		      expr/nat.c	\
+		      expr/tproxy.c	\
 		      expr/objref.c	\
 		      expr/payload.c	\
 		      expr/queue.c	\
@@ -419,14 +417,20 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/reject.c	\
 		      expr/rt.c		\
 		      expr/target.c	\
+		      expr/tunnel.c	\
 		      expr/masq.c	\
 		      expr/redir.c	\
 		      expr/hash.c	\
 		      expr/socket.c	\
+		      expr/osf.c	\
+		      expr/xfrm.c	\
 		      obj/counter.c	\
 		      obj/ct_helper.c	\
 		      obj/quota.c	\
+		      obj/tunnel.c	\
 		      obj/limit.c	\
+		      obj/ct_timeout.c 	\
+		      obj/secmark.c	\
 		      libnftnl.map
 
 all: all-am
@@ -527,6 +531,7 @@ expr/match.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/meta.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/numgen.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/nat.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/tproxy.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/objref.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/payload.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/queue.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -534,10 +539,13 @@ expr/quota.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/reject.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/rt.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/target.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/tunnel.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/masq.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/redir.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/hash.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/socket.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/osf.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/xfrm.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 obj/$(am__dirstamp):
 	@$(MKDIR_P) obj
 	@: > obj/$(am__dirstamp)
@@ -547,7 +555,10 @@ obj/$(DEPDIR)/$(am__dirstamp):
 obj/counter.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/ct_helper.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/quota.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/tunnel.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/limit.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/ct_timeout.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/secmark.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 
 libnftnl.la: $(libnftnl_la_OBJECTS) $(libnftnl_la_DEPENDENCIES) $(EXTRA_libnftnl_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnftnl_la_LINK) -rpath $(libdir) $(libnftnl_la_OBJECTS) $(libnftnl_la_LIBADD) $(LIBS)
@@ -563,14 +574,12 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/batch.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chain.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_ops.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flowtable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jansson.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rule.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ruleset.Plo@am__quote@
@@ -604,6 +613,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/nat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/numgen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/objref.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/osf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/payload.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/queue.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/quota.Plo@am__quote@
@@ -613,10 +623,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/rt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/target.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/tproxy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/tunnel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/xfrm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/counter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_helper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_timeout.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/limit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/quota.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/secmark.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/tunnel.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

@@ -92,36 +92,6 @@ static int nftnl_expr_flow_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return ret;
 }
 
-static int
-nftnl_expr_flow_json_parse(struct nftnl_expr *e, json_t *root,
-				struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *table_name;
-
-	table_name = nftnl_jansson_parse_str(root, "flowtable", err);
-	if (table_name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_FLOW_TABLE_NAME, table_name);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_flow_export(char *buf, size_t size,
-				  const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_flow *l = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_FLOW_TABLE_NAME))
-		nftnl_buf_str(&b, type, l->table_name, SET);
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_flow_snprintf_default(char *buf, size_t size,
 					    const struct nftnl_expr *e)
 {
@@ -142,7 +112,6 @@ static int nftnl_expr_flow_snprintf(char *buf, size_t size, uint32_t type,
 		return nftnl_expr_flow_snprintf_default(buf, size, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_flow_export(buf, size, e, type);
 	default:
 		break;
 	}
@@ -156,29 +125,14 @@ static void nftnl_expr_flow_free(const struct nftnl_expr *e)
 	xfree(flow->table_name);
 }
 
-static bool nftnl_expr_flow_cmp(const struct nftnl_expr *e1,
-				const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_flow *l1 = nftnl_expr_data(e1);
-	struct nftnl_expr_flow *l2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_FLOW_TABLE_NAME))
-		eq &= !strcmp(l1->table_name, l2->table_name);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_flow = {
 	.name		= "flow_offload",
 	.alloc_len	= sizeof(struct nftnl_expr_flow),
 	.max_attr	= NFTA_FLOW_MAX,
 	.free		= nftnl_expr_flow_free,
-	.cmp		= nftnl_expr_flow_cmp,
 	.set		= nftnl_expr_flow_set,
 	.get		= nftnl_expr_flow_get,
 	.parse		= nftnl_expr_flow_parse,
 	.build		= nftnl_expr_flow_build,
 	.snprintf	= nftnl_expr_flow_snprintf,
-	.json_parse	= nftnl_expr_flow_json_parse,
 };

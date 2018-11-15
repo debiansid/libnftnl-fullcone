@@ -33,10 +33,10 @@ static int nftnl_expr_reject_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_REJECT_TYPE:
-		reject->type = *((uint32_t *)data);
+		memcpy(&reject->type, data, sizeof(reject->type));
 		break;
 	case NFTNL_EXPR_REJECT_CODE:
-		reject->icmp_code = *((uint8_t *)data);
+		memcpy(&reject->icmp_code, data, sizeof(reject->icmp_code));
 		break;
 	default:
 		return -1;
@@ -116,27 +116,6 @@ nftnl_expr_reject_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int
-nftnl_expr_reject_json_parse(struct nftnl_expr *e, json_t *root,
-				struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint32_t type;
-	uint8_t code;
-
-	if (nftnl_jansson_parse_val(root, "type", NFTNL_TYPE_U32, &type, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REJECT_TYPE, type);
-
-	if (nftnl_jansson_parse_val(root, "code", NFTNL_TYPE_U8, &code, err) == 0)
-		nftnl_expr_set_u8(e, NFTNL_EXPR_REJECT_CODE, code);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static int nftnl_expr_reject_snprintf_default(char *buf, size_t len,
 					      const struct nftnl_expr *e)
 {
@@ -144,20 +123,6 @@ static int nftnl_expr_reject_snprintf_default(char *buf, size_t len,
 
 	return snprintf(buf, len, "type %u code %u ",
 			reject->type, reject->icmp_code);
-}
-
-static int nftnl_expr_reject_export(char *buf, size_t size,
-				    const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_reject *reject = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_REJECT_TYPE))
-		nftnl_buf_u32(&b, type, reject->type, TYPE);
-	if (e->flags & (1 << NFTNL_EXPR_REJECT_CODE))
-		nftnl_buf_u32(&b, type, reject->icmp_code, CODE);
-
-	return nftnl_buf_done(&b);
 }
 
 static int
@@ -169,37 +134,19 @@ nftnl_expr_reject_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_reject_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_reject_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_reject_cmp(const struct nftnl_expr *e1,
-				  const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_reject *r1 = nftnl_expr_data(e1);
-	struct nftnl_expr_reject *r2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_REJECT_TYPE))
-		eq &= (r1->type == r2->type);
-	if (e1->flags & (1 << NFTNL_EXPR_REJECT_CODE))
-		eq &= (r1->icmp_code == r2->icmp_code);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_reject = {
 	.name		= "reject",
 	.alloc_len	= sizeof(struct nftnl_expr_reject),
 	.max_attr	= NFTA_REJECT_MAX,
-	.cmp		= nftnl_expr_reject_cmp,
 	.set		= nftnl_expr_reject_set,
 	.get		= nftnl_expr_reject_get,
 	.parse		= nftnl_expr_reject_parse,
 	.build		= nftnl_expr_reject_build,
 	.snprintf	= nftnl_expr_reject_snprintf,
-	.json_parse	= nftnl_expr_reject_json_parse,
 };

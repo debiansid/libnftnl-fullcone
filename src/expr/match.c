@@ -46,7 +46,7 @@ nftnl_expr_match_set(struct nftnl_expr *e, uint16_t type,
 			 (const char *)data);
 		break;
 	case NFTNL_EXPR_MT_REV:
-		mt->rev = *((uint32_t *)data);
+		memcpy(&mt->rev, data, sizeof(mt->rev));
 		break;
 	case NFTNL_EXPR_MT_INFO:
 		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
@@ -164,36 +164,6 @@ static int nftnl_expr_match_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_expr_match_json_parse(struct nftnl_expr *e, json_t *root,
-					  struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	const char *name;
-
-	name = nftnl_jansson_parse_str(root, "name", err);
-	if (name != NULL)
-		nftnl_expr_set_str(e, NFTNL_EXPR_MT_NAME, name);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-
-static int nftnl_expr_match_export(char *buf, size_t size,
-				   const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_match *mt = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_MT_NAME))
-		nftnl_buf_str(&b, type, mt->name, NAME);
-
-	return nftnl_buf_done(&b);
-}
-
 static int
 nftnl_expr_match_snprintf(char *buf, size_t len, uint32_t type,
 			  uint32_t flags, const struct nftnl_expr *e)
@@ -206,7 +176,6 @@ nftnl_expr_match_snprintf(char *buf, size_t len, uint32_t type,
 				match->name, match->rev);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_match_export(buf, len, e, type);
 	default:
 		break;
 	}
@@ -220,35 +189,14 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
 	xfree(match->data);
 }
 
-static bool nftnl_expr_match_cmp(const struct nftnl_expr *e1,
-				 const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_match *m1 = nftnl_expr_data(e1);
-	struct nftnl_expr_match *m2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_MT_NAME))
-		eq &= !strcmp(m1->name, m2->name);
-	if (e1->flags & (1 << NFTNL_EXPR_MT_REV))
-		eq &= (m1->rev == m2->rev);
-	if (e1->flags & (1 << NFTNL_EXPR_MT_INFO)) {
-		eq &= (m1->data_len == m2->data_len);
-		eq &= !memcmp(m1->data, m2->data, m1->data_len);
-	}
-
-	return eq;
-}
-
 struct expr_ops expr_ops_match = {
 	.name		= "match",
 	.alloc_len	= sizeof(struct nftnl_expr_match),
 	.max_attr	= NFTA_MATCH_MAX,
 	.free		= nftnl_expr_match_free,
-	.cmp		= nftnl_expr_match_cmp,
 	.set		= nftnl_expr_match_set,
 	.get		= nftnl_expr_match_get,
 	.parse		= nftnl_expr_match_parse,
 	.build		= nftnl_expr_match_build,
 	.snprintf	= nftnl_expr_match_snprintf,
-	.json_parse 	= nftnl_expr_match_json_parse,
 };

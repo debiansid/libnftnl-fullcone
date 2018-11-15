@@ -1,21 +1,17 @@
 include $(top_srcdir)/Make_global.am
 
 check_PROGRAMS = nft-table-add		\
-		 nft-table-parse-add	\
 		 nft-table-upd		\
 		 nft-table-del		\
 		 nft-table-get		\
 		 nft-chain-add		\
-		 nft-chain-parse-add	\
 		 nft-chain-del		\
 		 nft-chain-get		\
 		 nft-rule-add		\
-		 nft-rule-parse-add	\
 		 nft-rule-del		\
 		 nft-rule-get		\
 		 nft-events		\
 		 nft-set-add		\
-		 nft-set-parse-add	\
 		 nft-set-get		\
 		 nft-set-del		\
 		 nft-map-add		\
@@ -25,22 +21,22 @@ check_PROGRAMS = nft-table-add		\
 		 nft-obj-add		\
 		 nft-obj-get		\
 		 nft-obj-del		\
+		 nft-ct-timeout-add	\
+		 nft-ct-timeout-get	\
+		 nft-ct-timeout-del	\
 		 nft-flowtable-add	\
 		 nft-flowtable-del	\
 		 nft-flowtable-get	\
 		 nft-ruleset-get	\
-		 nft-ruleset-parse-file	\
 		 nft-compat-get 	\
 		 nft-ct-helper-add	\
 		 nft-ct-helper-get	\
 		 nft-ct-helper-del	\
-		 nft-rule-ct-helper-add
+		 nft-rule-ct-helper-add \
+		 nft-rule-ct-timeout-add
 
 nft_table_add_SOURCES = nft-table-add.c
 nft_table_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-
-nft_table_parse_add_SOURCES = nft-table-parse-add.c
-nft_table_parse_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_table_upd_SOURCES = nft-table-upd.c
 nft_table_upd_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -54,9 +50,6 @@ nft_table_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_chain_add_SOURCES = nft-chain-add.c
 nft_chain_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
-nft_chain_parse_add_SOURCES = nft-chain-parse-add.c
-nft_chain_parse_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-
 nft_chain_del_SOURCES = nft-chain-del.c
 nft_chain_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
@@ -65,9 +58,6 @@ nft_chain_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_rule_add_SOURCES = nft-rule-add.c
 nft_rule_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-
-nft_rule_parse_add_SOURCES = nft-rule-parse-add.c
-nft_rule_parse_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_rule_del_SOURCES = nft-rule-del.c
 nft_rule_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -80,9 +70,6 @@ nft_events_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_set_add_SOURCES = nft-set-add.c
 nft_set_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-
-nft_set_parse_add_SOURCES = nft-set-parse-add.c
-nft_set_parse_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_set_del_SOURCES = nft-set-del.c
 nft_set_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -111,6 +98,15 @@ nft_obj_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_obj_get_SOURCES = nft-obj-get.c
 nft_obj_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
+nft_ct_timeout_add_SOURCES = nft-ct-timeout-add.c
+nft_ct_timeout_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_ct_timeout_get_SOURCES = nft-ct-timeout-get.c
+nft_ct_timeout_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_ct_timeout_del_SOURCES = nft-ct-timeout-del.c
+nft_ct_timeout_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
 nft_flowtable_add_SOURCES = nft-flowtable-add.c
 nft_flowtable_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
@@ -122,9 +118,6 @@ nft_flowtable_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_ruleset_get_SOURCES = nft-ruleset-get.c
 nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-
-nft_ruleset_parse_file_SOURCES = nft-ruleset-parse-file.c
-nft_ruleset_parse_file_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_compat_get_SOURCES = nft-compat-get.c
 nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
@@ -140,3 +133,6 @@ nft_ct_helper_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 
 nft_rule_ct_helper_add_SOURCES = nft-rule-ct-helper-add.c
 nft_rule_ct_helper_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+
+nft_rule_ct_timeout_add_SOURCES = nft-rule-ct-timeout-add.c
+nft_rule_ct_timeout_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}

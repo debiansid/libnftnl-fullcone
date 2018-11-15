@@ -34,13 +34,13 @@ nftnl_expr_redir_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_REDIR_REG_PROTO_MIN:
-		redir->sreg_proto_min = *((uint32_t *)data);
+		memcpy(&redir->sreg_proto_min, data, sizeof(redir->sreg_proto_min));
 		break;
 	case NFTNL_EXPR_REDIR_REG_PROTO_MAX:
-		redir->sreg_proto_max = *((uint32_t *)data);
+		memcpy(&redir->sreg_proto_max, data, sizeof(redir->sreg_proto_max));
 		break;
 	case NFTNL_EXPR_REDIR_FLAGS:
-		redir->flags = *((uint32_t *)data);
+		memcpy(&redir->flags, data, sizeof(redir->flags));
 		break;
 	default:
 		return -1;
@@ -131,48 +131,6 @@ nftnl_expr_redir_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int
-nftnl_expr_redir_json_parse(struct nftnl_expr *e, json_t *root,
-			       struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint32_t reg, flags;
-
-	if (nftnl_jansson_parse_reg(root, "sreg_proto_min", NFTNL_TYPE_U32,
-				  &reg, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_REG_PROTO_MIN, reg);
-
-	if (nftnl_jansson_parse_reg(root, "sreg_proto_max", NFTNL_TYPE_U32,
-				  &reg, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_REG_PROTO_MAX, reg);
-
-	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &flags,
-				  err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_REDIR_FLAGS, flags);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
-static int nftnl_expr_redir_export(char *buf, size_t size,
-				   const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_redir *redir = nftnl_expr_data(e);
-        NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MIN))
-		nftnl_buf_u32(&b, type, redir->sreg_proto_min, SREG_PROTO_MIN);
-	if (e->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MAX))
-		nftnl_buf_u32(&b, type, redir->sreg_proto_max, SREG_PROTO_MAX);
-	if (e->flags & (1 << NFTNL_EXPR_REDIR_FLAGS))
-		nftnl_buf_u32(&b, type, redir->flags, FLAGS);
-
-	return nftnl_buf_done(&b);
-}
-
 static int nftnl_expr_redir_snprintf_default(char *buf, size_t len,
 					     const struct nftnl_expr *e)
 {
@@ -209,39 +167,19 @@ nftnl_expr_redir_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_redir_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_redir_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
 }
 
-static bool nftnl_expr_redir_cmp(const struct nftnl_expr *e1,
-				 const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_redir *r1 = nftnl_expr_data(e1);
-	struct nftnl_expr_redir *r2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MIN))
-		eq &= (r1->sreg_proto_min== r2->sreg_proto_min);
-	if (e1->flags & (1 << NFTNL_EXPR_REDIR_REG_PROTO_MAX))
-		eq &= (r1->sreg_proto_max== r2->sreg_proto_max);
-	if (e1->flags & (1 << NFTNL_EXPR_REDIR_FLAGS))
-		eq &= (r1->flags== r2->flags);
-
-	return eq;
-}
-
 struct expr_ops expr_ops_redir = {
 	.name		= "redir",
 	.alloc_len	= sizeof(struct nftnl_expr_redir),
 	.max_attr	= NFTA_REDIR_MAX,
-	.cmp		= nftnl_expr_redir_cmp,
 	.set		= nftnl_expr_redir_set,
 	.get		= nftnl_expr_redir_get,
 	.parse		= nftnl_expr_redir_parse,
 	.build		= nftnl_expr_redir_build,
 	.snprintf	= nftnl_expr_redir_snprintf,
-	.json_parse	= nftnl_expr_redir_json_parse,
 };

@@ -38,19 +38,19 @@ nftnl_expr_limit_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_LIMIT_RATE:
-		limit->rate = *((uint64_t *)data);
+		memcpy(&limit->rate, data, sizeof(limit->rate));
 		break;
 	case NFTNL_EXPR_LIMIT_UNIT:
-		limit->unit = *((uint64_t *)data);
+		memcpy(&limit->unit, data, sizeof(limit->unit));
 		break;
 	case NFTNL_EXPR_LIMIT_BURST:
-		limit->burst = *((uint32_t *)data);
+		memcpy(&limit->burst, data, sizeof(limit->burst));
 		break;
 	case NFTNL_EXPR_LIMIT_TYPE:
-		limit->type = *((uint32_t *)data);
+		memcpy(&limit->type, data, sizeof(limit->type));
 		break;
 	case NFTNL_EXPR_LIMIT_FLAGS:
-		limit->flags = *((uint32_t *)data);
+		memcpy(&limit->flags, data, sizeof(limit->flags));
 		break;
 	default:
 		return -1;
@@ -160,32 +160,6 @@ nftnl_expr_limit_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_expr_limit_json_parse(struct nftnl_expr *e, json_t *root,
-					  struct nftnl_parse_err *err)
-{
-#ifdef JSON_PARSING
-	uint64_t uval64;
-	uint32_t uval32;
-
-	if (nftnl_jansson_parse_val(root, "rate", NFTNL_TYPE_U64, &uval64, err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_LIMIT_RATE, uval64);
-
-	if (nftnl_jansson_parse_val(root, "unit", NFTNL_TYPE_U64, &uval64, err) == 0)
-		nftnl_expr_set_u64(e, NFTNL_EXPR_LIMIT_UNIT, uval64);
-	if (nftnl_jansson_parse_val(root, "burst", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_BURST, uval32);
-	if (nftnl_jansson_parse_val(root, "type", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_TYPE, uval32);
-	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &uval32, err) == 0)
-		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_FLAGS, uval32);
-
-	return 0;
-#else
-	errno = EOPNOTSUPP;
-	return -1;
-#endif
-}
-
 static const char *get_unit(uint64_t u)
 {
 	switch (u) {
@@ -196,26 +170,6 @@ static const char *get_unit(uint64_t u)
 	case 60 * 60 * 24 * 7: return "week";
 	}
 	return "error";
-}
-
-static int nftnl_expr_limit_export(char *buf, size_t size,
-				   const struct nftnl_expr *e, int type)
-{
-	struct nftnl_expr_limit *limit = nftnl_expr_data(e);
-	NFTNL_BUF_INIT(b, buf, size);
-
-	if (e->flags & (1 << NFTNL_EXPR_LIMIT_RATE))
-		nftnl_buf_u64(&b, type, limit->rate, RATE);
-	if (e->flags & (1 << NFTNL_EXPR_LIMIT_UNIT))
-		nftnl_buf_u64(&b, type, limit->unit, UNIT);
-	if (e->flags & (1 << NFTNL_EXPR_LIMIT_BURST))
-		nftnl_buf_u32(&b, type, limit->burst, BURST);
-	if (e->flags & (1 << NFTNL_EXPR_LIMIT_TYPE))
-		nftnl_buf_u32(&b, type, limit->type, TYPE);
-	if (e->flags & (1 << NFTNL_EXPR_LIMIT_FLAGS))
-		nftnl_buf_u32(&b, type, limit->flags, FLAGS);
-
-	return nftnl_buf_done(&b);
 }
 
 static const char *limit_to_type(enum nft_limit_type type)
@@ -248,32 +202,10 @@ nftnl_expr_limit_snprintf(char *buf, size_t len, uint32_t type,
 		return nftnl_expr_limit_snprintf_default(buf, len, e);
 	case NFTNL_OUTPUT_XML:
 	case NFTNL_OUTPUT_JSON:
-		return nftnl_expr_limit_export(buf, len, e, type);
 	default:
 		break;
 	}
 	return -1;
-}
-
-static bool nftnl_expr_limit_cmp(const struct nftnl_expr *e1,
-				 const struct nftnl_expr *e2)
-{
-	struct nftnl_expr_limit *l1 = nftnl_expr_data(e1);
-	struct nftnl_expr_limit *l2 = nftnl_expr_data(e2);
-	bool eq = true;
-
-	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_RATE))
-		eq &= (l1->rate == l2->rate);
-	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_UNIT))
-		eq &= (l1->unit == l2->unit);
-	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_BURST))
-		eq &= (l1->burst == l2->burst);
-	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_TYPE))
-		eq &= (l1->type == l2->type);
-	if (e1->flags & (1 << NFTNL_EXPR_LIMIT_FLAGS))
-		eq &= (l1->flags == l2->flags);
-
-	return eq;
 }
 
 struct expr_ops expr_ops_limit = {
@@ -281,10 +213,8 @@ struct expr_ops expr_ops_limit = {
 	.alloc_len	= sizeof(struct nftnl_expr_limit),
 	.max_attr	= NFTA_LIMIT_MAX,
 	.set		= nftnl_expr_limit_set,
-	.cmp		= nftnl_expr_limit_cmp,
 	.get		= nftnl_expr_limit_get,
 	.parse		= nftnl_expr_limit_parse,
 	.build		= nftnl_expr_limit_build,
 	.snprintf	= nftnl_expr_limit_snprintf,
-	.json_parse	= nftnl_expr_limit_json_parse,
 };

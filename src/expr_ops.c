@@ -22,6 +22,7 @@ extern struct expr_ops expr_ops_match;
 extern struct expr_ops expr_ops_meta;
 extern struct expr_ops expr_ops_ng;
 extern struct expr_ops expr_ops_nat;
+extern struct expr_ops expr_ops_tproxy;
 extern struct expr_ops expr_ops_objref;
 extern struct expr_ops expr_ops_payload;
 extern struct expr_ops expr_ops_range;
@@ -36,6 +37,9 @@ extern struct expr_ops expr_ops_hash;
 extern struct expr_ops expr_ops_fib;
 extern struct expr_ops expr_ops_flow;
 extern struct expr_ops expr_ops_socket;
+extern struct expr_ops expr_ops_tunnel;
+extern struct expr_ops expr_ops_osf;
+extern struct expr_ops expr_ops_xfrm;
 
 static struct expr_ops expr_ops_notrack = {
 	.name	= "notrack",
@@ -60,6 +64,7 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_meta,
 	&expr_ops_ng,
 	&expr_ops_nat,
+	&expr_ops_tproxy,
 	&expr_ops_notrack,
 	&expr_ops_payload,
 	&expr_ops_range,
@@ -75,6 +80,9 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_objref,
 	&expr_ops_flow,
 	&expr_ops_socket,
+	&expr_ops_tunnel,
+	&expr_ops_osf,
+	&expr_ops_xfrm,
 	NULL,
 };
 
