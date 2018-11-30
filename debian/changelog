@@ -1,3 +1,9 @@
+libnftnl (1.1.2-1) unstable; urgency=medium
+
+  * rebuild from experimental to unstable (Closes: #914416)
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 30 Nov 2018 12:24:50 +0100
+
 libnftnl (1.1.2-1~exp1) experimental; urgency=medium
 
   * [f3e2c03] d/control: mark libnftnl-dev as Multi-Arch: same
