@@ -1,3 +1,9 @@
+libnftnl (1.1.2-2) unstable; urgency=medium
+
+  * [e3e8611] d/tests: remove tests
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 03 Dec 2018 12:20:58 +0100
+
 libnftnl (1.1.2-1) unstable; urgency=medium
 
   * rebuild from experimental to unstable (Closes: #914416)
