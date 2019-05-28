@@ -1,5 +1,6 @@
 libnftnl.so.11 libnftnl11 #MINVER#
  LIBNFTNL_11@LIBNFTNL_11 1.1.2
+ LIBNFTNL_12@LIBNFTNL_12 1.1.3
  nftnl_batch_alloc@LIBNFTNL_11 1.1.2
  nftnl_batch_begin@LIBNFTNL_11 1.1.2
  nftnl_batch_buffer@LIBNFTNL_11 1.1.2
@@ -31,8 +32,14 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_chain_list_iter_create@LIBNFTNL_11 1.1.2
  nftnl_chain_list_iter_destroy@LIBNFTNL_11 1.1.2
  nftnl_chain_list_iter_next@LIBNFTNL_11 1.1.2
+ nftnl_chain_list_lookup_byname@LIBNFTNL_12 1.1.3
  nftnl_chain_nlmsg_build_payload@LIBNFTNL_11 1.1.2
  nftnl_chain_nlmsg_parse@LIBNFTNL_11 1.1.2
+ nftnl_chain_rule_add@LIBNFTNL_12 1.1.3
+ nftnl_chain_rule_add_tail@LIBNFTNL_12 1.1.3
+ nftnl_chain_rule_append_at@LIBNFTNL_12 1.1.3
+ nftnl_chain_rule_del@LIBNFTNL_12 1.1.3
+ nftnl_chain_rule_insert_at@LIBNFTNL_12 1.1.3
  nftnl_chain_set@LIBNFTNL_11 1.1.2
  nftnl_chain_set_data@LIBNFTNL_11 1.1.2
  nftnl_chain_set_s32@LIBNFTNL_11 1.1.2
@@ -91,8 +98,16 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_gen_alloc@LIBNFTNL_11 1.1.2
  nftnl_gen_fprintf@LIBNFTNL_11 1.1.2
  nftnl_gen_free@LIBNFTNL_11 1.1.2
+ nftnl_gen_get@LIBNFTNL_11 1.1.3
+ nftnl_gen_get_data@LIBNFTNL_11 1.1.3
+ nftnl_gen_get_u32@LIBNFTNL_11 1.1.3
+ nftnl_gen_is_set@LIBNFTNL_11 1.1.3
  nftnl_gen_nlmsg_parse@LIBNFTNL_11 1.1.2
+ nftnl_gen_set@LIBNFTNL_11 1.1.3
+ nftnl_gen_set_data@LIBNFTNL_11 1.1.3
+ nftnl_gen_set_u32@LIBNFTNL_11 1.1.3
  nftnl_gen_snprintf@LIBNFTNL_11 1.1.2
+ nftnl_gen_unset@LIBNFTNL_11 1.1.3
  nftnl_nlmsg_build_hdr@LIBNFTNL_11 1.1.2
  nftnl_obj_alloc@LIBNFTNL_11 1.1.2
  nftnl_obj_fprintf@LIBNFTNL_11 1.1.2
@@ -130,6 +145,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_parse_perror@LIBNFTNL_11 1.1.2
  nftnl_rule_add_expr@LIBNFTNL_11 1.1.2
  nftnl_rule_alloc@LIBNFTNL_11 1.1.2
+ nftnl_rule_foreach@LIBNFTNL_12 1.1.3
  nftnl_rule_fprintf@LIBNFTNL_11 1.1.2
  nftnl_rule_free@LIBNFTNL_11 1.1.2
  nftnl_rule_get@LIBNFTNL_11 1.1.2
@@ -139,6 +155,9 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_rule_get_u64@LIBNFTNL_11 1.1.2
  nftnl_rule_get_u8@LIBNFTNL_11 1.1.2
  nftnl_rule_is_set@LIBNFTNL_11 1.1.2
+ nftnl_rule_iter_create@LIBNFTNL_12 1.1.3
+ nftnl_rule_iter_destroy@LIBNFTNL_12 1.1.3
+ nftnl_rule_iter_next@LIBNFTNL_12 1.1.3
  nftnl_rule_list_add@LIBNFTNL_11 1.1.2
  nftnl_rule_list_add_tail@LIBNFTNL_11 1.1.2
  nftnl_rule_list_alloc@LIBNFTNL_11 1.1.2
@@ -151,6 +170,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_rule_list_iter_cur@LIBNFTNL_11 1.1.2
  nftnl_rule_list_iter_destroy@LIBNFTNL_11 1.1.2
  nftnl_rule_list_iter_next@LIBNFTNL_11 1.1.2
+ nftnl_rule_lookup_byindex@LIBNFTNL_12 1.1.3
  nftnl_rule_nlmsg_build_payload@LIBNFTNL_11 1.1.2
  nftnl_rule_nlmsg_parse@LIBNFTNL_11 1.1.2
  nftnl_rule_parse@LIBNFTNL_11 1.1.2
