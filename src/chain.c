@@ -27,10 +27,12 @@
 #include <linux/netfilter_arp.h>
 
 #include <libnftnl/chain.h>
+#include <libnftnl/rule.h>
 #include <buffer.h>
 
 struct nftnl_chain {
 	struct list_head head;
+	struct hlist_node hnode;
 
 	const char	*name;
 	const char	*type;
@@ -45,6 +47,8 @@ struct nftnl_chain {
 	uint64_t	bytes;
 	uint64_t	handle;
 	uint32_t	flags;
+
+	struct list_head rule_list;
 };
 
 static const char *nftnl_hooknum2str(int family, int hooknum)
@@ -90,12 +94,25 @@ static const char *nftnl_hooknum2str(int family, int hooknum)
 EXPORT_SYMBOL(nftnl_chain_alloc);
 struct nftnl_chain *nftnl_chain_alloc(void)
 {
-	return calloc(1, sizeof(struct nftnl_chain));
+	struct nftnl_chain *c;
+
+	c = calloc(1, sizeof(struct nftnl_chain));
+	if (c == NULL)
+		return NULL;
+
+	INIT_LIST_HEAD(&c->rule_list);
+
+	return c;
 }
 
 EXPORT_SYMBOL(nftnl_chain_free);
 void nftnl_chain_free(const struct nftnl_chain *c)
 {
+	struct nftnl_rule *r, *tmp;
+
+	list_for_each_entry_safe(r, tmp, &c->rule_list, head)
+		nftnl_rule_free(r);
+
 	if (c->flags & (1 << NFTNL_CHAIN_NAME))
 		xfree(c->name);
 	if (c->flags & (1 << NFTNL_CHAIN_TABLE))
@@ -406,6 +423,36 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
 		mnl_attr_put_strz(nlh, NFTA_CHAIN_TYPE, c->type);
 }
 
+EXPORT_SYMBOL(nftnl_chain_rule_add);
+void nftnl_chain_rule_add(struct nftnl_rule *rule, struct nftnl_chain *c)
+{
+	list_add(&rule->head, &c->rule_list);
+}
+
+EXPORT_SYMBOL(nftnl_chain_rule_del);
+void nftnl_chain_rule_del(struct nftnl_rule *r)
+{
+	list_del(&r->head);
+}
+
+EXPORT_SYMBOL(nftnl_chain_rule_add_tail);
+void nftnl_chain_rule_add_tail(struct nftnl_rule *rule, struct nftnl_chain *c)
+{
+	list_add_tail(&rule->head, &c->rule_list);
+}
+
+EXPORT_SYMBOL(nftnl_chain_rule_insert_at);
+void nftnl_chain_rule_insert_at(struct nftnl_rule *rule, struct nftnl_rule *pos)
+{
+	list_add_tail(&rule->head, &pos->head);
+}
+
+EXPORT_SYMBOL(nftnl_chain_rule_append_at);
+void nftnl_chain_rule_append_at(struct nftnl_rule *rule, struct nftnl_rule *pos)
+{
+	list_add(&rule->head, &pos->head);
+}
+
 static int nftnl_chain_parse_attr_cb(const struct nlattr *attr, void *data)
 {
 	const struct nlattr **tb = data;
@@ -684,20 +731,109 @@ int nftnl_chain_fprintf(FILE *fp, const struct nftnl_chain *c, uint32_t type,
 			   nftnl_chain_do_snprintf);
 }
 
+EXPORT_SYMBOL(nftnl_rule_foreach);
+int nftnl_rule_foreach(struct nftnl_chain *c,
+                          int (*cb)(struct nftnl_rule *r, void *data),
+                          void *data)
+{
+       struct nftnl_rule *cur, *tmp;
+       int ret;
+
+       list_for_each_entry_safe(cur, tmp, &c->rule_list, head) {
+               ret = cb(cur, data);
+               if (ret < 0)
+                       return ret;
+       }
+       return 0;
+}
+
+EXPORT_SYMBOL(nftnl_rule_lookup_byindex);
+struct nftnl_rule *
+nftnl_rule_lookup_byindex(struct nftnl_chain *c, uint32_t index)
+{
+	struct nftnl_rule *r;
+
+	list_for_each_entry(r, &c->rule_list, head) {
+		if (!index)
+			return r;
+		index--;
+	}
+	return NULL;
+}
+
+struct nftnl_rule_iter {
+	const struct nftnl_chain	*c;
+	struct nftnl_rule		*cur;
+};
+
+static void nftnl_rule_iter_init(const struct nftnl_chain *c,
+				 struct nftnl_rule_iter *iter)
+{
+	iter->c = c;
+	if (list_empty(&c->rule_list))
+		iter->cur = NULL;
+	else
+		iter->cur = list_entry(c->rule_list.next, struct nftnl_rule,
+				       head);
+}
+
+EXPORT_SYMBOL(nftnl_rule_iter_create);
+struct nftnl_rule_iter *nftnl_rule_iter_create(const struct nftnl_chain *c)
+{
+	struct nftnl_rule_iter *iter;
+
+	iter = calloc(1, sizeof(struct nftnl_rule_iter));
+	if (iter == NULL)
+		return NULL;
+
+	nftnl_rule_iter_init(c, iter);
+
+	return iter;
+}
+
+EXPORT_SYMBOL(nftnl_rule_iter_next);
+struct nftnl_rule *nftnl_rule_iter_next(struct nftnl_rule_iter *iter)
+{
+	struct nftnl_rule *rule = iter->cur;
+
+	if (rule == NULL)
+		return NULL;
+
+	/* get next rule, if any */
+	iter->cur = list_entry(iter->cur->head.next, struct nftnl_rule, head);
+	if (&iter->cur->head == iter->c->rule_list.next)
+		return NULL;
+
+	return rule;
+}
+
+EXPORT_SYMBOL(nftnl_rule_iter_destroy);
+void nftnl_rule_iter_destroy(struct nftnl_rule_iter *iter)
+{
+	xfree(iter);
+}
+
+#define CHAIN_NAME_HSIZE	512
+
 struct nftnl_chain_list {
+
 	struct list_head list;
+	struct hlist_head name_hash[CHAIN_NAME_HSIZE];
 };
 
 EXPORT_SYMBOL(nftnl_chain_list_alloc);
 struct nftnl_chain_list *nftnl_chain_list_alloc(void)
 {
 	struct nftnl_chain_list *list;
+	int i;
 
 	list = calloc(1, sizeof(struct nftnl_chain_list));
 	if (list == NULL)
 		return NULL;
 
 	INIT_LIST_HEAD(&list->list);
+	for (i = 0; i < CHAIN_NAME_HSIZE; i++)
+		INIT_HLIST_HEAD(&list->name_hash[i]);
 
 	return list;
 }
@@ -709,6 +845,7 @@ void nftnl_chain_list_free(struct nftnl_chain_list *list)
 
 	list_for_each_entry_safe(r, tmp, &list->list, head) {
 		list_del(&r->head);
+		hlist_del(&r->hnode);
 		nftnl_chain_free(r);
 	}
 	xfree(list);
@@ -720,15 +857,31 @@ int nftnl_chain_list_is_empty(const struct nftnl_chain_list *list)
 	return list_empty(&list->list);
 }
 
+static uint32_t djb_hash(const char *key)
+{
+	uint32_t i, hash = 5381;
+
+	for (i = 0; i < strlen(key); i++)
+		hash = ((hash << 5) + hash) + key[i];
+
+	return hash;
+}
+
 EXPORT_SYMBOL(nftnl_chain_list_add);
 void nftnl_chain_list_add(struct nftnl_chain *r, struct nftnl_chain_list *list)
 {
+	int key = djb_hash(r->name) % CHAIN_NAME_HSIZE;
+
+	hlist_add_head(&r->hnode, &list->name_hash[key]);
 	list_add(&r->head, &list->list);
 }
 
 EXPORT_SYMBOL(nftnl_chain_list_add_tail);
 void nftnl_chain_list_add_tail(struct nftnl_chain *r, struct nftnl_chain_list *list)
 {
+	int key = djb_hash(r->name) % CHAIN_NAME_HSIZE;
+
+	hlist_add_head(&r->hnode, &list->name_hash[key]);
 	list_add_tail(&r->head, &list->list);
 }
 
@@ -736,6 +889,7 @@ EXPORT_SYMBOL(nftnl_chain_list_del);
 void nftnl_chain_list_del(struct nftnl_chain *r)
 {
 	list_del(&r->head);
+	hlist_del(&r->hnode);
 }
 
 EXPORT_SYMBOL(nftnl_chain_list_foreach);
@@ -752,6 +906,22 @@ int nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
 			return ret;
 	}
 	return 0;
+}
+
+EXPORT_SYMBOL(nftnl_chain_list_lookup_byname);
+struct nftnl_chain *
+nftnl_chain_list_lookup_byname(struct nftnl_chain_list *chain_list,
+			       const char *chain)
+{
+	int key = djb_hash(chain) % CHAIN_NAME_HSIZE;
+	struct nftnl_chain *c;
+	struct hlist_node *n;
+
+	hlist_for_each_entry(c, n, &chain_list->name_hash[key], hnode) {
+		if (!strcmp(chain, c->name))
+			return c;
+	}
+	return NULL;
 }
 
 struct nftnl_chain_list_iter {
