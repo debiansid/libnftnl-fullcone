@@ -1,3 +1,12 @@
+libnftnl (1.1.3-1~exp1) experimental; urgency=medium
+
+  * [2b4b69f] src:libnftnl: add salsa CI integration
+  * [504e47e] New upstream version 1.1.3
+  * [ee18350] d/libnftnl11.symbols: refresh file with latest changes from
+    upstream
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Tue, 28 May 2019 11:32:46 +0200
+
 libnftnl (1.1.2-2) unstable; urgency=medium
 
   * [e3e8611] d/tests: remove tests
