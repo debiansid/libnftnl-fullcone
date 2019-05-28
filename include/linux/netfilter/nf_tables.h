@@ -218,6 +218,7 @@ enum nft_chain_attributes {
  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
  * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
  * @NFTA_RULE_ID: uniquely identifies a rule in a transaction (NLA_U32)
+ * @NFTA_RULE_POSITION_ID: transaction unique identifier of the previous rule (NLA_U32)
  */
 enum nft_rule_attributes {
 	NFTA_RULE_UNSPEC,
@@ -230,6 +231,7 @@ enum nft_rule_attributes {
 	NFTA_RULE_USERDATA,
 	NFTA_RULE_PAD,
 	NFTA_RULE_ID,
+	NFTA_RULE_POSITION_ID,
 	__NFTA_RULE_MAX
 };
 #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
@@ -870,8 +872,8 @@ enum nft_hash_attributes {
 	NFTA_HASH_SEED,
 	NFTA_HASH_OFFSET,
 	NFTA_HASH_TYPE,
-	NFTA_HASH_SET_NAME,
-	NFTA_HASH_SET_ID,
+	NFTA_HASH_SET_NAME,	/* deprecated */
+	NFTA_HASH_SET_ID,	/* deprecated */
 	__NFTA_HASH_MAX,
 };
 #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
@@ -938,11 +940,13 @@ enum nft_socket_keys {
  *
  * @NFTA_OSF_DREG: destination register (NLA_U32)
  * @NFTA_OSF_TTL: Value of the TTL osf option (NLA_U8)
+ * @NFTA_OSF_FLAGS: flags (NLA_U32)
  */
 enum nft_osf_attributes {
 	NFTA_OSF_UNSPEC,
 	NFTA_OSF_DREG,
 	NFTA_OSF_TTL,
+	NFTA_OSF_FLAGS,
 	__NFTA_OSF_MAX,
 };
 #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
@@ -1611,8 +1615,8 @@ enum nft_ng_attributes {
 	NFTA_NG_MODULUS,
 	NFTA_NG_TYPE,
 	NFTA_NG_OFFSET,
-	NFTA_NG_SET_NAME,
-	NFTA_NG_SET_ID,
+	NFTA_NG_SET_NAME,	/* deprecated */
+	NFTA_NG_SET_ID,		/* deprecated */
 	__NFTA_NG_MAX
 };
 #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)

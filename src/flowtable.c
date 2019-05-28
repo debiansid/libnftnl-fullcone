@@ -85,10 +85,9 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
 	case NFTNL_FLOWTABLE_FLAGS:
 		break;
 	case NFTNL_FLOWTABLE_DEVICES:
-		for (i = 0; i < c->dev_array_len; i++) {
+		for (i = 0; i < c->dev_array_len; i++)
 			xfree(c->dev_array[i]);
-			xfree(c->dev_array);
-		}
+		xfree(c->dev_array);
 		break;
 	default:
 		return;
@@ -146,10 +145,9 @@ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
 			len++;
 
 		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-			for (i = 0; i < c->dev_array_len; i++) {
+			for (i = 0; i < c->dev_array_len; i++)
 				xfree(c->dev_array[i]);
-				xfree(c->dev_array);
-			}
+			xfree(c->dev_array);
 		}
 
 		c->dev_array = calloc(len + 1, sizeof(char *));
@@ -163,6 +161,7 @@ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
 		break;
 	case NFTNL_FLOWTABLE_SIZE:
 		memcpy(&c->size, data, sizeof(c->size));
+		break;
 	case NFTNL_FLOWTABLE_FLAGS:
 		memcpy(&c->ft_flags, data, sizeof(c->ft_flags));
 		break;
@@ -246,7 +245,7 @@ EXPORT_SYMBOL(nftnl_flowtable_get_str);
 
 uint32_t nftnl_flowtable_get_u32(const struct nftnl_flowtable *c, uint16_t attr)
 {
-	uint32_t data_len;
+	uint32_t data_len = 0;
 	const uint32_t *val = nftnl_flowtable_get_data(c, attr, &data_len);
 
 	nftnl_assert(val, attr, data_len == sizeof(uint32_t));
@@ -257,7 +256,7 @@ EXPORT_SYMBOL(nftnl_flowtable_get_u32);
 
 int32_t nftnl_flowtable_get_s32(const struct nftnl_flowtable *c, uint16_t attr)
 {
-	uint32_t data_len;
+	uint32_t data_len = 0;
 	const int32_t *val = nftnl_flowtable_get_data(c, attr, &data_len);
 
 	nftnl_assert(val, attr, data_len == sizeof(int32_t));
@@ -365,7 +364,7 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 
 	mnl_attr_for_each_nested(attr, nest) {
 		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
-			return -1;
+			goto err;
 		dev_array[len++] = strdup(mnl_attr_get_str(attr));
 		if (len >= 8)
 			break;
@@ -376,14 +375,18 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 
 	c->dev_array = calloc(len + 1, sizeof(char *));
 	if (!c->dev_array)
-		return -1;
+		goto err;
 
 	c->dev_array_len = len;
 
 	for (i = 0; i < len; i++)
-		c->dev_array[i] = strdup(dev_array[i]);
+		c->dev_array[i] = dev_array[i];
 
 	return 0;
+err:
+	while (len--)
+		xfree(dev_array[len]);
+	return -1;
 }
 
 static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtable *c)
