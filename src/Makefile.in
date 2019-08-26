@@ -144,9 +144,10 @@ am_libnftnl_la_OBJECTS = utils.lo batch.lo flowtable.lo common.lo \
 	expr/numgen.lo expr/nat.lo expr/tproxy.lo expr/objref.lo \
 	expr/payload.lo expr/queue.lo expr/quota.lo expr/reject.lo \
 	expr/rt.lo expr/target.lo expr/tunnel.lo expr/masq.lo \
-	expr/redir.lo expr/hash.lo expr/socket.lo expr/osf.lo \
-	expr/xfrm.lo obj/counter.lo obj/ct_helper.lo obj/quota.lo \
-	obj/tunnel.lo obj/limit.lo obj/ct_timeout.lo obj/secmark.lo
+	expr/redir.lo expr/hash.lo expr/socket.lo expr/synproxy.lo \
+	expr/osf.lo expr/xfrm.lo obj/counter.lo obj/ct_helper.lo \
+	obj/quota.lo obj/tunnel.lo obj/limit.lo obj/ct_timeout.lo \
+	obj/secmark.lo obj/ct_expect.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -422,6 +423,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/redir.c	\
 		      expr/hash.c	\
 		      expr/socket.c	\
+		      expr/synproxy.c	\
 		      expr/osf.c	\
 		      expr/xfrm.c	\
 		      obj/counter.c	\
@@ -431,6 +433,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      obj/limit.c	\
 		      obj/ct_timeout.c 	\
 		      obj/secmark.c	\
+		      obj/ct_expect.c 	\
 		      libnftnl.map
 
 all: all-am
@@ -544,6 +547,7 @@ expr/masq.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/redir.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/hash.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/socket.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/synproxy.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/osf.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/xfrm.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 obj/$(am__dirstamp):
@@ -559,6 +563,7 @@ obj/tunnel.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/limit.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/ct_timeout.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/secmark.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/ct_expect.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 
 libnftnl.la: $(libnftnl_la_OBJECTS) $(libnftnl_la_DEPENDENCIES) $(EXTRA_libnftnl_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnftnl_la_LINK) -rpath $(libdir) $(libnftnl_la_OBJECTS) $(libnftnl_la_LIBADD) $(LIBS)
@@ -622,11 +627,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/reject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/rt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/socket.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/synproxy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/target.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/tproxy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/tunnel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/xfrm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/counter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_expect.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_helper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/ct_timeout.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/limit.Plo@am__quote@
