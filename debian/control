@@ -2,7 +2,7 @@ Source: libnftnl
 Priority: optional
 Maintainer: Debian Netfilter Packaging Team <pkg-netfilter-team@lists.alioth.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>
-Build-Depends: debhelper (>= 11),
+Build-Depends: debhelper (>= 12),
                libmnl-dev,
                libtool,
                pkg-config

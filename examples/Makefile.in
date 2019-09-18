@@ -101,8 +101,12 @@ check_PROGRAMS = nft-table-add$(EXEEXT) nft-table-upd$(EXEEXT) \
 	nft-ct-timeout-del$(EXEEXT) nft-flowtable-add$(EXEEXT) \
 	nft-flowtable-del$(EXEEXT) nft-flowtable-get$(EXEEXT) \
 	nft-ruleset-get$(EXEEXT) nft-compat-get$(EXEEXT) \
-	nft-ct-helper-add$(EXEEXT) nft-ct-helper-get$(EXEEXT) \
-	nft-ct-helper-del$(EXEEXT) nft-rule-ct-helper-add$(EXEEXT) \
+	nft-ct-expectation-add$(EXEEXT) \
+	nft-ct-expectation-del$(EXEEXT) \
+	nft-ct-expectation-get$(EXEEXT) nft-ct-helper-add$(EXEEXT) \
+	nft-ct-helper-get$(EXEEXT) nft-ct-helper-del$(EXEEXT) \
+	nft-rule-ct-helper-add$(EXEEXT) \
+	nft-rule-ct-expectation-add$(EXEEXT) \
 	nft-rule-ct-timeout-add$(EXEEXT)
 subdir = examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -134,6 +138,18 @@ nft_chain_get_DEPENDENCIES = ../src/libnftnl.la $(am__DEPENDENCIES_1)
 am_nft_compat_get_OBJECTS = nft-compat-get.$(OBJEXT)
 nft_compat_get_OBJECTS = $(am_nft_compat_get_OBJECTS)
 nft_compat_get_DEPENDENCIES = ../src/libnftnl.la $(am__DEPENDENCIES_1)
+am_nft_ct_expectation_add_OBJECTS = nft-ct-expectation-add.$(OBJEXT)
+nft_ct_expectation_add_OBJECTS = $(am_nft_ct_expectation_add_OBJECTS)
+nft_ct_expectation_add_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_ct_expectation_del_OBJECTS = nft-ct-expectation-del.$(OBJEXT)
+nft_ct_expectation_del_OBJECTS = $(am_nft_ct_expectation_del_OBJECTS)
+nft_ct_expectation_del_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
+am_nft_ct_expectation_get_OBJECTS = nft-ct-expectation-get.$(OBJEXT)
+nft_ct_expectation_get_OBJECTS = $(am_nft_ct_expectation_get_OBJECTS)
+nft_ct_expectation_get_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
 am_nft_ct_helper_add_OBJECTS = nft-ct-helper-add.$(OBJEXT)
 nft_ct_helper_add_OBJECTS = $(am_nft_ct_helper_add_OBJECTS)
 nft_ct_helper_add_DEPENDENCIES = ../src/libnftnl.la \
@@ -188,6 +204,12 @@ nft_obj_get_DEPENDENCIES = ../src/libnftnl.la $(am__DEPENDENCIES_1)
 am_nft_rule_add_OBJECTS = nft-rule-add.$(OBJEXT)
 nft_rule_add_OBJECTS = $(am_nft_rule_add_OBJECTS)
 nft_rule_add_DEPENDENCIES = ../src/libnftnl.la $(am__DEPENDENCIES_1)
+am_nft_rule_ct_expectation_add_OBJECTS =  \
+	nft-rule-ct-expectation-add.$(OBJEXT)
+nft_rule_ct_expectation_add_OBJECTS =  \
+	$(am_nft_rule_ct_expectation_add_OBJECTS)
+nft_rule_ct_expectation_add_DEPENDENCIES = ../src/libnftnl.la \
+	$(am__DEPENDENCIES_1)
 am_nft_rule_ct_helper_add_OBJECTS = nft-rule-ct-helper-add.$(OBJEXT)
 nft_rule_ct_helper_add_OBJECTS = $(am_nft_rule_ct_helper_add_OBJECTS)
 nft_rule_ct_helper_add_DEPENDENCIES = ../src/libnftnl.la \
@@ -277,14 +299,18 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(nft_chain_add_SOURCES) $(nft_chain_del_SOURCES) \
 	$(nft_chain_get_SOURCES) $(nft_compat_get_SOURCES) \
-	$(nft_ct_helper_add_SOURCES) $(nft_ct_helper_del_SOURCES) \
-	$(nft_ct_helper_get_SOURCES) $(nft_ct_timeout_add_SOURCES) \
-	$(nft_ct_timeout_del_SOURCES) $(nft_ct_timeout_get_SOURCES) \
-	$(nft_events_SOURCES) $(nft_flowtable_add_SOURCES) \
-	$(nft_flowtable_del_SOURCES) $(nft_flowtable_get_SOURCES) \
-	$(nft_map_add_SOURCES) $(nft_obj_add_SOURCES) \
-	$(nft_obj_del_SOURCES) $(nft_obj_get_SOURCES) \
-	$(nft_rule_add_SOURCES) $(nft_rule_ct_helper_add_SOURCES) \
+	$(nft_ct_expectation_add_SOURCES) \
+	$(nft_ct_expectation_del_SOURCES) \
+	$(nft_ct_expectation_get_SOURCES) $(nft_ct_helper_add_SOURCES) \
+	$(nft_ct_helper_del_SOURCES) $(nft_ct_helper_get_SOURCES) \
+	$(nft_ct_timeout_add_SOURCES) $(nft_ct_timeout_del_SOURCES) \
+	$(nft_ct_timeout_get_SOURCES) $(nft_events_SOURCES) \
+	$(nft_flowtable_add_SOURCES) $(nft_flowtable_del_SOURCES) \
+	$(nft_flowtable_get_SOURCES) $(nft_map_add_SOURCES) \
+	$(nft_obj_add_SOURCES) $(nft_obj_del_SOURCES) \
+	$(nft_obj_get_SOURCES) $(nft_rule_add_SOURCES) \
+	$(nft_rule_ct_expectation_add_SOURCES) \
+	$(nft_rule_ct_helper_add_SOURCES) \
 	$(nft_rule_ct_timeout_add_SOURCES) $(nft_rule_del_SOURCES) \
 	$(nft_rule_get_SOURCES) $(nft_ruleset_get_SOURCES) \
 	$(nft_set_add_SOURCES) $(nft_set_del_SOURCES) \
@@ -294,14 +320,18 @@ SOURCES = $(nft_chain_add_SOURCES) $(nft_chain_del_SOURCES) \
 	$(nft_table_get_SOURCES) $(nft_table_upd_SOURCES)
 DIST_SOURCES = $(nft_chain_add_SOURCES) $(nft_chain_del_SOURCES) \
 	$(nft_chain_get_SOURCES) $(nft_compat_get_SOURCES) \
-	$(nft_ct_helper_add_SOURCES) $(nft_ct_helper_del_SOURCES) \
-	$(nft_ct_helper_get_SOURCES) $(nft_ct_timeout_add_SOURCES) \
-	$(nft_ct_timeout_del_SOURCES) $(nft_ct_timeout_get_SOURCES) \
-	$(nft_events_SOURCES) $(nft_flowtable_add_SOURCES) \
-	$(nft_flowtable_del_SOURCES) $(nft_flowtable_get_SOURCES) \
-	$(nft_map_add_SOURCES) $(nft_obj_add_SOURCES) \
-	$(nft_obj_del_SOURCES) $(nft_obj_get_SOURCES) \
-	$(nft_rule_add_SOURCES) $(nft_rule_ct_helper_add_SOURCES) \
+	$(nft_ct_expectation_add_SOURCES) \
+	$(nft_ct_expectation_del_SOURCES) \
+	$(nft_ct_expectation_get_SOURCES) $(nft_ct_helper_add_SOURCES) \
+	$(nft_ct_helper_del_SOURCES) $(nft_ct_helper_get_SOURCES) \
+	$(nft_ct_timeout_add_SOURCES) $(nft_ct_timeout_del_SOURCES) \
+	$(nft_ct_timeout_get_SOURCES) $(nft_events_SOURCES) \
+	$(nft_flowtable_add_SOURCES) $(nft_flowtable_del_SOURCES) \
+	$(nft_flowtable_get_SOURCES) $(nft_map_add_SOURCES) \
+	$(nft_obj_add_SOURCES) $(nft_obj_del_SOURCES) \
+	$(nft_obj_get_SOURCES) $(nft_rule_add_SOURCES) \
+	$(nft_rule_ct_expectation_add_SOURCES) \
+	$(nft_rule_ct_helper_add_SOURCES) \
 	$(nft_rule_ct_timeout_add_SOURCES) $(nft_rule_del_SOURCES) \
 	$(nft_rule_get_SOURCES) $(nft_ruleset_get_SOURCES) \
 	$(nft_set_add_SOURCES) $(nft_set_del_SOURCES) \
@@ -542,6 +572,12 @@ nft_ruleset_get_SOURCES = nft-ruleset-get.c
 nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_compat_get_SOURCES = nft-compat-get.c
 nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_ct_expectation_add_SOURCES = nft-ct-expectation-add.c
+nft_ct_expectation_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_ct_expectation_del_SOURCES = nft-ct-expectation-del.c
+nft_ct_expectation_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_ct_expectation_get_SOURCES = nft-ct-expectation-get.c
+nft_ct_expectation_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_ct_helper_add_SOURCES = nft-ct-helper-add.c
 nft_ct_helper_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_ct_helper_get_SOURCES = nft-ct-helper-get.c
@@ -550,6 +586,8 @@ nft_ct_helper_del_SOURCES = nft-ct-helper-del.c
 nft_ct_helper_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_rule_ct_helper_add_SOURCES = nft-rule-ct-helper-add.c
 nft_rule_ct_helper_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+nft_rule_ct_expectation_add_SOURCES = nft-rule-ct-expectation-add.c
+nft_rule_ct_expectation_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 nft_rule_ct_timeout_add_SOURCES = nft-rule-ct-timeout-add.c
 nft_rule_ct_timeout_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 all: all-am
@@ -612,6 +650,18 @@ nft-compat-get$(EXEEXT): $(nft_compat_get_OBJECTS) $(nft_compat_get_DEPENDENCIES
 	@rm -f nft-compat-get$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_compat_get_OBJECTS) $(nft_compat_get_LDADD) $(LIBS)
 
+nft-ct-expectation-add$(EXEEXT): $(nft_ct_expectation_add_OBJECTS) $(nft_ct_expectation_add_DEPENDENCIES) $(EXTRA_nft_ct_expectation_add_DEPENDENCIES) 
+	@rm -f nft-ct-expectation-add$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_ct_expectation_add_OBJECTS) $(nft_ct_expectation_add_LDADD) $(LIBS)
+
+nft-ct-expectation-del$(EXEEXT): $(nft_ct_expectation_del_OBJECTS) $(nft_ct_expectation_del_DEPENDENCIES) $(EXTRA_nft_ct_expectation_del_DEPENDENCIES) 
+	@rm -f nft-ct-expectation-del$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_ct_expectation_del_OBJECTS) $(nft_ct_expectation_del_LDADD) $(LIBS)
+
+nft-ct-expectation-get$(EXEEXT): $(nft_ct_expectation_get_OBJECTS) $(nft_ct_expectation_get_DEPENDENCIES) $(EXTRA_nft_ct_expectation_get_DEPENDENCIES) 
+	@rm -f nft-ct-expectation-get$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_ct_expectation_get_OBJECTS) $(nft_ct_expectation_get_LDADD) $(LIBS)
+
 nft-ct-helper-add$(EXEEXT): $(nft_ct_helper_add_OBJECTS) $(nft_ct_helper_add_DEPENDENCIES) $(EXTRA_nft_ct_helper_add_DEPENDENCIES) 
 	@rm -f nft-ct-helper-add$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_ct_helper_add_OBJECTS) $(nft_ct_helper_add_LDADD) $(LIBS)
@@ -671,6 +721,10 @@ nft-obj-get$(EXEEXT): $(nft_obj_get_OBJECTS) $(nft_obj_get_DEPENDENCIES) $(EXTRA
 nft-rule-add$(EXEEXT): $(nft_rule_add_OBJECTS) $(nft_rule_add_DEPENDENCIES) $(EXTRA_nft_rule_add_DEPENDENCIES) 
 	@rm -f nft-rule-add$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nft_rule_add_OBJECTS) $(nft_rule_add_LDADD) $(LIBS)
+
+nft-rule-ct-expectation-add$(EXEEXT): $(nft_rule_ct_expectation_add_OBJECTS) $(nft_rule_ct_expectation_add_DEPENDENCIES) $(EXTRA_nft_rule_ct_expectation_add_DEPENDENCIES) 
+	@rm -f nft-rule-ct-expectation-add$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(nft_rule_ct_expectation_add_OBJECTS) $(nft_rule_ct_expectation_add_LDADD) $(LIBS)
 
 nft-rule-ct-helper-add$(EXEEXT): $(nft_rule_ct_helper_add_OBJECTS) $(nft_rule_ct_helper_add_DEPENDENCIES) $(EXTRA_nft_rule_ct_helper_add_DEPENDENCIES) 
 	@rm -f nft-rule-ct-helper-add$(EXEEXT)
@@ -742,6 +796,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-chain-del.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-chain-get.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-compat-get.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-expectation-add.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-expectation-del.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-expectation-get.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-helper-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-helper-del.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-ct-helper-get.Po@am__quote@
@@ -757,6 +814,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-obj-del.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-obj-get.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-add.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-ct-expectation-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-ct-helper-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-ct-timeout-add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nft-rule-del.Po@am__quote@
