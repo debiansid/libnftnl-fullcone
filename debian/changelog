@@ -1,3 +1,9 @@
+libnftnl (1.1.4-1~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 18 Sep 2019 19:02:47 +0200
+
 libnftnl (1.1.4-1) unstable; urgency=medium
 
   * [c327c9c] New upstream version 1.1.4
