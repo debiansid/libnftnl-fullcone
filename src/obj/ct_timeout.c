@@ -108,15 +108,15 @@ parse_timeout_attr_policy_cb(const struct nlattr *attr, void *data)
 	if (mnl_attr_type_valid(attr, data_cb->nlattr_max) < 0)
 		return MNL_CB_OK;
 
-	if (type <= data_cb->nlattr_max) {
+	if (type > 0 && type <= data_cb->nlattr_max) {
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
-		tb[type] = attr;
+		tb[type - 1] = attr;
 	}
 	return MNL_CB_OK;
 }
 
-static void
+static int
 timeout_parse_attr_data(struct nftnl_obj *e,
 			const struct nlattr *nest)
 {
@@ -131,14 +131,16 @@ timeout_parse_attr_data(struct nftnl_obj *e,
 
 	memset(tb, 0, sizeof(struct nlattr *) * attr_max);
 
-	mnl_attr_parse_nested(nest, parse_timeout_attr_policy_cb, &cnt);
+	if (mnl_attr_parse_nested(nest, parse_timeout_attr_policy_cb, &cnt) < 0)
+		return -1;
 
-	for (i = 1; i <= attr_max; i++) {
+	for (i = 0; i < array_size(tb); i++) {
 		if (tb[i]) {
-			nftnl_timeout_policy_attr_set_u32(e, i-1,
+			nftnl_timeout_policy_attr_set_u32(e, i,
 				ntohl(mnl_attr_get_u32(tb[i])));
 		}
 	}
+	return 0;
 }
 
 static int nftnl_obj_ct_timeout_set(struct nftnl_obj *e, uint16_t type,
@@ -248,7 +250,8 @@ nftnl_obj_ct_timeout_parse(struct nftnl_obj *e, struct nlattr *attr)
 		e->flags |= (1 << NFTNL_OBJ_CT_TIMEOUT_L4PROTO);
 	}
 	if (tb[NFTA_CT_TIMEOUT_DATA]) {
-		timeout_parse_attr_data(e, tb[NFTA_CT_TIMEOUT_DATA]);
+		if (timeout_parse_attr_data(e, tb[NFTA_CT_TIMEOUT_DATA]) < 0)
+			return -1;
 		e->flags |= (1 << NFTNL_OBJ_CT_TIMEOUT_ARRAY);
 	}
 	return 0;

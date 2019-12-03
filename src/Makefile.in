@@ -146,8 +146,8 @@ am_libnftnl_la_OBJECTS = utils.lo batch.lo flowtable.lo common.lo \
 	expr/rt.lo expr/target.lo expr/tunnel.lo expr/masq.lo \
 	expr/redir.lo expr/hash.lo expr/socket.lo expr/synproxy.lo \
 	expr/osf.lo expr/xfrm.lo obj/counter.lo obj/ct_helper.lo \
-	obj/quota.lo obj/tunnel.lo obj/limit.lo obj/ct_timeout.lo \
-	obj/secmark.lo obj/ct_expect.lo
+	obj/quota.lo obj/tunnel.lo obj/limit.lo obj/synproxy.lo \
+	obj/ct_timeout.lo obj/secmark.lo obj/ct_expect.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -364,7 +364,7 @@ top_srcdir = @top_srcdir@
 # set age to 0.
 # </snippet>
 #
-LIBVERSION = 12:0:1
+LIBVERSION = 13:0:2
 AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
 AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
 lib_LTLIBRARIES = libnftnl.la
@@ -431,6 +431,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      obj/quota.c	\
 		      obj/tunnel.c	\
 		      obj/limit.c	\
+		      obj/synproxy.c	\
 		      obj/ct_timeout.c 	\
 		      obj/secmark.c	\
 		      obj/ct_expect.c 	\
@@ -561,6 +562,7 @@ obj/ct_helper.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/quota.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/tunnel.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/limit.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
+obj/synproxy.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/ct_timeout.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/secmark.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
 obj/ct_expect.lo: obj/$(am__dirstamp) obj/$(DEPDIR)/$(am__dirstamp)
@@ -639,6 +641,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/limit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/quota.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/secmark.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/synproxy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@obj/$(DEPDIR)/tunnel.Plo@am__quote@
 
 .c.o:
