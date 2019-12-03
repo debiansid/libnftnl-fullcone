@@ -314,10 +314,12 @@ global:
   nftnl_flowtable_set_u32;
   nftnl_flowtable_set_s32;
   nftnl_flowtable_set_str;
+  nftnl_flowtable_set_u64;
   nftnl_flowtable_get;
   nftnl_flowtable_get_u32;
   nftnl_flowtable_get_s32;
   nftnl_flowtable_get_str;
+  nftnl_flowtable_get_u64;
   nftnl_flowtable_parse;
   nftnl_flowtable_parse_file;
   nftnl_flowtable_snprintf;
@@ -351,3 +353,9 @@ LIBNFTNL_12 {
   nftnl_chain_list_lookup_byname;
   nftnl_rule_lookup_byindex;
 } LIBNFTNL_11;
+
+LIBNFTNL_13 {
+  nftnl_set_list_lookup_byname;
+  nftnl_obj_set_data;
+  nftnl_flowtable_set_data;
+} LIBNFTNL_12;
