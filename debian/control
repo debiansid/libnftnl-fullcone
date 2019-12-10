@@ -9,7 +9,7 @@ Build-Depends: debhelper-compat (= 12),
 Standards-Version: 4.4.1
 Section: libs
 Homepage: https://git.netfilter.org/libnftnl
-Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
+Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl.git
 Vcs-Browser: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
 
 Package: libnftnl11
