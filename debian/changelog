@@ -1,3 +1,14 @@
+libnftnl (1.1.5-1) unstable; urgency=medium
+
+  * This release was packaged and uploaded to Debian while on a 300km/h train.
+    Hope it works :-)
+  * [ab950a9] d/control: bump std-version to 4.4.1
+  * [4087171] New upstream version 1.1.5 (Closes: #934078)
+  * [d1a00d5] d/patches: add 0001-test-flowtable-size-check.patch
+  * [364a1c4] src:libnftnl: update symbols file for 1.1.5-1
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Tue, 03 Dec 2019 13:03:30 +0100
+
 libnftnl (1.1.4-1~bpo10+1) buster-backports; urgency=medium
 
   * Rebuild for buster-backports.
