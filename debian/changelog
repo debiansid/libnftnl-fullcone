@@ -1,3 +1,9 @@
+libnftnl (1.1.5-1~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 20 Jan 2020 14:45:55 +0100
+
 libnftnl (1.1.5-1) unstable; urgency=medium
 
   * This release was packaged and uploaded to Debian while on a 300km/h train.
