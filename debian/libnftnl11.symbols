@@ -2,6 +2,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  LIBNFTNL_11@LIBNFTNL_11 1.1.2
  LIBNFTNL_12@LIBNFTNL_12 1.1.3
  LIBNFTNL_13@LIBNFTNL_13 1.1.5
+ LIBNFTNL_14@LIBNFTNL_14 1.1.6
  nftnl_batch_alloc@LIBNFTNL_11 1.1.2
  nftnl_batch_begin@LIBNFTNL_11 1.1.2
  nftnl_batch_buffer@LIBNFTNL_11 1.1.2
@@ -16,6 +17,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_chain_fprintf@LIBNFTNL_11 1.1.2
  nftnl_chain_free@LIBNFTNL_11 1.1.2
  nftnl_chain_get@LIBNFTNL_11 1.1.2
+ nftnl_chain_get_array@LIBNFTNL_14 1.1.6
  nftnl_chain_get_data@LIBNFTNL_11 1.1.2
  nftnl_chain_get_s32@LIBNFTNL_11 1.1.2
  nftnl_chain_get_str@LIBNFTNL_11 1.1.2
@@ -42,6 +44,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_chain_rule_del@LIBNFTNL_12 1.1.3
  nftnl_chain_rule_insert_at@LIBNFTNL_12 1.1.3
  nftnl_chain_set@LIBNFTNL_11 1.1.2
+ nftnl_chain_set_array@LIBNFTNL_14 1.1.6
  nftnl_chain_set_data@LIBNFTNL_11 1.1.2
  nftnl_chain_set_s32@LIBNFTNL_11 1.1.2
  nftnl_chain_set_str@LIBNFTNL_11 1.1.2
@@ -75,6 +78,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_flowtable_fprintf@LIBNFTNL_11 1.1.2
  nftnl_flowtable_free@LIBNFTNL_11 1.1.2
  nftnl_flowtable_get@LIBNFTNL_11 1.1.2
+ nftnl_flowtable_get_array@LIBNFTNL_14 1.1.6
  nftnl_flowtable_get_s32@LIBNFTNL_11 1.1.2
  nftnl_flowtable_get_str@LIBNFTNL_11 1.1.2
  nftnl_flowtable_get_u32@LIBNFTNL_11 1.1.2
@@ -92,6 +96,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_flowtable_parse@LIBNFTNL_11 1.1.2
  nftnl_flowtable_parse_file@LIBNFTNL_11 1.1.2
  nftnl_flowtable_set@LIBNFTNL_11 1.1.2
+ nftnl_flowtable_set_array@LIBNFTNL_14 1.1.6
  nftnl_flowtable_set_data@LIBNFTNL_13 1.1.5
  nftnl_flowtable_set_s32@LIBNFTNL_11 1.1.2
  nftnl_flowtable_set_str@LIBNFTNL_11 1.1.2
@@ -309,6 +314,8 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_udata_get@LIBNFTNL_11 1.1.2
  nftnl_udata_get_u32@LIBNFTNL_11 1.1.2
  nftnl_udata_len@LIBNFTNL_11 1.1.2
+ nftnl_udata_nest_end@LIBNFTNL_14 1.1.6
+ nftnl_udata_nest_start@LIBNFTNL_14 1.1.6
  nftnl_udata_next@LIBNFTNL_11 1.1.2
  nftnl_udata_parse@LIBNFTNL_11 1.1.2
  nftnl_udata_put@LIBNFTNL_11 1.1.2
