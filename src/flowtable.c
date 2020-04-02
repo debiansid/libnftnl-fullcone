@@ -17,7 +17,6 @@
 #include <linux/netfilter_arp.h>
 
 #include <libnftnl/flowtable.h>
-#include <buffer.h>
 
 struct nftnl_flowtable {
 	struct list_head	head;
@@ -207,6 +206,13 @@ void nftnl_flowtable_set_u64(struct nftnl_flowtable *c, uint16_t attr, uint64_t 
 	nftnl_flowtable_set_data(c, attr, &data, sizeof(uint64_t));
 }
 
+EXPORT_SYMBOL(nftnl_flowtable_set_array);
+int nftnl_flowtable_set_array(struct nftnl_flowtable *c, uint16_t attr,
+			      const char **data)
+{
+	return nftnl_flowtable_set_data(c, attr, data, 0);
+}
+
 EXPORT_SYMBOL(nftnl_flowtable_get_data);
 const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
 				     uint16_t attr, uint32_t *data_len)
@@ -231,6 +237,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
 		*data_len = sizeof(int32_t);
 		return &c->family;
 	case NFTNL_FLOWTABLE_DEVICES:
+		*data_len = 0;
 		return &c->dev_array[0];
 	case NFTNL_FLOWTABLE_SIZE:
 		*data_len = sizeof(int32_t);
@@ -289,6 +296,17 @@ int32_t nftnl_flowtable_get_s32(const struct nftnl_flowtable *c, uint16_t attr)
 	nftnl_assert(val, attr, data_len == sizeof(int32_t));
 
 	return val ? *val : 0;
+}
+
+EXPORT_SYMBOL(nftnl_flowtable_get_array);
+const char *const *nftnl_flowtable_get_array(const struct nftnl_flowtable *c, uint16_t attr)
+{
+	uint32_t data_len;
+	const char * const *val = nftnl_flowtable_get_data(c, attr, &data_len);
+
+	nftnl_assert(val, attr, attr == NFTNL_FLOWTABLE_DEVICES);
+
+	return val;
 }
 
 EXPORT_SYMBOL(nftnl_flowtable_nlmsg_build_payload);
@@ -388,7 +406,7 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
 static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 				      struct nftnl_flowtable *c)
 {
-	const char **dev_array;
+	const char **dev_array, **tmp;
 	int len = 0, size = 8;
 	struct nlattr *attr;
 
@@ -401,14 +419,13 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 			goto err;
 		dev_array[len++] = strdup(mnl_attr_get_str(attr));
 		if (len >= size) {
-			dev_array = realloc(dev_array,
-					    size * 2 * sizeof(char *));
-			if (!dev_array)
+			tmp = realloc(dev_array, size * 2 * sizeof(char *));
+			if (!tmp)
 				goto err;
 
 			size *= 2;
-			memset(&dev_array[len], 0,
-			       (size - len) * sizeof(char *));
+			memset(&tmp[len], 0, (size - len) * sizeof(char *));
+			dev_array = tmp;
 		}
 	}
 
@@ -419,6 +436,7 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 err:
 	while (len--)
 		xfree(dev_array[len]);
+	xfree(dev_array);
 	return -1;
 }
 
