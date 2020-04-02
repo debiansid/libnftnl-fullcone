@@ -359,3 +359,12 @@ LIBNFTNL_13 {
   nftnl_obj_set_data;
   nftnl_flowtable_set_data;
 } LIBNFTNL_12;
+
+LIBNFTNL_14 {
+  nftnl_udata_nest_start;
+  nftnl_udata_nest_end;
+  nftnl_chain_set_array;
+  nftnl_chain_get_array;
+  nftnl_flowtable_set_array;
+  nftnl_flowtable_get_array;
+} LIBNFTNL_13;

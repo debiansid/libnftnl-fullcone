@@ -25,12 +25,15 @@ struct nftnl_set {
 	enum nft_set_policies	policy;
 	struct {
 		uint32_t	size;
+		uint8_t		field_len[NFT_REG32_COUNT];
+		uint8_t		field_count;
 	} desc;
 	struct list_head	element_list;
 
 	uint32_t		flags;
 	uint32_t		gc_interval;
 	uint64_t		timeout;
+	struct nftnl_expr	*expr;
 };
 
 struct nftnl_set_list;
