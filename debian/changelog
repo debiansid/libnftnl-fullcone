@@ -1,3 +1,13 @@
+libnftnl (1.1.7-1) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * [9f0c902] Update standards version to 4.5.0, no changes needed.
+
+  [ Arturo Borrero Gonzalez ]
+  * [03f8510] New upstream version 1.1.7
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 08 Jun 2020 10:39:35 +0200
+
 libnftnl (1.1.6-1) unstable; urgency=medium
 
   [ Debian Janitor ]
