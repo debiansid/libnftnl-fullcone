@@ -2,14 +2,14 @@ Source: libnftnl
 Priority: optional
 Maintainer: Debian Netfilter Packaging Team <pkg-netfilter-team@lists.alioth.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>
-Build-Depends: debhelper (>= 12),
+Build-Depends: debhelper-compat (= 12),
                libmnl-dev,
                libtool,
                pkg-config
-Standards-Version: 4.4.1
+Standards-Version: 4.5.0
 Section: libs
 Homepage: https://git.netfilter.org/libnftnl
-Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
+Vcs-Git: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl.git
 Vcs-Browser: https://salsa.debian.org/pkg-netfilter-team/pkg-libnftnl
 
 Package: libnftnl11

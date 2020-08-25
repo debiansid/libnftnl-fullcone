@@ -22,9 +22,20 @@ enum nftnl_udata_set_types {
 	NFTNL_UDATA_SET_KEYBYTEORDER,
 	NFTNL_UDATA_SET_DATABYTEORDER,
 	NFTNL_UDATA_SET_MERGE_ELEMENTS,
+	NFTNL_UDATA_SET_KEY_TYPEOF,
+	NFTNL_UDATA_SET_DATA_TYPEOF,
+	NFTNL_UDATA_SET_EXPR,
+	NFTNL_UDATA_SET_DATA_INTERVAL,
 	__NFTNL_UDATA_SET_MAX
 };
 #define NFTNL_UDATA_SET_MAX (__NFTNL_UDATA_SET_MAX - 1)
+
+enum {
+	NFTNL_UDATA_SET_TYPEOF_EXPR,
+	NFTNL_UDATA_SET_TYPEOF_DATA,
+	__NFTNL_UDATA_SET_TYPEOF_MAX,
+};
+#define NFTNL_UDATA_SET_TYPEOF_MAX (__NFTNL_UDATA_SET_TYPEOF_MAX - 1)
 
 enum nftnl_udata_set_elem_types {
 	NFTNL_UDATA_SET_ELEM_COMMENT,
@@ -65,6 +76,11 @@ bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
 			 uint32_t data);
 bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
 			  const char *strz);
+
+/* nest */
+struct nftnl_udata *nftnl_udata_nest_start(struct nftnl_udata_buf *buf,
+					   uint8_t type);
+void nftnl_udata_nest_end(struct nftnl_udata_buf *buf, struct nftnl_udata *ud);
 
 /* nftnl_udata_attr */
 uint8_t nftnl_udata_type(const struct nftnl_udata *attr);

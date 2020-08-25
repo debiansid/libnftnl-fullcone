@@ -17,7 +17,6 @@
 #include <linux/netfilter_arp.h>
 
 #include <libnftnl/flowtable.h>
-#include <buffer.h>
 
 struct nftnl_flowtable {
 	struct list_head	head;
@@ -207,6 +206,13 @@ void nftnl_flowtable_set_u64(struct nftnl_flowtable *c, uint16_t attr, uint64_t 
 	nftnl_flowtable_set_data(c, attr, &data, sizeof(uint64_t));
 }
 
+EXPORT_SYMBOL(nftnl_flowtable_set_array);
+int nftnl_flowtable_set_array(struct nftnl_flowtable *c, uint16_t attr,
+			      const char **data)
+{
+	return nftnl_flowtable_set_data(c, attr, data, 0);
+}
+
 EXPORT_SYMBOL(nftnl_flowtable_get_data);
 const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
 				     uint16_t attr, uint32_t *data_len)
@@ -231,6 +237,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
 		*data_len = sizeof(int32_t);
 		return &c->family;
 	case NFTNL_FLOWTABLE_DEVICES:
+		*data_len = 0;
 		return &c->dev_array[0];
 	case NFTNL_FLOWTABLE_SIZE:
 		*data_len = sizeof(int32_t);
@@ -291,35 +298,53 @@ int32_t nftnl_flowtable_get_s32(const struct nftnl_flowtable *c, uint16_t attr)
 	return val ? *val : 0;
 }
 
+EXPORT_SYMBOL(nftnl_flowtable_get_array);
+const char *const *nftnl_flowtable_get_array(const struct nftnl_flowtable *c, uint16_t attr)
+{
+	uint32_t data_len;
+	const char * const *val = nftnl_flowtable_get_data(c, attr, &data_len);
+
+	nftnl_assert(val, attr, attr == NFTNL_FLOWTABLE_DEVICES);
+
+	return val;
+}
+
 EXPORT_SYMBOL(nftnl_flowtable_nlmsg_build_payload);
 void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
 					 const struct nftnl_flowtable *c)
 {
+	struct nlattr *nest = NULL;
 	int i;
 
 	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
 		mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_TABLE, c->table);
 	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
 		mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_NAME, c->name);
-	if ((c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM)) &&
-	    (c->flags & (1 << NFTNL_FLOWTABLE_PRIO))) {
-		struct nlattr *nest;
 
+	if (c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM) ||
+	    c->flags & (1 << NFTNL_FLOWTABLE_PRIO) ||
+	    c->flags & (1 << NFTNL_FLOWTABLE_DEVICES))
 		nest = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK);
-		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_NUM, htonl(c->hooknum));
-		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(c->prio));
-		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-			struct nlattr *nest_dev;
 
-			nest_dev = mnl_attr_nest_start(nlh,
-						       NFTA_FLOWTABLE_HOOK_DEVS);
-			for (i = 0; i < c->dev_array_len; i++)
-				mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
-						  c->dev_array[i]);
-			mnl_attr_nest_end(nlh, nest_dev);
+	if (c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM))
+		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_NUM, htonl(c->hooknum));
+	if (c->flags & (1 << NFTNL_FLOWTABLE_PRIO))
+		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(c->prio));
+
+	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
+		struct nlattr *nest_dev;
+
+		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
+		for (i = 0; i < c->dev_array_len; i++) {
+			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
+					  c->dev_array[i]);
 		}
-		mnl_attr_nest_end(nlh, nest);
+		mnl_attr_nest_end(nlh, nest_dev);
 	}
+
+	if (nest)
+		mnl_attr_nest_end(nlh, nest);
+
 	if (c->flags & (1 << NFTNL_FLOWTABLE_FLAGS))
 		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_FLAGS, htonl(c->ft_flags));
 	if (c->flags & (1 << NFTNL_FLOWTABLE_USE))
@@ -388,7 +413,7 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
 static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 				      struct nftnl_flowtable *c)
 {
-	const char **dev_array;
+	const char **dev_array, **tmp;
 	int len = 0, size = 8;
 	struct nlattr *attr;
 
@@ -401,14 +426,13 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 			goto err;
 		dev_array[len++] = strdup(mnl_attr_get_str(attr));
 		if (len >= size) {
-			dev_array = realloc(dev_array,
-					    size * 2 * sizeof(char *));
-			if (!dev_array)
+			tmp = realloc(dev_array, size * 2 * sizeof(char *));
+			if (!tmp)
 				goto err;
 
 			size *= 2;
-			memset(&dev_array[len], 0,
-			       (size - len) * sizeof(char *));
+			memset(&tmp[len], 0, (size - len) * sizeof(char *));
+			dev_array = tmp;
 		}
 	}
 
@@ -419,6 +443,7 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
 err:
 	while (len--)
 		xfree(dev_array[len]);
+	xfree(dev_array);
 	return -1;
 }
 
