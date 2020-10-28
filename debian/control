@@ -3,6 +3,7 @@ Priority: optional
 Maintainer: Debian Netfilter Packaging Team <pkg-netfilter-team@lists.alioth.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>
 Build-Depends: debhelper-compat (= 13),
+               doxygen,
                libmnl-dev,
                libtool,
                pkg-config
@@ -30,6 +31,7 @@ Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: libnftnl11 (= ${binary:Version}), pkg-config, ${misc:Depends}
+Suggests: libnftnl-dev-doc
 Description: Development files for libnftnl
  libnftnl is the low-level library for Netfilter 4th generation
  framework nftables.
@@ -38,3 +40,18 @@ Description: Development files for libnftnl
  nftables Netlink's API over libmnl.
  .
  This package provides development files and static libraries.
+
+Package: libnftnl-dev-doc
+Section: doc
+Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}
+Description: Doxygen-generated documentation for libnftnl-dev
+ libnftnl is the low-level library for Netfilter 4th generation
+ framework nftables.
+ .
+ Is the user-space library for low-level interaction with
+ nftables Netlink's API over libmnl.
+ .
+ This package provides additional doxygen-generated documentation for the
+ libnftnl-dev package.

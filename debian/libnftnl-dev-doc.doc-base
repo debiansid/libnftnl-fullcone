@@ -1,0 +1,9 @@
+Document: libnftnl-dev
+Title: libnftnl development manual
+Author: Netfilter Project
+Abstract: This manual contains information on libnftnl internals
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/libnftnl-dev/html/index.html
+Files: /usr/share/doc/libnftnl-dev/html/*
