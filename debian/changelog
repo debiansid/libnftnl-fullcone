@@ -1,3 +1,14 @@
+libnftnl (1.1.8-1) unstable; urgency=medium
+
+  * [7dc0554] d/upstream/signing-key.asc: refresh
+  * [936cfde] New upstream version 1.1.8
+  * [033211f] d/libnftnl11.symbols: refresh file
+  * [318c446] src:libnftnl: bump debhelper compat to 13
+  * [ef834fa] libnftnl-doc: introduce new binary package with doxygen-generated
+    documentation (Closes: #965351)
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 28 Oct 2020 11:46:08 +0100
+
 libnftnl (1.1.7-1) unstable; urgency=medium
 
   [ Debian Janitor ]
