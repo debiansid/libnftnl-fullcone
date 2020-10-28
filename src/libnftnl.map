@@ -169,7 +169,7 @@ global:
   nftnl_set_elem_parse;
   nftnl_set_elem_parse_file;
   nftnl_set_elem_snprintf;
-  nftnl_set_elem_fprinf;
+  nftnl_set_elem_fprintf;
 
   nftnl_set_elems_nlmsg_build_payload;
   nftnl_set_elems_nlmsg_parse;
@@ -368,3 +368,9 @@ LIBNFTNL_14 {
   nftnl_flowtable_set_array;
   nftnl_flowtable_get_array;
 } LIBNFTNL_13;
+
+LIBNFTNL_15 {
+  nftnl_obj_get_data;
+  nftnl_expr_build_payload;
+  nftnl_rule_del_expr;
+} LIBNFTNL_14;
