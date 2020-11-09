@@ -1,3 +1,9 @@
+libnftnl (1.1.8-2) unstable; urgency=medium
+
+  * [a3ae88d] libnftnl-dev-doc: mark as Multi-Arch: foreing
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Mon, 09 Nov 2020 11:05:38 +0100
+
 libnftnl (1.1.8-1) unstable; urgency=medium
 
   * [7dc0554] d/upstream/signing-key.asc: refresh
