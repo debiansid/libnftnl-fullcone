@@ -44,6 +44,7 @@ Description: Development files for libnftnl
 Package: libnftnl-dev-doc
 Section: doc
 Architecture: all
+Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}
 Description: Doxygen-generated documentation for libnftnl-dev
