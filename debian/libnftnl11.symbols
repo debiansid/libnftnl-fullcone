@@ -4,6 +4,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  LIBNFTNL_13@LIBNFTNL_13 1.1.5
  LIBNFTNL_14@LIBNFTNL_14 1.1.6
  LIBNFTNL_15@LIBNFTNL_15 1.1.8
+ LIBNFTNL_16@LIBNFTNL_16 1.1.9
  nftnl_batch_alloc@LIBNFTNL_11 1.1.2
  nftnl_batch_begin@LIBNFTNL_11 1.1.2
  nftnl_batch_buffer@LIBNFTNL_11 1.1.2
@@ -54,8 +55,10 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_chain_set_u8@LIBNFTNL_11 1.1.2
  nftnl_chain_snprintf@LIBNFTNL_11 1.1.2
  nftnl_chain_unset@LIBNFTNL_11 1.1.2
+ nftnl_expr_add_expr@LIBNFTNL_16 1.1.9
  nftnl_expr_alloc@LIBNFTNL_11 1.1.2
  nftnl_expr_build_payload@LIBNFTNL_15 1.1.8
+ nftnl_expr_expr_foreach@LIBNFTNL_16 1.1.9
  nftnl_expr_foreach@LIBNFTNL_11 1.1.2
  nftnl_expr_fprintf@LIBNFTNL_11 1.1.2
  nftnl_expr_free@LIBNFTNL_11 1.1.2
@@ -212,9 +215,12 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_ruleset_set@LIBNFTNL_11 1.1.2
  nftnl_ruleset_snprintf@LIBNFTNL_11 1.1.2
  nftnl_ruleset_unset@LIBNFTNL_11 1.1.2
+ nftnl_set_add_expr@LIBNFTNL_16 1.1.9
  nftnl_set_alloc@LIBNFTNL_11 1.1.2
  nftnl_set_elem_add@LIBNFTNL_11 1.1.2
+ nftnl_set_elem_add_expr@LIBNFTNL_16 1.1.9
  nftnl_set_elem_alloc@LIBNFTNL_11 1.1.2
+ nftnl_set_elem_expr_foreach@LIBNFTNL_16 1.1.9
  nftnl_set_elem_foreach@LIBNFTNL_11 1.1.2
  nftnl_set_elem_fprintf@LIBNFTNL_11 1.1.8
  nftnl_set_elem_free@LIBNFTNL_11 1.1.2
@@ -238,6 +244,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_set_elems_nlmsg_build_payload@LIBNFTNL_11 1.1.2
  nftnl_set_elems_nlmsg_build_payload_iter@LIBNFTNL_11 1.1.2
  nftnl_set_elems_nlmsg_parse@LIBNFTNL_11 1.1.2
+ nftnl_set_expr_foreach@LIBNFTNL_16 1.1.9
  nftnl_set_fprintf@LIBNFTNL_11 1.1.2
  nftnl_set_free@LIBNFTNL_11 1.1.2
  nftnl_set_get@LIBNFTNL_11 1.1.2
