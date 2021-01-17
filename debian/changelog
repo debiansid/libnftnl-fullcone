@@ -1,3 +1,15 @@
+libnftnl (1.1.9-1) unstable; urgency=medium
+
+  [ Hamid Nassiby ]
+  * [ccf2445] Added static library to the libnftnl-dev package.
+
+  [ Arturo Borrero Gonzalez ]
+  * [bcc40f2] New upstream version 1.1.9
+  * [39aeffe] src:libnftnl: bump std-version to 4.5.1
+  * [8da86f7] d/libnftnl11.symbols: refresh file
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Sun, 17 Jan 2021 18:08:35 +0100
+
 libnftnl (1.1.8-2) unstable; urgency=medium
 
   * [a3ae88d] libnftnl-dev-doc: mark as Multi-Arch: foreing
