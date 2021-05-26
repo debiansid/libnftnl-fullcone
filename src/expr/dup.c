@@ -111,38 +111,23 @@ static int nftnl_expr_dup_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return ret;
 }
 
-static int nftnl_expr_dup_snprintf_default(char *buf, size_t len,
-					   const struct nftnl_expr *e,
-					   uint32_t flags)
+static int nftnl_expr_dup_snprintf(char *buf, size_t remain,
+				   uint32_t flags, const struct nftnl_expr *e)
 {
-	int remain = len, offset = 0, ret;
 	struct nftnl_expr_dup *dup = nftnl_expr_data(e);
+	int offset = 0, ret;
 
 	if (e->flags & (1 << NFTNL_EXPR_DUP_SREG_ADDR)) {
-		ret = snprintf(buf + offset, len, "sreg_addr %u ", dup->sreg_addr);
+		ret = snprintf(buf + offset, remain, "sreg_addr %u ", dup->sreg_addr);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (e->flags & (1 << NFTNL_EXPR_DUP_SREG_DEV)) {
-		ret = snprintf(buf + offset, len, "sreg_dev %u ", dup->sreg_dev);
+		ret = snprintf(buf + offset, remain, "sreg_dev %u ", dup->sreg_dev);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	return offset;
-}
-
-static int nftnl_expr_dup_snprintf(char *buf, size_t len, uint32_t type,
-				   uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_dup_snprintf_default(buf, len, e, flags);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct expr_ops expr_ops_dup = {

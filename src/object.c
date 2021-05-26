@@ -384,46 +384,38 @@ int nftnl_obj_parse_file(struct nftnl_obj *obj, enum nftnl_parse_type type,
 	return nftnl_obj_do_parse(obj, type, fp, err, NFTNL_PARSE_FILE);
 }
 
-static int nftnl_obj_snprintf_dflt(char *buf, size_t size,
+static int nftnl_obj_snprintf_dflt(char *buf, size_t remain,
 				   const struct nftnl_obj *obj,
 				   uint32_t type, uint32_t flags)
 {
 	const char *name = obj->ops ? obj->ops->name : "(unknown)";
-	int ret, remain = size, offset = 0;
+	int ret, offset = 0;
 
-	ret = snprintf(buf, size, "table %s name %s use %u [ %s ",
+	ret = snprintf(buf, remain, "table %s name %s use %u [ %s ",
 		       obj->table, obj->name, obj->use, name);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	if (obj->ops) {
-		ret = obj->ops->snprintf(buf + offset, offset, type, flags,
-					 obj);
+		ret = obj->ops->snprintf(buf + offset, remain, flags, obj);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
-	ret = snprintf(buf + offset, offset, "]");
+	ret = snprintf(buf + offset, remain, "]");
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	return offset;
 }
 
-static int nftnl_obj_cmd_snprintf(char *buf, size_t size,
+static int nftnl_obj_cmd_snprintf(char *buf, size_t remain,
 				    const struct nftnl_obj *obj, uint32_t cmd,
 				    uint32_t type, uint32_t flags)
 {
-	int ret, remain = size, offset = 0;
+	int ret, offset = 0;
 
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		ret = nftnl_obj_snprintf_dflt(buf + offset, remain, obj, type,
-					      flags);
-		break;
-	case NFTNL_OUTPUT_JSON:
-	case NFTNL_OUTPUT_XML:
-	default:
+	if (type != NFTNL_OUTPUT_DEFAULT)
 		return -1;
-	}
-	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
+	ret = nftnl_obj_snprintf_dflt(buf + offset, remain, obj, type, flags);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	return offset;
 }
 

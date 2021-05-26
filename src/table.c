@@ -34,6 +34,7 @@ struct nftnl_table {
 	uint64_t 	handle;
 	uint32_t	use;
 	uint32_t	flags;
+	uint32_t	owner;
 	struct {
 		void		*data;
 		uint32_t	len;
@@ -76,8 +77,8 @@ void nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
 	case NFTNL_TABLE_FLAGS:
 	case NFTNL_TABLE_HANDLE:
 	case NFTNL_TABLE_FAMILY:
-		break;
 	case NFTNL_TABLE_USE:
+	case NFTNL_TABLE_OWNER:
 		break;
 	}
 	t->flags &= ~(1 << attr);
@@ -126,6 +127,9 @@ int nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
 			return -1;
 		memcpy(t->user.data, data, data_len);
 		t->user.len = data_len;
+		break;
+	case NFTNL_TABLE_OWNER:
+		memcpy(&t->owner, data, sizeof(t->owner));
 		break;
 	}
 	t->flags |= (1 << attr);
@@ -188,6 +192,9 @@ const void *nftnl_table_get_data(const struct nftnl_table *t, uint16_t attr,
 	case NFTNL_TABLE_USERDATA:
 		*data_len = t->user.len;
 		return t->user.data;
+	case NFTNL_TABLE_OWNER:
+		*data_len = sizeof(uint32_t);
+		return &t->owner;
 	}
 	return NULL;
 }
@@ -258,6 +265,7 @@ static int nftnl_table_parse_attr_cb(const struct nlattr *attr, void *data)
 		break;
 	case NFTA_TABLE_FLAGS:
 	case NFTA_TABLE_USE:
+	case NFTA_TABLE_OWNER:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
@@ -308,6 +316,10 @@ int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
 		if (ret < 0)
 			return ret;
 	}
+	if (tb[NFTA_TABLE_OWNER]) {
+		t->owner = ntohl(mnl_attr_get_u32(tb[NFTA_TABLE_OWNER]));
+		t->flags |= (1 << NFTNL_TABLE_OWNER);
+	}
 
 	t->family = nfg->nfgen_family;
 	t->flags |= (1 << NFTNL_TABLE_FAMILY);
@@ -355,23 +367,17 @@ static int nftnl_table_snprintf_default(char *buf, size_t size,
 			t->table_flags, t->use, (unsigned long long)t->handle);
 }
 
-static int nftnl_table_cmd_snprintf(char *buf, size_t size,
+static int nftnl_table_cmd_snprintf(char *buf, size_t remain,
 				    const struct nftnl_table *t, uint32_t cmd,
 				    uint32_t type, uint32_t flags)
 {
-	int ret, remain = size, offset = 0;
+	int ret, offset = 0;
 
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		ret = nftnl_table_snprintf_default(buf + offset, remain, t);
-		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-		break;
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
+	if (type != NFTNL_OUTPUT_DEFAULT)
 		return -1;
-	}
 
+	ret = nftnl_table_snprintf_default(buf + offset, remain, t);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	return offset;
 }
 
