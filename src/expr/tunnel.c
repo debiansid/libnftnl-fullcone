@@ -124,22 +124,9 @@ static const char *tunnel_key2str(uint8_t key)
 	return "unknown";
 }
 
-static inline int str2tunnel_key(const char *str)
-{
-	int i;
-
-	for (i = 0; i <= NFT_TUNNEL_MAX; i++) {
-		if (strcmp(str, tunnel_key2str_array[i]) == 0)
-			return i;
-	}
-
-	errno = EINVAL;
-	return -1;
-}
-
 static int
-nftnl_expr_tunnel_snprintf_default(char *buf, size_t len,
-				 const struct nftnl_expr *e)
+nftnl_expr_tunnel_snprintf(char *buf, size_t len,
+			 uint32_t flags, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_tunnel *tunnel = nftnl_expr_data(e);
 
@@ -148,21 +135,6 @@ nftnl_expr_tunnel_snprintf_default(char *buf, size_t len,
 				tunnel_key2str(tunnel->key), tunnel->dreg);
 	}
 	return 0;
-}
-
-static int
-nftnl_expr_tunnel_snprintf(char *buf, size_t len, uint32_t type,
-			 uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_tunnel_snprintf_default(buf, len, e);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct expr_ops expr_ops_tunnel = {

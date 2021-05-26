@@ -151,53 +151,40 @@ nftnl_obj_ct_expect_parse(struct nftnl_obj *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_obj_ct_expect_snprintf_default(char *buf, size_t len,
-						const struct nftnl_obj *e)
+static int nftnl_obj_ct_expect_snprintf(char *buf, size_t remain,
+					uint32_t flags,
+					const struct nftnl_obj *e)
 {
-	int ret = 0;
-	int offset = 0, remain = len;
 	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
+	int ret = 0, offset = 0;
 
 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L3PROTO)) {
-		ret = snprintf(buf + offset, len, "family %d ", exp->l3proto);
+		ret = snprintf(buf + offset, remain,
+			       "family %d ", exp->l3proto);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L4PROTO)) {
-		ret = snprintf(buf + offset, len, "protocol %d ", exp->l4proto);
+		ret = snprintf(buf + offset, remain,
+			       "protocol %d ", exp->l4proto);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_DPORT)) {
-		ret = snprintf(buf + offset, len, "dport %d ", exp->dport);
+		ret = snprintf(buf + offset, remain,
+			       "dport %d ", exp->dport);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_TIMEOUT)) {
-		ret = snprintf(buf + offset, len, "timeout %d ", exp->timeout);
+		ret = snprintf(buf + offset, remain,
+			       "timeout %d ", exp->timeout);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_SIZE)) {
-		ret = snprintf(buf + offset, len, "size %d ", exp->size);
+		ret = snprintf(buf + offset, remain, "size %d ", exp->size);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	buf[offset] = '\0';
 	return offset;
-}
-
-static int nftnl_obj_ct_expect_snprintf(char *buf, size_t len, uint32_t type,
-					uint32_t flags,
-					const struct nftnl_obj *e)
-{
-	if (len)
-		buf[0] = '\0';
-
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_obj_ct_expect_snprintf_default(buf, len, e);
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct obj_ops obj_ops_ct_expect = {

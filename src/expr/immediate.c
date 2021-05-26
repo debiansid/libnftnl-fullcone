@@ -184,48 +184,32 @@ nftnl_expr_immediate_parse(struct nftnl_expr *e, struct nlattr *attr)
 }
 
 static int
-nftnl_expr_immediate_snprintf_default(char *buf, size_t len,
-				      const struct nftnl_expr *e,
-				      uint32_t flags)
+nftnl_expr_immediate_snprintf(char *buf, size_t remain,
+			      uint32_t flags, const struct nftnl_expr *e)
 {
-	int remain = len, offset = 0, ret;
 	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
+	int offset = 0, ret;
 
 	ret = snprintf(buf, remain, "reg %u ", imm->dreg);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	if (e->flags & (1 << NFTNL_EXPR_IMM_DATA)) {
 		ret = nftnl_data_reg_snprintf(buf + offset, remain, &imm->data,
-					NFTNL_OUTPUT_DEFAULT, flags, DATA_VALUE);
+					      flags, DATA_VALUE);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	} else if (e->flags & (1 << NFTNL_EXPR_IMM_VERDICT)) {
 		ret = nftnl_data_reg_snprintf(buf + offset, remain, &imm->data,
-				NFTNL_OUTPUT_DEFAULT, flags, DATA_VERDICT);
+					      flags, DATA_VERDICT);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	} else if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN)) {
 		ret = nftnl_data_reg_snprintf(buf + offset, remain, &imm->data,
-					NFTNL_OUTPUT_DEFAULT, flags, DATA_CHAIN);
+					      flags, DATA_CHAIN);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	return offset;
-}
-
-static int
-nftnl_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
-			      uint32_t flags, const struct nftnl_expr *e)
-{
-	switch(type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_immediate_snprintf_default(buf, len, e, flags);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 static void nftnl_expr_immediate_free(const struct nftnl_expr *e)

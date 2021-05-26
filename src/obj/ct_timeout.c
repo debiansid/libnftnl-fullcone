@@ -257,21 +257,21 @@ nftnl_obj_ct_timeout_parse(struct nftnl_obj *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_obj_ct_timeout_snprintf_default(char *buf, size_t len,
-					       const struct nftnl_obj *e)
+static int nftnl_obj_ct_timeout_snprintf(char *buf, size_t remain,
+				       uint32_t flags,
+				       const struct nftnl_obj *e)
 {
-	int ret = 0;
-	int offset = 0, remain = len;
+	int ret = 0, offset = 0;
 
 	struct nftnl_obj_ct_timeout *timeout = nftnl_obj_data(e);
 
 	if (e->flags & (1 << NFTNL_OBJ_CT_TIMEOUT_L3PROTO)) {
-		ret = snprintf(buf + offset, len, "family %d ",
+		ret = snprintf(buf + offset, remain, "family %d ",
 			       timeout->l3proto);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	if (e->flags & (1 << NFTNL_OBJ_CT_TIMEOUT_L4PROTO)) {
-		ret = snprintf(buf + offset, len, "protocol %d ",
+		ret = snprintf(buf + offset, remain, "protocol %d ",
 				timeout->l4proto);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
@@ -283,7 +283,7 @@ static int nftnl_obj_ct_timeout_snprintf_default(char *buf, size_t len,
 		if (timeout_protocol[timeout->l4proto].attr_max == 0)
 			l4num = IPPROTO_RAW;
 
-		ret = snprintf(buf + offset, len, "policy = {");
+		ret = snprintf(buf + offset, remain, "policy = {");
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 		for (i = 0; i < timeout_protocol[l4num].attr_max; i++) {
@@ -293,35 +293,18 @@ static int nftnl_obj_ct_timeout_snprintf_default(char *buf, size_t len,
 				"UNKNOWN";
 
 			if (timeout->timeout[i] != timeout_protocol[l4num].dflt_timeout[i]) {
-				ret = snprintf(buf + offset, len,
+				ret = snprintf(buf + offset, remain,
 					"%s = %u,", state_name, timeout->timeout[i]);
 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 			}
 		}
 
-		ret = snprintf(buf + offset, len, "}");
+		ret = snprintf(buf + offset, remain, "}");
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 	buf[offset] = '\0';
 
 	return offset;
-}
-
-static int nftnl_obj_ct_timeout_snprintf(char *buf, size_t len, uint32_t type,
-				       uint32_t flags,
-				       const struct nftnl_obj *e)
-{
-	if (len)
-		buf[0] = '\0';
-
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_obj_ct_timeout_snprintf_default(buf, len, e);
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct obj_ops obj_ops_ct_timeout = {

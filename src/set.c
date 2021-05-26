@@ -784,13 +784,12 @@ int nftnl_set_parse_file(struct nftnl_set *s, enum nftnl_parse_type type,
 	return nftnl_set_do_parse(s, type, fp, err, NFTNL_PARSE_FILE);
 }
 
-static int nftnl_set_snprintf_default(char *buf, size_t size,
+static int nftnl_set_snprintf_default(char *buf, size_t remain,
 				      const struct nftnl_set *s,
 				      uint32_t type, uint32_t flags)
 {
-	int ret;
-	int remain = size, offset = 0;
 	struct nftnl_set_elem *elem;
+	int ret, offset = 0;
 
 	ret = snprintf(buf, remain, "%s %s %x",
 			s->name, s->table, s->set_flags);
@@ -829,37 +828,30 @@ static int nftnl_set_snprintf_default(char *buf, size_t size,
 		ret = snprintf(buf + offset, remain, "\t");
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
-		ret = nftnl_set_elem_snprintf(buf + offset, remain, elem, type,
-					      flags);
+		ret = nftnl_set_elem_snprintf_default(buf + offset, remain,
+						      elem, s->data_type);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	return offset;
 }
 
-static int nftnl_set_cmd_snprintf(char *buf, size_t size,
+static int nftnl_set_cmd_snprintf(char *buf, size_t remain,
 				  const struct nftnl_set *s, uint32_t cmd,
 				  uint32_t type, uint32_t flags)
 {
-	int ret, remain = size, offset = 0;
 	uint32_t inner_flags = flags;
+	int ret, offset = 0;
 
-	if (type == NFTNL_OUTPUT_XML)
-		return 0;
+	if (type != NFTNL_OUTPUT_DEFAULT)
+		return -1;
 
 	/* prevent set_elems to print as events */
 	inner_flags &= ~NFTNL_OF_EVENT_ANY;
 
-	switch(type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		ret = nftnl_set_snprintf_default(buf + offset, remain, s, type,
-					       inner_flags);
-		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-		break;
-	default:
-		return -1;
-	}
-
+	ret = nftnl_set_snprintf_default(buf + offset, remain, s, type,
+					 inner_flags);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	return offset;
 }
 

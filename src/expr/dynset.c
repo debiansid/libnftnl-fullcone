@@ -308,12 +308,12 @@ static const char *op2str(enum nft_dynset_ops op)
 }
 
 static int
-nftnl_expr_dynset_snprintf_default(char *buf, size_t size,
-				   const struct nftnl_expr *e)
+nftnl_expr_dynset_snprintf(char *buf, size_t remain,
+			   uint32_t flags, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
 	struct nftnl_expr *expr;
-	int remain = size, offset = 0, ret;
+	int offset = 0, ret;
 
 	ret = snprintf(buf, remain, "%s reg_key %u set %s ",
 		       op2str(dynset->op), dynset->sreg_key, dynset->set_name);
@@ -344,21 +344,6 @@ nftnl_expr_dynset_snprintf_default(char *buf, size_t size,
 	}
 
 	return offset;
-}
-
-static int
-nftnl_expr_dynset_snprintf(char *buf, size_t size, uint32_t type,
-			   uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_dynset_snprintf_default(buf, size, e);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 static void nftnl_expr_dynset_init(const struct nftnl_expr *e)

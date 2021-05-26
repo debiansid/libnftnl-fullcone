@@ -826,10 +826,10 @@ static inline int nftnl_str2hooknum(int family, const char *hook)
 	return -1;
 }
 
-static int nftnl_chain_snprintf_default(char *buf, size_t size,
+static int nftnl_chain_snprintf_default(char *buf, size_t remain,
 					const struct nftnl_chain *c)
 {
-	int ret, remain = size, offset = 0, i;
+	int ret, offset = 0, i;
 
 	ret = snprintf(buf, remain, "%s %s %s use %u",
 		       nftnl_family2str(c->family), c->table, c->name, c->use);
@@ -884,23 +884,17 @@ static int nftnl_chain_snprintf_default(char *buf, size_t size,
 	return offset;
 }
 
-static int nftnl_chain_cmd_snprintf(char *buf, size_t size,
+static int nftnl_chain_cmd_snprintf(char *buf, size_t remain,
 				    const struct nftnl_chain *c, uint32_t cmd,
 				    uint32_t type, uint32_t flags)
 {
-	int ret, remain = size, offset = 0;
+	int ret, offset = 0;
 
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		ret = nftnl_chain_snprintf_default(buf + offset, remain, c);
-		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-		break;
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
+	if (type != NFTNL_OUTPUT_DEFAULT)
 		return -1;
-	}
 
+	ret = nftnl_chain_snprintf_default(buf + offset, remain, c);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	return offset;
 }
 

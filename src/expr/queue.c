@@ -143,60 +143,46 @@ nftnl_expr_queue_parse(struct nftnl_expr *e, struct nlattr *attr)
 	return 0;
 }
 
-static int nftnl_expr_queue_snprintf_default(char *buf, size_t len,
-					     const struct nftnl_expr *e)
+static int
+nftnl_expr_queue_snprintf(char *buf, size_t remain,
+			  uint32_t flags, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_queue *queue = nftnl_expr_data(e);
-	int ret, remain = len, offset = 0;
 	uint16_t total_queues;
+	int ret, offset = 0;
 
 	if (e->flags & (1 << NFTNL_EXPR_QUEUE_NUM)) {
 		total_queues = queue->queuenum + queue->queues_total - 1;
 
-		ret = snprintf(buf + offset, len, "num %u", queue->queuenum);
+		ret = snprintf(buf + offset, remain, "num %u", queue->queuenum);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 		if (queue->queues_total && total_queues != queue->queuenum) {
-			ret = snprintf(buf + offset, len, "-%u", total_queues);
+			ret = snprintf(buf + offset, remain, "-%u", total_queues);
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 		}
 
-		ret = snprintf(buf + offset, len, " ");
+		ret = snprintf(buf + offset, remain, " ");
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (e->flags & (1 << NFTNL_EXPR_QUEUE_SREG_QNUM)) {
-		ret = snprintf(buf + offset, len, "sreg_qnum %u ",
+		ret = snprintf(buf + offset, remain, "sreg_qnum %u ",
 			       queue->sreg_qnum);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (e->flags & (1 << NFTNL_EXPR_QUEUE_FLAGS)) {
 		if (queue->flags & (NFT_QUEUE_FLAG_BYPASS)) {
-			ret = snprintf(buf + offset, len, "bypass ");
+			ret = snprintf(buf + offset, remain, "bypass ");
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 		}
 		if (queue->flags & (NFT_QUEUE_FLAG_CPU_FANOUT)) {
-			ret = snprintf(buf + offset, len, "fanout ");
+			ret = snprintf(buf + offset, remain, "fanout ");
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 		}
 	}
 	return offset;
-}
-
-static int
-nftnl_expr_queue_snprintf(char *buf, size_t len, uint32_t type,
-			  uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_queue_snprintf_default(buf, len, e);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct expr_ops expr_ops_queue = {

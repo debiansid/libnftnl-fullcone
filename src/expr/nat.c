@@ -221,11 +221,11 @@ static inline int nftnl_str2nat(const char *nat)
 }
 
 static int
-nftnl_expr_nat_snprintf_default(char *buf, size_t size,
-				const struct nftnl_expr *e)
+nftnl_expr_nat_snprintf(char *buf, size_t remain,
+			uint32_t flags, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_nat *nat = nftnl_expr_data(e);
-	int remain = size, offset = 0, ret = 0;
+	int offset = 0, ret = 0;
 
 	ret = snprintf(buf, remain, "%s ", nat2str(nat->type));
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
@@ -236,15 +236,25 @@ nftnl_expr_nat_snprintf_default(char *buf, size_t size,
 
 	if (e->flags & (1 << NFTNL_EXPR_NAT_REG_ADDR_MIN)) {
 		ret = snprintf(buf + offset, remain,
-			       "addr_min reg %u addr_max reg %u ",
-			       nat->sreg_addr_min, nat->sreg_addr_max);
+			       "addr_min reg %u ", nat->sreg_addr_min);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+	}
+
+	if (e->flags & (1 << NFTNL_EXPR_NAT_REG_ADDR_MAX)) {
+		ret = snprintf(buf + offset, remain,
+			       "addr_max reg %u ", nat->sreg_addr_max);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
 	if (e->flags & (1 << NFTNL_EXPR_NAT_REG_PROTO_MIN)) {
 		ret = snprintf(buf + offset, remain,
-			       "proto_min reg %u proto_max reg %u ",
-			       nat->sreg_proto_min, nat->sreg_proto_max);
+			       "proto_min reg %u ", nat->sreg_proto_min);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+	}
+
+	if (e->flags & (1 << NFTNL_EXPR_NAT_REG_PROTO_MAX)) {
+		ret = snprintf(buf + offset, remain,
+			       "proto_max reg %u ", nat->sreg_proto_max);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 
@@ -254,21 +264,6 @@ nftnl_expr_nat_snprintf_default(char *buf, size_t size,
 	}
 
 	return offset;
-}
-
-static int
-nftnl_expr_nat_snprintf(char *buf, size_t size, uint32_t type,
-			uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_nat_snprintf_default(buf, size, e);
-	case NFTNL_OUTPUT_XML:
-	case NFTNL_OUTPUT_JSON:
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct expr_ops expr_ops_nat = {

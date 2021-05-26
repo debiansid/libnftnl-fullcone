@@ -210,40 +210,40 @@ nftnl_expr_bitwise_parse(struct nftnl_expr *e, struct nlattr *attr)
 }
 
 static int
-nftnl_expr_bitwise_snprintf_bool(char *buf, size_t size,
+nftnl_expr_bitwise_snprintf_bool(char *buf, size_t remain,
 				 const struct nftnl_expr_bitwise *bitwise)
 {
-	int remain = size, offset = 0, ret;
+	int offset = 0, ret;
 
 	ret = snprintf(buf, remain, "reg %u = ( reg %u & ",
 		       bitwise->dreg, bitwise->sreg);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	ret = nftnl_data_reg_snprintf(buf + offset, remain, &bitwise->mask,
-				      NFTNL_OUTPUT_DEFAULT, 0, DATA_VALUE);
+				      0, DATA_VALUE);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	ret = snprintf(buf + offset, remain, ") ^ ");
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	ret = nftnl_data_reg_snprintf(buf + offset, remain, &bitwise->xor,
-				      NFTNL_OUTPUT_DEFAULT, 0, DATA_VALUE);
+				      0, DATA_VALUE);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	return offset;
 }
 
 static int
-nftnl_expr_bitwise_snprintf_shift(char *buf, size_t size, const char *op,
+nftnl_expr_bitwise_snprintf_shift(char *buf, size_t remain, const char *op,
 				  const struct nftnl_expr_bitwise *bitwise)
-{	int remain = size, offset = 0, ret;
+{	int offset = 0, ret;
 
 	ret = snprintf(buf, remain, "reg %u = ( reg %u %s ",
 		       bitwise->dreg, bitwise->sreg, op);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	ret = nftnl_data_reg_snprintf(buf + offset, remain, &bitwise->data,
-				      NFTNL_OUTPUT_DEFAULT, 0, DATA_VALUE);
+				      0, DATA_VALUE);
 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	ret = snprintf(buf + offset, remain, ") ");
@@ -252,8 +252,9 @@ nftnl_expr_bitwise_snprintf_shift(char *buf, size_t size, const char *op,
 	return offset;
 }
 
-static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
-					       const struct nftnl_expr *e)
+static int
+nftnl_expr_bitwise_snprintf(char *buf, size_t size,
+			    uint32_t flags, const struct nftnl_expr *e)
 {
 	struct nftnl_expr_bitwise *bitwise = nftnl_expr_data(e);
 	int err = -1;
@@ -271,19 +272,6 @@ static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
 	}
 
 	return err;
-}
-
-static int
-nftnl_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
-			    uint32_t flags, const struct nftnl_expr *e)
-{
-	switch (type) {
-	case NFTNL_OUTPUT_DEFAULT:
-		return nftnl_expr_bitwise_snprintf_default(buf, size, e);
-	default:
-		break;
-	}
-	return -1;
 }
 
 struct expr_ops expr_ops_bitwise = {
