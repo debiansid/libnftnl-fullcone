@@ -1,3 +1,9 @@
+libnftnl (1.2.0-1) unstable; urgency=medium
+
+  * Rebuild from experimental to unstable.
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Sat, 04 Sep 2021 18:47:21 +0200
+
 libnftnl (1.2.0-1~exp1) experimental; urgency=medium
 
   * [c6a494a] New upstream version 1.2.0
