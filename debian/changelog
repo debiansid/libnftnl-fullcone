@@ -1,3 +1,13 @@
+libnftnl (1.2.1-1) unstable; urgency=medium
+
+  * [b294714] New upstream version 1.2.1
+  * [eb32dfe] d/control: bump std-version to 4.6.0
+  * [5ec46cd] d/libnftnl11.symbols: refresh file
+  * [02e14b5] d/copyright: drop references to missing source files
+  * [9777cfe] d/copyright: refresh copyright date for debian/ dir
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Fri, 19 Nov 2021 14:52:25 +0100
+
 libnftnl (1.2.0-1) unstable; urgency=medium
 
   * Rebuild from experimental to unstable.
