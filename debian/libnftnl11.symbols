@@ -5,6 +5,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  LIBNFTNL_14@LIBNFTNL_14 1.1.6
  LIBNFTNL_15@LIBNFTNL_15 1.1.8
  LIBNFTNL_16@LIBNFTNL_16 1.1.9
+ LIBNFTNL_17@LIBNFTNL_17 1.2.1
  nftnl_batch_alloc@LIBNFTNL_11 1.1.2
  nftnl_batch_begin@LIBNFTNL_11 1.1.2
  nftnl_batch_buffer@LIBNFTNL_11 1.1.2
@@ -229,6 +230,7 @@ libnftnl.so.11 libnftnl11 #MINVER#
  nftnl_set_elem_get_u32@LIBNFTNL_11 1.1.2
  nftnl_set_elem_get_u64@LIBNFTNL_11 1.1.2
  nftnl_set_elem_is_set@LIBNFTNL_11 1.1.2
+ nftnl_set_elem_nlmsg_build@LIBNFTNL_17 1.2.1
  nftnl_set_elem_parse@LIBNFTNL_11 1.1.2
  nftnl_set_elem_parse_file@LIBNFTNL_11 1.1.2
  nftnl_set_elem_set@LIBNFTNL_11 1.1.2
