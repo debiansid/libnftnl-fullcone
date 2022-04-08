@@ -20,6 +20,7 @@ extern struct expr_ops expr_ops_limit;
 extern struct expr_ops expr_ops_log;
 extern struct expr_ops expr_ops_lookup;
 extern struct expr_ops expr_ops_masq;
+extern struct expr_ops expr_ops_fullcone;
 extern struct expr_ops expr_ops_match;
 extern struct expr_ops expr_ops_meta;
 extern struct expr_ops expr_ops_ng;
@@ -65,6 +66,7 @@ static struct expr_ops *expr_ops[] = {
 	&expr_ops_log,
 	&expr_ops_lookup,
 	&expr_ops_masq,
+	&expr_ops_fullcone,
 	&expr_ops_match,
 	&expr_ops_meta,
 	&expr_ops_ng,

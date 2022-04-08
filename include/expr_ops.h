@@ -15,6 +15,7 @@ struct attr_policy {
 struct expr_ops {
 	const char *name;
 	uint32_t alloc_len;
+	int	max_attr;
 	int	nftnl_max_attr;
 	struct attr_policy *attr_policy;
 	void	(*init)(const struct nftnl_expr *e);
