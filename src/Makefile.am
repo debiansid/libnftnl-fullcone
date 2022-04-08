@@ -55,6 +55,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/target.c	\
 		      expr/tunnel.c	\
 		      expr/masq.c	\
+		      expr/fullcone.c	\
 		      expr/redir.c	\
 		      expr/hash.c	\
 		      expr/socket.c	\
