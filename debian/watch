@@ -1,2 +1,2 @@
-version=3
+version=4
 opts=pgpsigurlmangle=s/$/.sig/ https://www.netfilter.org/pub/libnftnl/libnftnl-(\S+).tar.xz
