@@ -1,3 +1,9 @@
+libnftnl (1.2.4-1) unstable; urgency=medium
+
+  * [c9c1293] New upstream version 1.2.4
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Tue, 15 Nov 2022 23:34:16 +0100
+
 libnftnl (1.2.3-1) unstable; urgency=medium
 
   * [bf6ee0b] New upstream version 1.2.3
