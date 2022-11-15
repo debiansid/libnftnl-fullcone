@@ -622,12 +622,13 @@ static int nftnl_rule_snprintf_default(char *buf, size_t remain,
 		for (i = 0; i < r->user.len; i++) {
 			char *c = r->user.data;
 
-			ret = snprintf(buf + offset, remain, "%c",
-				       isalnum(c[i]) ? c[i] : 0);
+			ret = snprintf(buf + offset, remain,
+				       isprint(c[i]) ? "%c" : "\\x%02hhx",
+				       c[i]);
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 		}
 
-		ret = snprintf(buf + offset, remain, " }\n");
+		ret = snprintf(buf + offset, remain, " }");
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 	}
