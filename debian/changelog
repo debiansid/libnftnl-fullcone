@@ -1,3 +1,14 @@
+libnftnl (1.2.4-2) unstable; urgency=medium
+
+  * Rebuild and reupload of 1.2.4-1.
+  * I made a mistake uploading the previous version to the archive. The
+  original 1.2.4-1 that was uploaded was built over an not-up-to-date git tree.
+  The package was accepted into the archive before I could cancel the upload.
+  So, this rebuild and reupload should help the archive forget about the wrong
+  1.2.4-1. Sorry!
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Wed, 16 Nov 2022 10:19:20 +0100
+
 libnftnl (1.2.4-1) unstable; urgency=medium
 
   * [c9c1293] New upstream version 1.2.4
