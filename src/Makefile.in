@@ -140,14 +140,14 @@ am_libnftnl_la_OBJECTS = utils.lo batch.lo flowtable.lo common.lo \
 	expr/connlimit.lo expr/counter.lo expr/ct.lo expr/data_reg.lo \
 	expr/dup.lo expr/exthdr.lo expr/flow_offload.lo expr/fib.lo \
 	expr/fwd.lo expr/last.lo expr/limit.lo expr/log.lo \
-	expr/lookup.lo expr/dynset.lo expr/immediate.lo expr/match.lo \
-	expr/meta.lo expr/numgen.lo expr/nat.lo expr/tproxy.lo \
-	expr/objref.lo expr/payload.lo expr/queue.lo expr/quota.lo \
-	expr/reject.lo expr/rt.lo expr/target.lo expr/tunnel.lo \
-	expr/masq.lo expr/redir.lo expr/hash.lo expr/socket.lo \
-	expr/synproxy.lo expr/osf.lo expr/xfrm.lo obj/counter.lo \
-	obj/ct_helper.lo obj/quota.lo obj/tunnel.lo obj/limit.lo \
-	obj/synproxy.lo obj/ct_timeout.lo obj/secmark.lo \
+	expr/lookup.lo expr/dynset.lo expr/immediate.lo expr/inner.lo \
+	expr/match.lo expr/meta.lo expr/numgen.lo expr/nat.lo \
+	expr/tproxy.lo expr/objref.lo expr/payload.lo expr/queue.lo \
+	expr/quota.lo expr/reject.lo expr/rt.lo expr/target.lo \
+	expr/tunnel.lo expr/masq.lo expr/redir.lo expr/hash.lo \
+	expr/socket.lo expr/synproxy.lo expr/osf.lo expr/xfrm.lo \
+	obj/counter.lo obj/ct_helper.lo obj/quota.lo obj/tunnel.lo \
+	obj/limit.lo obj/synproxy.lo obj/ct_timeout.lo obj/secmark.lo \
 	obj/ct_expect.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -187,23 +187,24 @@ am__depfiles_remade = ./$(DEPDIR)/batch.Plo ./$(DEPDIR)/chain.Plo \
 	expr/$(DEPDIR)/dynset.Plo expr/$(DEPDIR)/exthdr.Plo \
 	expr/$(DEPDIR)/fib.Plo expr/$(DEPDIR)/flow_offload.Plo \
 	expr/$(DEPDIR)/fwd.Plo expr/$(DEPDIR)/hash.Plo \
-	expr/$(DEPDIR)/immediate.Plo expr/$(DEPDIR)/last.Plo \
-	expr/$(DEPDIR)/limit.Plo expr/$(DEPDIR)/log.Plo \
-	expr/$(DEPDIR)/lookup.Plo expr/$(DEPDIR)/masq.Plo \
-	expr/$(DEPDIR)/match.Plo expr/$(DEPDIR)/meta.Plo \
-	expr/$(DEPDIR)/nat.Plo expr/$(DEPDIR)/numgen.Plo \
-	expr/$(DEPDIR)/objref.Plo expr/$(DEPDIR)/osf.Plo \
-	expr/$(DEPDIR)/payload.Plo expr/$(DEPDIR)/queue.Plo \
-	expr/$(DEPDIR)/quota.Plo expr/$(DEPDIR)/range.Plo \
-	expr/$(DEPDIR)/redir.Plo expr/$(DEPDIR)/reject.Plo \
-	expr/$(DEPDIR)/rt.Plo expr/$(DEPDIR)/socket.Plo \
-	expr/$(DEPDIR)/synproxy.Plo expr/$(DEPDIR)/target.Plo \
-	expr/$(DEPDIR)/tproxy.Plo expr/$(DEPDIR)/tunnel.Plo \
-	expr/$(DEPDIR)/xfrm.Plo obj/$(DEPDIR)/counter.Plo \
-	obj/$(DEPDIR)/ct_expect.Plo obj/$(DEPDIR)/ct_helper.Plo \
-	obj/$(DEPDIR)/ct_timeout.Plo obj/$(DEPDIR)/limit.Plo \
-	obj/$(DEPDIR)/quota.Plo obj/$(DEPDIR)/secmark.Plo \
-	obj/$(DEPDIR)/synproxy.Plo obj/$(DEPDIR)/tunnel.Plo
+	expr/$(DEPDIR)/immediate.Plo expr/$(DEPDIR)/inner.Plo \
+	expr/$(DEPDIR)/last.Plo expr/$(DEPDIR)/limit.Plo \
+	expr/$(DEPDIR)/log.Plo expr/$(DEPDIR)/lookup.Plo \
+	expr/$(DEPDIR)/masq.Plo expr/$(DEPDIR)/match.Plo \
+	expr/$(DEPDIR)/meta.Plo expr/$(DEPDIR)/nat.Plo \
+	expr/$(DEPDIR)/numgen.Plo expr/$(DEPDIR)/objref.Plo \
+	expr/$(DEPDIR)/osf.Plo expr/$(DEPDIR)/payload.Plo \
+	expr/$(DEPDIR)/queue.Plo expr/$(DEPDIR)/quota.Plo \
+	expr/$(DEPDIR)/range.Plo expr/$(DEPDIR)/redir.Plo \
+	expr/$(DEPDIR)/reject.Plo expr/$(DEPDIR)/rt.Plo \
+	expr/$(DEPDIR)/socket.Plo expr/$(DEPDIR)/synproxy.Plo \
+	expr/$(DEPDIR)/target.Plo expr/$(DEPDIR)/tproxy.Plo \
+	expr/$(DEPDIR)/tunnel.Plo expr/$(DEPDIR)/xfrm.Plo \
+	obj/$(DEPDIR)/counter.Plo obj/$(DEPDIR)/ct_expect.Plo \
+	obj/$(DEPDIR)/ct_helper.Plo obj/$(DEPDIR)/ct_timeout.Plo \
+	obj/$(DEPDIR)/limit.Plo obj/$(DEPDIR)/quota.Plo \
+	obj/$(DEPDIR)/secmark.Plo obj/$(DEPDIR)/synproxy.Plo \
+	obj/$(DEPDIR)/tunnel.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -440,6 +441,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/lookup.c	\
 		      expr/dynset.c	\
 		      expr/immediate.c	\
+		      expr/inner.c	\
 		      expr/match.c	\
 		      expr/meta.c	\
 		      expr/numgen.c	\
@@ -566,6 +568,7 @@ expr/log.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/lookup.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/dynset.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/immediate.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
+expr/inner.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/match.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/meta.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
 expr/numgen.lo: expr/$(am__dirstamp) expr/$(DEPDIR)/$(am__dirstamp)
@@ -646,6 +649,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/fwd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/hash.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/immediate.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/inner.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/last.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/limit.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@expr/$(DEPDIR)/log.Plo@am__quote@ # am--include-marker
@@ -881,6 +885,7 @@ distclean: distclean-am
 	-rm -f expr/$(DEPDIR)/fwd.Plo
 	-rm -f expr/$(DEPDIR)/hash.Plo
 	-rm -f expr/$(DEPDIR)/immediate.Plo
+	-rm -f expr/$(DEPDIR)/inner.Plo
 	-rm -f expr/$(DEPDIR)/last.Plo
 	-rm -f expr/$(DEPDIR)/limit.Plo
 	-rm -f expr/$(DEPDIR)/log.Plo
@@ -990,6 +995,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f expr/$(DEPDIR)/fwd.Plo
 	-rm -f expr/$(DEPDIR)/hash.Plo
 	-rm -f expr/$(DEPDIR)/immediate.Plo
+	-rm -f expr/$(DEPDIR)/inner.Plo
 	-rm -f expr/$(DEPDIR)/last.Plo
 	-rm -f expr/$(DEPDIR)/limit.Plo
 	-rm -f expr/$(DEPDIR)/log.Plo
