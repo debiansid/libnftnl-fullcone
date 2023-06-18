@@ -1,3 +1,19 @@
+libnftnl (1.2.5-2) unstable; urgency=medium
+
+  * [8b89f0f] d/u/signing-key.asc: update and minmize key
+  * [e05bc06] d/control: add myself to uploaders.
+  * [790c140] d/control: bump Standards-Version to 4.6.2
+  * [649741b] d/control: set R³: no.
+  * [08096c1] d/control: use tracker.debian.org team address for `Maintainer:`
+  * [bcd604c] d/control: add b-dep on graphviz for building doc's
+  * [6937646] d/watch: use HTTPS URL
+  * [ebbe6f6] d/watch: bump to v4
+  * [998a1d8] d/libnftnl11.symbols: add `Build-Depends-Package:`
+  * [fa0046f] d/gbp.conf: DEFAULT: set `pristine-tar`
+  * [6908224] d/gbp.conf: dch: set `id-length`
+
+ -- Jeremy Sowden <jeremy@azazel.net>  Sun, 18 Jun 2023 13:45:36 +0100
+
 libnftnl (1.2.5-1) unstable; urgency=medium
 
   * d/watch: update tarball extension
