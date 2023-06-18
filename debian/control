@@ -5,6 +5,7 @@ Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>,
            Jeremy Sowden <jeremy@azazel.net>
 Build-Depends: debhelper-compat (= 13),
                doxygen,
+               graphviz,
                libmnl-dev,
                libtool,
                pkg-config
