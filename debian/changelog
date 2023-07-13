@@ -1,5 +1,6 @@
-libnftnl (1.2.5-2) unstable; urgency=medium
+libnftnl (1.2.6-1) unstable; urgency=medium
 
+  [ Jeremy Sowden ]
   * [8b89f0f] d/u/signing-key.asc: update and minmize key
   * [e05bc06] d/control: add myself to uploaders.
   * [790c140] d/control: bump Standards-Version to 4.6.2
@@ -12,7 +13,10 @@ libnftnl (1.2.5-2) unstable; urgency=medium
   * [fa0046f] d/gbp.conf: DEFAULT: set `pristine-tar`
   * [6908224] d/gbp.conf: dch: set `id-length`
 
- -- Jeremy Sowden <jeremy@azazel.net>  Sun, 18 Jun 2023 13:45:36 +0100
+  [ Arturo Borrero Gonzalez ]
+  * [fe98300] New upstream version 1.2.6
+
+ -- Arturo Borrero Gonzalez <arturo@debian.org>  Thu, 13 Jul 2023 12:04:43 +0200
 
 libnftnl (1.2.5-1) unstable; urgency=medium
 
