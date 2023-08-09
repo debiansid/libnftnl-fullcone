@@ -1,3 +1,12 @@
+libnftnl (1.2.6-2) unstable; urgency=medium
+
+  * [b8d5c66] d/rules: let dh manage build-flags
+  * [05d66dc] d/control, d/rules: build -doc package in `binary-indep` target
+    (Closes: #1043314)
+  * [965513d] d/control, d/rules: add `nodoc` build-profile support
+
+ -- Jeremy Sowden <jeremy@azazel.net>  Wed, 09 Aug 2023 16:09:58 +0100
+
 libnftnl (1.2.6-1) unstable; urgency=medium
 
   [ Jeremy Sowden ]
