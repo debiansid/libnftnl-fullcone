@@ -4,7 +4,7 @@ Maintainer: Debian Netfilter Packaging Team <team+pkg-netfilter-team@tracker.deb
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>,
            Jeremy Sowden <jeremy@azazel.net>
 Build-Depends: debhelper-compat (= 13), libmnl-dev, libtool, pkg-config
-Build-Depends-Indep: doxygen, graphviz
+Build-Depends-Indep: doxygen <!nodoc>, graphviz <!nodoc>
 Rules-Requires-Root: no
 Standards-Version: 4.6.2
 Section: libs
@@ -43,6 +43,7 @@ Description: Development files for libnftnl
 Package: libnftnl-dev-doc
 Section: doc
 Architecture: all
+Build-Profiles: <!nodoc>
 Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}
