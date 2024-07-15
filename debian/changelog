@@ -1,3 +1,18 @@
+libnftnl (1.2.7-1) UNRELEASED; urgency=medium
+
+  * [e69ef93] New upstream version 1.2.7
+    + Avoid potential use-after-free when clearing set's expression list
+    + Avoid misc buffer overflows in attribute setters
+    + Implement nftnl_obj_unset symbol already exported in libnftnl.map
+    + Remove unimplemented symbols from libnftnl.map
+    + Drop some unused internal functions
+    + Validate per-expression and per-object attribute value and data length
+    + Enable some attribute validation where missing
+    + Fix synproxy object setter with unaligned data
+    + Fix for unsetting userdata attributes in table and chain objects
+
+ -- Jeremy Sowden <azazel@debian.org>  Mon, 15 Jul 2024 16:31:53 +0100
+
 libnftnl (1.2.6-2) unstable; urgency=medium
 
   * [b8d5c66] d/rules: let dh manage build-flags
