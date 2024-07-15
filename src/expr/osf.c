@@ -25,13 +25,13 @@ static int nftnl_expr_osf_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_OSF_DREG:
-		memcpy(&osf->dreg, data, sizeof(osf->dreg));
+		memcpy(&osf->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_OSF_TTL:
-		memcpy(&osf->ttl, data, sizeof(osf->ttl));
+		memcpy(&osf->ttl, data, data_len);
 		break;
 	case NFTNL_EXPR_OSF_FLAGS:
-		memcpy(&osf->flags, data, sizeof(osf->flags));
+		memcpy(&osf->flags, data, data_len);
 		break;
 	}
 	return 0;
@@ -89,12 +89,12 @@ nftnl_expr_osf_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 	struct nftnl_expr_osf *osf = nftnl_expr_data(e);
 
 	if (e->flags & (1 << NFTNL_EXPR_OSF_DREG))
-		mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_DREG, htonl(osf->dreg));
+		mnl_attr_put_u32(nlh, NFTA_OSF_DREG, htonl(osf->dreg));
 	if (e->flags & (1 << NFTNL_EXPR_OSF_TTL))
-		mnl_attr_put_u8(nlh, NFTNL_EXPR_OSF_TTL, osf->ttl);
+		mnl_attr_put_u8(nlh, NFTA_OSF_TTL, osf->ttl);
 	if (e->flags & (1 << NFTNL_EXPR_OSF_FLAGS))
 		if (osf->flags)
-			mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_FLAGS, htonl(osf->flags));
+			mnl_attr_put_u32(nlh, NFTA_OSF_FLAGS, htonl(osf->flags));
 }
 
 static int
@@ -139,10 +139,17 @@ nftnl_expr_osf_snprintf(char *buf, size_t len,
 	return offset;
 }
 
+static struct attr_policy osf_attr_policy[__NFTNL_EXPR_OSF_MAX] = {
+	[NFTNL_EXPR_OSF_DREG]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_OSF_TTL]   = { .maxlen = sizeof(uint8_t) },
+	[NFTNL_EXPR_OSF_FLAGS] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_osf = {
 	.name		= "osf",
 	.alloc_len	= sizeof(struct nftnl_expr_osf),
-	.max_attr	= NFTA_OSF_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_OSF_MAX - 1,
+	.attr_policy	= osf_attr_policy,
 	.set		= nftnl_expr_osf_set,
 	.get		= nftnl_expr_osf_get,
 	.parse		= nftnl_expr_osf_parse,

@@ -34,19 +34,17 @@ static int nftnl_expr_queue_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_QUEUE_NUM:
-		memcpy(&queue->queuenum, data, sizeof(queue->queuenum));
+		memcpy(&queue->queuenum, data, data_len);
 		break;
 	case NFTNL_EXPR_QUEUE_TOTAL:
-		memcpy(&queue->queues_total, data, sizeof(queue->queues_total));
+		memcpy(&queue->queues_total, data, data_len);
 		break;
 	case NFTNL_EXPR_QUEUE_FLAGS:
-		memcpy(&queue->flags, data, sizeof(queue->flags));
+		memcpy(&queue->flags, data, data_len);
 		break;
 	case NFTNL_EXPR_QUEUE_SREG_QNUM:
-		memcpy(&queue->sreg_qnum, data, sizeof(queue->sreg_qnum));
+		memcpy(&queue->sreg_qnum, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -185,10 +183,18 @@ nftnl_expr_queue_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy queue_attr_policy[__NFTNL_EXPR_QUEUE_MAX] = {
+	[NFTNL_EXPR_QUEUE_NUM]       = { .maxlen = sizeof(uint16_t) },
+	[NFTNL_EXPR_QUEUE_TOTAL]     = { .maxlen = sizeof(uint16_t) },
+	[NFTNL_EXPR_QUEUE_FLAGS]     = { .maxlen = sizeof(uint16_t) },
+	[NFTNL_EXPR_QUEUE_SREG_QNUM] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_queue = {
 	.name		= "queue",
 	.alloc_len	= sizeof(struct nftnl_expr_queue),
-	.max_attr	= NFTA_QUEUE_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_QUEUE_MAX - 1,
+	.attr_policy	= queue_attr_policy,
 	.set		= nftnl_expr_queue_set,
 	.get		= nftnl_expr_queue_get,
 	.parse		= nftnl_expr_queue_parse,

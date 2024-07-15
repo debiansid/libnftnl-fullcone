@@ -33,16 +33,16 @@ nftnl_expr_xfrm_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_XFRM_KEY:
-		memcpy(&x->key, data, sizeof(x->key));
+		memcpy(&x->key, data, data_len);
 		break;
 	case NFTNL_EXPR_XFRM_DIR:
-		memcpy(&x->dir, data, sizeof(x->dir));
+		memcpy(&x->dir, data, data_len);
 		break;
 	case NFTNL_EXPR_XFRM_SPNUM:
-		memcpy(&x->spnum, data, sizeof(x->spnum));
+		memcpy(&x->spnum, data, data_len);
 		break;
 	case NFTNL_EXPR_XFRM_DREG:
-		memcpy(&x->dreg, data, sizeof(x->dreg));
+		memcpy(&x->dreg, data, data_len);
 		break;
 	default:
 		return -1;
@@ -188,10 +188,19 @@ nftnl_expr_xfrm_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy xfrm_attr_policy[__NFTNL_EXPR_XFRM_MAX] = {
+	[NFTNL_EXPR_XFRM_DREG]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_XFRM_SREG]  = { .maxlen = 0 },
+	[NFTNL_EXPR_XFRM_KEY]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_XFRM_DIR]   = { .maxlen = sizeof(uint8_t) },
+	[NFTNL_EXPR_XFRM_SPNUM] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_xfrm = {
 	.name		= "xfrm",
 	.alloc_len	= sizeof(struct nftnl_expr_xfrm),
-	.max_attr	= NFTA_XFRM_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_XFRM_MAX - 1,
+	.attr_policy	= xfrm_attr_policy,
 	.set		= nftnl_expr_xfrm_set,
 	.get		= nftnl_expr_xfrm_get,
 	.parse		= nftnl_expr_xfrm_parse,

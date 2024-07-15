@@ -33,14 +33,12 @@ nftnl_expr_immediate_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_IMM_DREG:
-		memcpy(&imm->dreg, data, sizeof(imm->dreg));
+		memcpy(&imm->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_IMM_DATA:
-		memcpy(&imm->data.val, data, data_len);
-		imm->data.len = data_len;
-		break;
+		return nftnl_data_cpy(&imm->data, data, data_len);
 	case NFTNL_EXPR_IMM_VERDICT:
-		memcpy(&imm->data.verdict, data, sizeof(imm->data.verdict));
+		memcpy(&imm->data.verdict, data, data_len);
 		break;
 	case NFTNL_EXPR_IMM_CHAIN:
 		if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
@@ -51,10 +49,8 @@ nftnl_expr_immediate_set(struct nftnl_expr *e, uint16_t type,
 			return -1;
 		break;
 	case NFTNL_EXPR_IMM_CHAIN_ID:
-		memcpy(&imm->data.chain_id, data, sizeof(uint32_t));
+		memcpy(&imm->data.chain_id, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -216,14 +212,23 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
 {
 	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
 
-	if (e->flags & (1 << NFTNL_EXPR_IMM_VERDICT))
-		nftnl_free_verdict(&imm->data);
+	if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
+		xfree(imm->data.chain);
 }
+
+static struct attr_policy immediate_attr_policy[__NFTNL_EXPR_IMM_MAX] = {
+	[NFTNL_EXPR_IMM_DREG]     = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_IMM_DATA]     = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+	[NFTNL_EXPR_IMM_VERDICT]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_IMM_CHAIN]    = { .maxlen = NFT_CHAIN_MAXNAMELEN },
+	[NFTNL_EXPR_IMM_CHAIN_ID] = { .maxlen = sizeof(uint32_t) },
+};
 
 struct expr_ops expr_ops_immediate = {
 	.name		= "immediate",
 	.alloc_len	= sizeof(struct nftnl_expr_immediate),
-	.max_attr	= NFTA_IMMEDIATE_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_IMM_MAX - 1,
+	.attr_policy	= immediate_attr_policy,
 	.free		= nftnl_expr_immediate_free,
 	.set		= nftnl_expr_immediate_set,
 	.get		= nftnl_expr_immediate_get,

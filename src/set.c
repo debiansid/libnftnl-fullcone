@@ -54,8 +54,10 @@ void nftnl_set_free(const struct nftnl_set *s)
 	if (s->flags & (1 << NFTNL_SET_USERDATA))
 		xfree(s->user.data);
 
-	list_for_each_entry_safe(expr, next, &s->expr_list, head)
+	list_for_each_entry_safe(expr, next, &s->expr_list, head) {
+		list_del(&expr->head);
 		nftnl_expr_free(expr);
+	}
 
 	list_for_each_entry_safe(elem, tmp, &s->element_list, head) {
 		list_del(&elem->head);
@@ -105,8 +107,10 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
 		break;
 	case NFTNL_SET_EXPR:
 	case NFTNL_SET_EXPRESSIONS:
-		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
+			list_del(&expr->head);
 			nftnl_expr_free(expr);
+		}
 		break;
 	default:
 		return;
@@ -124,6 +128,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] = {
 	[NFTNL_SET_DATA_LEN]		= sizeof(uint32_t),
 	[NFTNL_SET_OBJ_TYPE]		= sizeof(uint32_t),
 	[NFTNL_SET_FAMILY]		= sizeof(uint32_t),
+	[NFTNL_SET_ID]			= sizeof(uint32_t),
 	[NFTNL_SET_POLICY]		= sizeof(uint32_t),
 	[NFTNL_SET_DESC_SIZE]	= sizeof(uint32_t),
 	[NFTNL_SET_TIMEOUT]		= sizeof(uint64_t),
@@ -141,21 +146,11 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
 
 	switch(attr) {
 	case NFTNL_SET_TABLE:
-		if (s->flags & (1 << NFTNL_SET_TABLE))
-			xfree(s->table);
-
-		s->table = strdup(data);
-		if (!s->table)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&s->table, &s->flags,
+					  attr, data, data_len);
 	case NFTNL_SET_NAME:
-		if (s->flags & (1 << NFTNL_SET_NAME))
-			xfree(s->name);
-
-		s->name = strdup(data);
-		if (!s->name)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&s->name, &s->flags,
+					  attr, data, data_len);
 	case NFTNL_SET_HANDLE:
 		memcpy(&s->handle, data, sizeof(s->handle));
 		break;
@@ -190,8 +185,14 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
 		memcpy(&s->desc.size, data, sizeof(s->desc.size));
 		break;
 	case NFTNL_SET_DESC_CONCAT:
+		if (data_len > sizeof(s->desc.field_len))
+			return -1;
+
 		memcpy(&s->desc.field_len, data, data_len);
-		while (s->desc.field_len[++s->desc.field_count]);
+		while (s->desc.field_len[++s->desc.field_count]) {
+			if (s->desc.field_count >= NFT_REG32_COUNT)
+				break;
+		}
 		break;
 	case NFTNL_SET_TIMEOUT:
 		memcpy(&s->timeout, data, sizeof(s->timeout));
@@ -210,8 +211,10 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
 		s->user.len = data_len;
 		break;
 	case NFTNL_SET_EXPR:
-		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
+			list_del(&expr->head);
 			nftnl_expr_free(expr);
+		}
 
 		expr = (void *)data;
 		list_add(&expr->head, &s->expr_list);
@@ -742,8 +745,10 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
 
 	return 0;
 out_set_expr:
-	list_for_each_entry_safe(expr, next, &s->expr_list, head)
+	list_for_each_entry_safe(expr, next, &s->expr_list, head) {
+		list_del(&expr->head);
 		nftnl_expr_free(expr);
+	}
 
 	return -1;
 }

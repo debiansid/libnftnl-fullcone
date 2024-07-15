@@ -28,22 +28,20 @@ static int nftnl_obj_limit_set(struct nftnl_obj *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_OBJ_LIMIT_RATE:
-		memcpy(&limit->rate, data, sizeof(limit->rate));
+		memcpy(&limit->rate, data, data_len);
 		break;
 	case NFTNL_OBJ_LIMIT_UNIT:
-		memcpy(&limit->unit, data, sizeof(limit->unit));
+		memcpy(&limit->unit, data, data_len);
 		break;
 	case NFTNL_OBJ_LIMIT_BURST:
-		memcpy(&limit->burst, data, sizeof(limit->burst));
+		memcpy(&limit->burst, data, data_len);
 		break;
 	case NFTNL_OBJ_LIMIT_TYPE:
-		memcpy(&limit->type, data, sizeof(limit->type));
+		memcpy(&limit->type, data, data_len);
 		break;
 	case NFTNL_OBJ_LIMIT_FLAGS:
-		memcpy(&limit->flags, data, sizeof(limit->flags));
+		memcpy(&limit->flags, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -159,11 +157,20 @@ static int nftnl_obj_limit_snprintf(char *buf, size_t len,
 			limit->burst, limit->type, limit->flags);
 }
 
+static struct attr_policy obj_limit_attr_policy[__NFTNL_OBJ_LIMIT_MAX] = {
+	[NFTNL_OBJ_LIMIT_RATE]	= { .maxlen = sizeof(uint64_t) },
+	[NFTNL_OBJ_LIMIT_UNIT]	= { .maxlen = sizeof(uint64_t) },
+	[NFTNL_OBJ_LIMIT_BURST]	= { .maxlen = sizeof(uint32_t) },
+	[NFTNL_OBJ_LIMIT_TYPE]	= { .maxlen = sizeof(uint32_t) },
+	[NFTNL_OBJ_LIMIT_FLAGS]	= { .maxlen = sizeof(uint32_t) },
+};
+
 struct obj_ops obj_ops_limit = {
 	.name		= "limit",
 	.type		= NFT_OBJECT_LIMIT,
 	.alloc_len	= sizeof(struct nftnl_obj_limit),
-	.max_attr	= NFTA_LIMIT_MAX,
+	.nftnl_max_attr	= __NFTNL_OBJ_LIMIT_MAX - 1,
+	.attr_policy	= obj_limit_attr_policy,
 	.set		= nftnl_obj_limit_set,
 	.get		= nftnl_obj_limit_get,
 	.parse		= nftnl_obj_limit_parse,

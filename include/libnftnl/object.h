@@ -28,18 +28,21 @@ enum {
 enum {
 	NFTNL_OBJ_CTR_PKTS	= NFTNL_OBJ_BASE,
 	NFTNL_OBJ_CTR_BYTES,
+	__NFTNL_OBJ_CTR_MAX,
 };
 
 enum {
 	NFTNL_OBJ_QUOTA_BYTES	= NFTNL_OBJ_BASE,
 	NFTNL_OBJ_QUOTA_CONSUMED,
 	NFTNL_OBJ_QUOTA_FLAGS,
+	__NFTNL_OBJ_QUOTA_MAX,
 };
 
 enum {
 	NFTNL_OBJ_CT_HELPER_NAME = NFTNL_OBJ_BASE,
 	NFTNL_OBJ_CT_HELPER_L3PROTO,
 	NFTNL_OBJ_CT_HELPER_L4PROTO,
+	__NFTNL_OBJ_CT_HELPER_MAX,
 };
 
 enum nftnl_cttimeout_array_tcp {
@@ -69,6 +72,7 @@ enum {
 	NFTNL_OBJ_CT_TIMEOUT_L3PROTO = NFTNL_OBJ_BASE,
 	NFTNL_OBJ_CT_TIMEOUT_L4PROTO,
 	NFTNL_OBJ_CT_TIMEOUT_ARRAY,
+	__NFTNL_OBJ_CT_TIMEOUT_MAX,
 };
 
 enum {
@@ -77,6 +81,7 @@ enum {
 	NFTNL_OBJ_CT_EXPECT_DPORT,
 	NFTNL_OBJ_CT_EXPECT_TIMEOUT,
 	NFTNL_OBJ_CT_EXPECT_SIZE,
+	__NFTNL_OBJ_CT_EXPECT_MAX,
 };
 
 enum {
@@ -85,12 +90,14 @@ enum {
 	NFTNL_OBJ_LIMIT_BURST,
 	NFTNL_OBJ_LIMIT_TYPE,
 	NFTNL_OBJ_LIMIT_FLAGS,
+	__NFTNL_OBJ_LIMIT_MAX,
 };
 
 enum {
 	NFTNL_OBJ_SYNPROXY_MSS	= NFTNL_OBJ_BASE,
 	NFTNL_OBJ_SYNPROXY_WSCALE,
 	NFTNL_OBJ_SYNPROXY_FLAGS,
+	__NFTNL_OBJ_SYNPROXY_MAX,
 };
 
 enum {
@@ -110,10 +117,12 @@ enum {
 	NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX,
 	NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID,
 	NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR,
+	__NFTNL_OBJ_TUNNEL_MAX,
 };
 
 enum {
 	NFTNL_OBJ_SECMARK_CTX	= NFTNL_OBJ_BASE,
+	__NFTNL_OBJ_SECMARK_MAX,
 };
 
 struct nftnl_obj;
@@ -123,22 +132,22 @@ void nftnl_obj_free(const struct nftnl_obj *ne);
 
 bool nftnl_obj_is_set(const struct nftnl_obj *ne, uint16_t attr);
 void nftnl_obj_unset(struct nftnl_obj *ne, uint16_t attr);
-void nftnl_obj_set_data(struct nftnl_obj *ne, uint16_t attr, const void *data,
-			uint32_t data_len);
+int nftnl_obj_set_data(struct nftnl_obj *ne, uint16_t attr, const void *data,
+		       uint32_t data_len);
 void nftnl_obj_set(struct nftnl_obj *ne, uint16_t attr, const void *data) __attribute__((deprecated));
-void nftnl_obj_set_u8(struct nftnl_obj *ne, uint16_t attr, uint8_t val);
-void nftnl_obj_set_u16(struct nftnl_obj *ne, uint16_t attr, uint16_t val);
-void nftnl_obj_set_u32(struct nftnl_obj *ne, uint16_t attr, uint32_t val);
-void nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val);
-void nftnl_obj_set_str(struct nftnl_obj *ne, uint16_t attr, const char *str);
-const void *nftnl_obj_get_data(struct nftnl_obj *ne, uint16_t attr,
+int nftnl_obj_set_u8(struct nftnl_obj *ne, uint16_t attr, uint8_t val);
+int nftnl_obj_set_u16(struct nftnl_obj *ne, uint16_t attr, uint16_t val);
+int nftnl_obj_set_u32(struct nftnl_obj *ne, uint16_t attr, uint32_t val);
+int nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val);
+int nftnl_obj_set_str(struct nftnl_obj *ne, uint16_t attr, const char *str);
+const void *nftnl_obj_get_data(const struct nftnl_obj *ne, uint16_t attr,
 			       uint32_t *data_len);
-const void *nftnl_obj_get(struct nftnl_obj *ne, uint16_t attr);
-uint8_t nftnl_obj_get_u8(struct nftnl_obj *ne, uint16_t attr);
-uint16_t nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr);
-uint32_t nftnl_obj_get_u32(struct nftnl_obj *ne, uint16_t attr);
-uint64_t nftnl_obj_get_u64(struct nftnl_obj *obj, uint16_t attr);
-const char *nftnl_obj_get_str(struct nftnl_obj *ne, uint16_t attr);
+const void *nftnl_obj_get(const struct nftnl_obj *ne, uint16_t attr);
+uint8_t nftnl_obj_get_u8(const struct nftnl_obj *ne, uint16_t attr);
+uint16_t nftnl_obj_get_u16(const struct nftnl_obj *obj, uint16_t attr);
+uint32_t nftnl_obj_get_u32(const struct nftnl_obj *ne, uint16_t attr);
+uint64_t nftnl_obj_get_u64(const struct nftnl_obj *obj, uint16_t attr);
+const char *nftnl_obj_get_str(const struct nftnl_obj *ne, uint16_t attr);
 
 void nftnl_obj_nlmsg_build_payload(struct nlmsghdr *nlh,
 				   const struct nftnl_obj *ne);

@@ -32,13 +32,11 @@ static int nftnl_expr_dup_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_DUP_SREG_ADDR:
-		memcpy(&dup->sreg_addr, data, sizeof(dup->sreg_addr));
+		memcpy(&dup->sreg_addr, data, data_len);
 		break;
 	case NFTNL_EXPR_DUP_SREG_DEV:
-		memcpy(&dup->sreg_dev, data, sizeof(dup->sreg_dev));
+		memcpy(&dup->sreg_dev, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -130,10 +128,16 @@ static int nftnl_expr_dup_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy dup_attr_policy[__NFTNL_EXPR_DUP_MAX] = {
+	[NFTNL_EXPR_DUP_SREG_ADDR] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_DUP_SREG_DEV]  = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_dup = {
 	.name		= "dup",
 	.alloc_len	= sizeof(struct nftnl_expr_dup),
-	.max_attr	= NFTA_DUP_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_DUP_MAX - 1,
+	.attr_policy	= dup_attr_policy,
 	.set		= nftnl_expr_dup_set,
 	.get		= nftnl_expr_dup_get,
 	.parse		= nftnl_expr_dup_parse,

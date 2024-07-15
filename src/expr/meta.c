@@ -39,16 +39,14 @@ nftnl_expr_meta_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_META_KEY:
-		memcpy(&meta->key, data, sizeof(meta->key));
+		memcpy(&meta->key, data, data_len);
 		break;
 	case NFTNL_EXPR_META_DREG:
-		memcpy(&meta->dreg, data, sizeof(meta->dreg));
+		memcpy(&meta->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_META_SREG:
-		memcpy(&meta->sreg, data, sizeof(meta->sreg));
+		memcpy(&meta->sreg, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -209,10 +207,17 @@ nftnl_expr_meta_snprintf(char *buf, size_t len,
 	return 0;
 }
 
+static struct attr_policy meta_attr_policy[__NFTNL_EXPR_META_MAX] = {
+	[NFTNL_EXPR_META_KEY]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_META_DREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_META_SREG] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_meta = {
 	.name		= "meta",
 	.alloc_len	= sizeof(struct nftnl_expr_meta),
-	.max_attr	= NFTA_META_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_META_MAX - 1,
+	.attr_policy	= meta_attr_policy,
 	.set		= nftnl_expr_meta_set,
 	.get		= nftnl_expr_meta_get,
 	.parse		= nftnl_expr_meta_parse,

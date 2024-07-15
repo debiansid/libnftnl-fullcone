@@ -46,7 +46,7 @@ nftnl_expr_match_set(struct nftnl_expr *e, uint16_t type,
 			 (const char *)data);
 		break;
 	case NFTNL_EXPR_MT_REV:
-		memcpy(&mt->rev, data, sizeof(mt->rev));
+		memcpy(&mt->rev, data, data_len);
 		break;
 	case NFTNL_EXPR_MT_INFO:
 		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
@@ -55,8 +55,6 @@ nftnl_expr_match_set(struct nftnl_expr *e, uint16_t type,
 		mt->data = data;
 		mt->data_len = data_len;
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -180,10 +178,17 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
 	xfree(match->data);
 }
 
+static struct attr_policy match_attr_policy[__NFTNL_EXPR_MT_MAX] = {
+	[NFTNL_EXPR_MT_NAME] = { .maxlen = XT_EXTENSION_MAXNAMELEN },
+	[NFTNL_EXPR_MT_REV]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_MT_INFO] = { .maxlen = 0 },
+};
+
 struct expr_ops expr_ops_match = {
 	.name		= "match",
 	.alloc_len	= sizeof(struct nftnl_expr_match),
-	.max_attr	= NFTA_MATCH_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_MT_MAX - 1,
+	.attr_policy	= match_attr_policy,
 	.free		= nftnl_expr_match_free,
 	.set		= nftnl_expr_match_set,
 	.get		= nftnl_expr_match_get,

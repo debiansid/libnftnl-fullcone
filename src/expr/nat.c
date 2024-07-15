@@ -42,28 +42,26 @@ nftnl_expr_nat_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_NAT_TYPE:
-		memcpy(&nat->type, data, sizeof(nat->type));
+		memcpy(&nat->type, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_FAMILY:
-		memcpy(&nat->family, data, sizeof(nat->family));
+		memcpy(&nat->family, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_REG_ADDR_MIN:
-		memcpy(&nat->sreg_addr_min, data, sizeof(nat->sreg_addr_min));
+		memcpy(&nat->sreg_addr_min, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_REG_ADDR_MAX:
-		memcpy(&nat->sreg_addr_max, data, sizeof(nat->sreg_addr_max));
+		memcpy(&nat->sreg_addr_max, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_REG_PROTO_MIN:
-		memcpy(&nat->sreg_proto_min, data, sizeof(nat->sreg_proto_min));
+		memcpy(&nat->sreg_proto_min, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_REG_PROTO_MAX:
-		memcpy(&nat->sreg_proto_max, data, sizeof(nat->sreg_proto_max));
+		memcpy(&nat->sreg_proto_max, data, data_len);
 		break;
 	case NFTNL_EXPR_NAT_FLAGS:
-		memcpy(&nat->flags, data, sizeof(nat->flags));
+		memcpy(&nat->flags, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 
 	return 0;
@@ -266,10 +264,21 @@ nftnl_expr_nat_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy nat_attr_policy[__NFTNL_EXPR_NAT_MAX] = {
+	[NFTNL_EXPR_NAT_TYPE]          = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_FAMILY]        = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_REG_ADDR_MIN]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_REG_ADDR_MAX]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_NAT_FLAGS]         = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_nat = {
 	.name		= "nat",
 	.alloc_len	= sizeof(struct nftnl_expr_nat),
-	.max_attr	= NFTA_NAT_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_NAT_MAX - 1,
+	.attr_policy	= nat_attr_policy,
 	.set		= nftnl_expr_nat_set,
 	.get		= nftnl_expr_nat_get,
 	.parse		= nftnl_expr_nat_parse,

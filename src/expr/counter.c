@@ -35,13 +35,11 @@ nftnl_expr_counter_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_CTR_BYTES:
-		memcpy(&ctr->bytes, data, sizeof(ctr->bytes));
+		memcpy(&ctr->bytes, data, data_len);
 		break;
 	case NFTNL_EXPR_CTR_PACKETS:
-		memcpy(&ctr->pkts, data, sizeof(ctr->pkts));
+		memcpy(&ctr->pkts, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -125,10 +123,16 @@ static int nftnl_expr_counter_snprintf(char *buf, size_t len,
 			ctr->pkts, ctr->bytes);
 }
 
+static struct attr_policy counter_attr_policy[__NFTNL_EXPR_CTR_MAX] = {
+	[NFTNL_EXPR_CTR_PACKETS] = { .maxlen = sizeof(uint64_t) },
+	[NFTNL_EXPR_CTR_BYTES]   = { .maxlen = sizeof(uint64_t) },
+};
+
 struct expr_ops expr_ops_counter = {
 	.name		= "counter",
 	.alloc_len	= sizeof(struct nftnl_expr_counter),
-	.max_attr	= NFTA_COUNTER_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_CTR_MAX - 1,
+	.attr_policy	= counter_attr_policy,
 	.set		= nftnl_expr_counter_set,
 	.get		= nftnl_expr_counter_get,
 	.parse		= nftnl_expr_counter_parse,

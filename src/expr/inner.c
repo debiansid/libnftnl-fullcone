@@ -45,13 +45,13 @@ nftnl_expr_inner_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_INNER_TYPE:
-		memcpy(&inner->type, data, sizeof(inner->type));
+		memcpy(&inner->type, data, data_len);
 		break;
 	case NFTNL_EXPR_INNER_FLAGS:
-		memcpy(&inner->flags, data, sizeof(inner->flags));
+		memcpy(&inner->flags, data, data_len);
 		break;
 	case NFTNL_EXPR_INNER_HDRSIZE:
-		memcpy(&inner->hdrsize, data, sizeof(inner->hdrsize));
+		memcpy(&inner->hdrsize, data, data_len);
 		break;
 	case NFTNL_EXPR_INNER_EXPR:
 		if (inner->expr)
@@ -59,8 +59,6 @@ nftnl_expr_inner_set(struct nftnl_expr *e, uint16_t type,
 
 		inner->expr = (void *)data;
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -201,10 +199,18 @@ nftnl_expr_inner_snprintf(char *buf, size_t remain, uint32_t flags,
 	return offset;
 }
 
+static struct attr_policy inner_attr_policy[__NFTNL_EXPR_INNER_MAX] = {
+	[NFTNL_EXPR_INNER_TYPE]    = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_INNER_FLAGS]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_INNER_HDRSIZE] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_INNER_EXPR]    = { .maxlen = 0 },
+};
+
 struct expr_ops expr_ops_inner = {
 	.name		= "inner",
 	.alloc_len	= sizeof(struct nftnl_expr_inner),
-	.max_attr	= NFTA_INNER_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_INNER_MAX - 1,
+	.attr_policy	= inner_attr_policy,
 	.free		= nftnl_expr_inner_free,
 	.set		= nftnl_expr_inner_set,
 	.get		= nftnl_expr_inner_get,

@@ -206,14 +206,16 @@ int nftnl_parse_data(union nftnl_data_reg *data, struct nlattr *attr, int *type)
 	return ret;
 }
 
-void nftnl_free_verdict(const union nftnl_data_reg *data)
+int nftnl_data_cpy(union nftnl_data_reg *dreg, const void *src, uint32_t len)
 {
-	switch(data->verdict) {
-	case NFT_JUMP:
-	case NFT_GOTO:
-		xfree(data->chain);
-		break;
-	default:
-		break;
+	int ret = 0;
+
+	if (len > sizeof(dreg->val)) {
+		len = sizeof(dreg->val);
+		ret = -1;
 	}
+
+	memcpy(dreg->val, src, len);
+	dreg->len = len;
+	return ret;
 }

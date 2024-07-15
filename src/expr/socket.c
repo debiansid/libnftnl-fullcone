@@ -33,16 +33,14 @@ nftnl_expr_socket_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_SOCKET_KEY:
-		memcpy(&socket->key, data, sizeof(socket->key));
+		memcpy(&socket->key, data, data_len);
 		break;
 	case NFTNL_EXPR_SOCKET_DREG:
-		memcpy(&socket->dreg, data, sizeof(socket->dreg));
+		memcpy(&socket->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_SOCKET_LEVEL:
-		memcpy(&socket->level, data, sizeof(socket->level));
+		memcpy(&socket->level, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -157,10 +155,17 @@ nftnl_expr_socket_snprintf(char *buf, size_t len,
 	return 0;
 }
 
+static struct attr_policy socket_attr_policy[__NFTNL_EXPR_SOCKET_MAX] = {
+	[NFTNL_EXPR_SOCKET_KEY]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_SOCKET_DREG]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_SOCKET_LEVEL] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_socket = {
 	.name		= "socket",
 	.alloc_len	= sizeof(struct nftnl_expr_socket),
-	.max_attr	= NFTA_SOCKET_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_SOCKET_MAX - 1,
+	.attr_policy	= socket_attr_policy,
 	.set		= nftnl_expr_socket_set,
 	.get		= nftnl_expr_socket_get,
 	.parse		= nftnl_expr_socket_parse,

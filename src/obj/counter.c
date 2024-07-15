@@ -29,13 +29,11 @@ nftnl_obj_counter_set(struct nftnl_obj *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_OBJ_CTR_BYTES:
-		memcpy(&ctr->bytes, data, sizeof(ctr->bytes));
+		memcpy(&ctr->bytes, data, data_len);
 		break;
 	case NFTNL_OBJ_CTR_PKTS:
-		memcpy(&ctr->pkts, data, sizeof(ctr->pkts));
+		memcpy(&ctr->pkts, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -118,11 +116,17 @@ static int nftnl_obj_counter_snprintf(char *buf, size_t len, uint32_t flags,
 			ctr->pkts, ctr->bytes);
 }
 
+static struct attr_policy obj_ctr_attr_policy[__NFTNL_OBJ_CTR_MAX] = {
+	[NFTNL_OBJ_CTR_BYTES]	= { .maxlen = sizeof(uint64_t) },
+	[NFTNL_OBJ_CTR_PKTS]	= { .maxlen = sizeof(uint64_t) },
+};
+
 struct obj_ops obj_ops_counter = {
 	.name		= "counter",
 	.type		= NFT_OBJECT_COUNTER,
 	.alloc_len	= sizeof(struct nftnl_obj_counter),
-	.max_attr	= NFTA_COUNTER_MAX,
+	.nftnl_max_attr	= __NFTNL_OBJ_CTR_MAX - 1,
+	.attr_policy	= obj_ctr_attr_policy,
 	.set		= nftnl_obj_counter_set,
 	.get		= nftnl_obj_counter_get,
 	.parse		= nftnl_obj_counter_parse,
