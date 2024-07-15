@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Debian Netfilter Packaging Team <team+pkg-netfilter-team@tracker.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>,
            Jeremy Sowden <jeremy@azazel.net>
-Build-Depends: debhelper-compat (= 13), libmnl-dev, libtool, pkg-config
+Build-Depends: debhelper-compat (= 13), libmnl-dev, libtool, pkgconf
 Build-Depends-Indep: doxygen <!nodoc>, graphviz <!nodoc>
 Rules-Requires-Root: no
 Standards-Version: 4.6.2
@@ -29,7 +29,7 @@ Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libnftnl11 (= ${binary:Version}), pkg-config, ${misc:Depends}
+Depends: libnftnl11 (= ${binary:Version}), pkgconf, ${misc:Depends}
 Suggests: libnftnl-dev-doc
 Description: Development files for libnftnl
  libnftnl is the low-level library for Netfilter 4th generation
