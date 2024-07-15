@@ -1,4 +1,4 @@
-libnftnl (1.2.7-1) UNRELEASED; urgency=medium
+libnftnl (1.2.7-1) unstable; urgency=medium
 
   * [e69ef93] New upstream version 1.2.7
     + Avoid potential use-after-free when clearing set's expression list
@@ -10,8 +10,11 @@ libnftnl (1.2.7-1) UNRELEASED; urgency=medium
     + Enable some attribute validation where missing
     + Fix synproxy object setter with unaligned data
     + Fix for unsetting userdata attributes in table and chain objects
+  * [0a0b269] d/libnftnl11.symbols: add new symbol
+  * [2935833] d/control: replace pkg-config dependencies with pkgconf
+  * [a3d176c] d/control: update my e-mail address
 
- -- Jeremy Sowden <azazel@debian.org>  Mon, 15 Jul 2024 16:31:53 +0100
+ -- Jeremy Sowden <azazel@debian.org>  Mon, 15 Jul 2024 17:05:06 +0100
 
 libnftnl (1.2.6-2) unstable; urgency=medium
 
