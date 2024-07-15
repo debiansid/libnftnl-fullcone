@@ -37,22 +37,20 @@ nftnl_expr_byteorder_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_BYTEORDER_SREG:
-		memcpy(&byteorder->sreg, data, sizeof(byteorder->sreg));
+		memcpy(&byteorder->sreg, data, data_len);
 		break;
 	case NFTNL_EXPR_BYTEORDER_DREG:
-		memcpy(&byteorder->dreg, data, sizeof(byteorder->dreg));
+		memcpy(&byteorder->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_BYTEORDER_OP:
-		memcpy(&byteorder->op, data, sizeof(byteorder->op));
+		memcpy(&byteorder->op, data, data_len);
 		break;
 	case NFTNL_EXPR_BYTEORDER_LEN:
-		memcpy(&byteorder->len, data, sizeof(byteorder->len));
+		memcpy(&byteorder->len, data, data_len);
 		break;
 	case NFTNL_EXPR_BYTEORDER_SIZE:
-		memcpy(&byteorder->size, data, sizeof(byteorder->size));
+		memcpy(&byteorder->size, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -212,10 +210,19 @@ nftnl_expr_byteorder_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy byteorder_attr_policy[__NFTNL_EXPR_BYTEORDER_MAX] = {
+	[NFTNL_EXPR_BYTEORDER_DREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BYTEORDER_SREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BYTEORDER_OP]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BYTEORDER_LEN]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BYTEORDER_SIZE] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_byteorder = {
 	.name		= "byteorder",
 	.alloc_len	= sizeof(struct nftnl_expr_byteorder),
-	.max_attr	= NFTA_BYTEORDER_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_BYTEORDER_MAX - 1,
+	.attr_policy	= byteorder_attr_policy,
 	.set		= nftnl_expr_byteorder_set,
 	.get		= nftnl_expr_byteorder_get,
 	.parse		= nftnl_expr_byteorder_parse,

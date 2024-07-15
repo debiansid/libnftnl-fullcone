@@ -34,16 +34,14 @@ nftnl_expr_redir_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_REDIR_REG_PROTO_MIN:
-		memcpy(&redir->sreg_proto_min, data, sizeof(redir->sreg_proto_min));
+		memcpy(&redir->sreg_proto_min, data, data_len);
 		break;
 	case NFTNL_EXPR_REDIR_REG_PROTO_MAX:
-		memcpy(&redir->sreg_proto_max, data, sizeof(redir->sreg_proto_max));
+		memcpy(&redir->sreg_proto_max, data, data_len);
 		break;
 	case NFTNL_EXPR_REDIR_FLAGS:
-		memcpy(&redir->flags, data, sizeof(redir->flags));
+		memcpy(&redir->flags, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -159,10 +157,17 @@ nftnl_expr_redir_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy redir_attr_policy[__NFTNL_EXPR_REDIR_MAX] = {
+	[NFTNL_EXPR_REDIR_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_REDIR_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_REDIR_FLAGS]         = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_redir = {
 	.name		= "redir",
 	.alloc_len	= sizeof(struct nftnl_expr_redir),
-	.max_attr	= NFTA_REDIR_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_REDIR_MAX - 1,
+	.attr_policy	= redir_attr_policy,
 	.set		= nftnl_expr_redir_set,
 	.get		= nftnl_expr_redir_get,
 	.parse		= nftnl_expr_redir_parse,

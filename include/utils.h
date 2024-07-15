@@ -37,9 +37,9 @@ void __nftnl_assert_fail(uint16_t attr, const char *filename, int line);
 #define nftnl_assert_validate(data, _validate_array, _attr, _data_len)		\
 ({										\
 	if (!data)								\
-		__nftnl_assert_fail(attr, __FILE__, __LINE__);			\
+		__nftnl_assert_fail(_attr, __FILE__, __LINE__);			\
 	if (_validate_array[_attr])						\
-		nftnl_assert(data, attr, _validate_array[_attr] == _data_len);	\
+		nftnl_assert(data, _attr, _validate_array[_attr] == _data_len);	\
 })
 
 void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
@@ -68,27 +68,8 @@ void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
 #define array_size(arr)		(sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 
 const char *nftnl_family2str(uint32_t family);
-int nftnl_str2family(const char *family);
-
-enum nftnl_type {
-	NFTNL_TYPE_U8,
-	NFTNL_TYPE_U16,
-	NFTNL_TYPE_U32,
-	NFTNL_TYPE_U64,
-	NFTNL_TYPE_S8,
-	NFTNL_TYPE_S16,
-	NFTNL_TYPE_S32,
-	NFTNL_TYPE_S64,
-};
-
-int nftnl_strtoi(const char *string, int base, void *number, enum nftnl_type type);
-int nftnl_get_value(enum nftnl_type type, void *val, void *out);
 
 const char *nftnl_verdict2str(uint32_t verdict);
-int nftnl_str2verdict(const char *verdict, int *verdict_num);
-
-const char *nftnl_cmd2tag(enum nftnl_cmd_type cmd);
-uint32_t nftnl_str2cmd(const char *cmd);
 
 enum nftnl_cmd_type nftnl_flag2cmd(uint32_t flags);
 
@@ -97,5 +78,8 @@ int nftnl_fprintf(FILE *fpconst, const void *obj, uint32_t cmd, uint32_t type,
 		  int (*snprintf_cb)(char *buf, size_t bufsiz, const void *obj,
 			  	     uint32_t cmd, uint32_t type,
 				     uint32_t flags));
+
+int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
+		       uint16_t attr, const void *data, uint32_t data_len);
 
 #endif

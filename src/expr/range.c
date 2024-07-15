@@ -34,21 +34,15 @@ static int nftnl_expr_range_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_RANGE_SREG:
-		memcpy(&range->sreg, data, sizeof(range->sreg));
+		memcpy(&range->sreg, data, data_len);
 		break;
 	case NFTNL_EXPR_RANGE_OP:
-		memcpy(&range->op, data, sizeof(range->op));
+		memcpy(&range->op, data, data_len);
 		break;
 	case NFTNL_EXPR_RANGE_FROM_DATA:
-		memcpy(&range->data_from.val, data, data_len);
-		range->data_from.len = data_len;
-		break;
+		return nftnl_data_cpy(&range->data_from, data, data_len);
 	case NFTNL_EXPR_RANGE_TO_DATA:
-		memcpy(&range->data_to.val, data, data_len);
-		range->data_to.len = data_len;
-		break;
-	default:
-		return -1;
+		return nftnl_data_cpy(&range->data_to, data, data_len);
 	}
 	return 0;
 }
@@ -205,10 +199,18 @@ static int nftnl_expr_range_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy range_attr_policy[__NFTNL_EXPR_RANGE_MAX] = {
+	[NFTNL_EXPR_RANGE_SREG]      = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_RANGE_OP]        = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_RANGE_FROM_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+	[NFTNL_EXPR_RANGE_TO_DATA]   = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+};
+
 struct expr_ops expr_ops_range = {
 	.name		= "range",
 	.alloc_len	= sizeof(struct nftnl_expr_range),
-	.max_attr	= NFTA_RANGE_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_RANGE_MAX - 1,
+	.attr_policy	= range_attr_policy,
 	.set		= nftnl_expr_range_set,
 	.get		= nftnl_expr_range_get,
 	.parse		= nftnl_expr_range_parse,

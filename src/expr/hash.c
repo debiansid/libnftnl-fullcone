@@ -37,25 +37,25 @@ nftnl_expr_hash_set(struct nftnl_expr *e, uint16_t type,
 	struct nftnl_expr_hash *hash = nftnl_expr_data(e);
 	switch (type) {
 	case NFTNL_EXPR_HASH_SREG:
-		memcpy(&hash->sreg, data, sizeof(hash->sreg));
+		memcpy(&hash->sreg, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_DREG:
-		memcpy(&hash->dreg, data, sizeof(hash->dreg));
+		memcpy(&hash->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_LEN:
-		memcpy(&hash->len, data, sizeof(hash->len));
+		memcpy(&hash->len, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_MODULUS:
-		memcpy(&hash->modulus, data, sizeof(hash->modulus));
+		memcpy(&hash->modulus, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_SEED:
-		memcpy(&hash->seed, data, sizeof(hash->seed));
+		memcpy(&hash->seed, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_OFFSET:
-		memcpy(&hash->offset, data, sizeof(hash->offset));
+		memcpy(&hash->offset, data, data_len);
 		break;
 	case NFTNL_EXPR_HASH_TYPE:
-		memcpy(&hash->type, data, sizeof(hash->type));
+		memcpy(&hash->type, data, data_len);
 		break;
 	default:
 		return -1;
@@ -218,10 +218,21 @@ nftnl_expr_hash_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy hash_attr_policy[__NFTNL_EXPR_HASH_MAX] = {
+	[NFTNL_EXPR_HASH_SREG]    = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_DREG]    = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_LEN]     = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_MODULUS] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_SEED]    = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_OFFSET]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_HASH_TYPE]    = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_hash = {
 	.name		= "hash",
 	.alloc_len	= sizeof(struct nftnl_expr_hash),
-	.max_attr	= NFTA_HASH_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_HASH_MAX - 1,
+	.attr_policy	= hash_attr_policy,
 	.set		= nftnl_expr_hash_set,
 	.get		= nftnl_expr_hash_get,
 	.parse		= nftnl_expr_hash_parse,

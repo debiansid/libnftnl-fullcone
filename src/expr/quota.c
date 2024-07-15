@@ -33,16 +33,14 @@ static int nftnl_expr_quota_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_QUOTA_BYTES:
-		memcpy(&quota->bytes, data, sizeof(quota->bytes));
+		memcpy(&quota->bytes, data, data_len);
 		break;
 	case NFTNL_EXPR_QUOTA_CONSUMED:
-		memcpy(&quota->consumed, data, sizeof(quota->consumed));
+		memcpy(&quota->consumed, data, data_len);
 		break;
 	case NFTNL_EXPR_QUOTA_FLAGS:
-		memcpy(&quota->flags, data, sizeof(quota->flags));
+		memcpy(&quota->flags, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -139,10 +137,17 @@ static int nftnl_expr_quota_snprintf(char *buf, size_t len,
 			quota->bytes, quota->consumed, quota->flags);
 }
 
+static struct attr_policy quota_attr_policy[__NFTNL_EXPR_QUOTA_MAX] = {
+	[NFTNL_EXPR_QUOTA_BYTES]    = { .maxlen = sizeof(uint64_t) },
+	[NFTNL_EXPR_QUOTA_FLAGS]    = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_QUOTA_CONSUMED] = { .maxlen = sizeof(uint64_t) },
+};
+
 struct expr_ops expr_ops_quota = {
 	.name		= "quota",
 	.alloc_len	= sizeof(struct nftnl_expr_quota),
-	.max_attr	= NFTA_QUOTA_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_QUOTA_MAX - 1,
+	.attr_policy	= quota_attr_policy,
 	.set		= nftnl_expr_quota_set,
 	.get		= nftnl_expr_quota_get,
 	.parse		= nftnl_expr_quota_parse,

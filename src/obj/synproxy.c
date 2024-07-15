@@ -19,16 +19,14 @@ static int nftnl_obj_synproxy_set(struct nftnl_obj *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_OBJ_SYNPROXY_MSS:
-		synproxy->mss = *((uint16_t *)data);
+		memcpy(&synproxy->mss, data, data_len);
 		break;
 	case NFTNL_OBJ_SYNPROXY_WSCALE:
-		synproxy->wscale = *((uint8_t *)data);
+		memcpy(&synproxy->wscale, data, data_len);
 		break;
 	case NFTNL_OBJ_SYNPROXY_FLAGS:
-		synproxy->flags = *((uint32_t *)data);
+		memcpy(&synproxy->flags, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -134,11 +132,18 @@ static int nftnl_obj_synproxy_snprintf(char *buf, size_t len,
         return offset;
 }
 
+static struct attr_policy obj_synproxy_attr_policy[__NFTNL_OBJ_SYNPROXY_MAX] = {
+	[NFTNL_OBJ_SYNPROXY_MSS]	= { .maxlen = sizeof(uint16_t) },
+	[NFTNL_OBJ_SYNPROXY_WSCALE]	= { .maxlen = sizeof(uint8_t) },
+	[NFTNL_OBJ_SYNPROXY_FLAGS]	= { .maxlen = sizeof(uint32_t) },
+};
+
 struct obj_ops obj_ops_synproxy = {
 	.name		= "synproxy",
 	.type		= NFT_OBJECT_SYNPROXY,
 	.alloc_len	= sizeof(struct nftnl_obj_synproxy),
-	.max_attr	= NFTA_SYNPROXY_MAX,
+	.nftnl_max_attr	= __NFTNL_OBJ_SYNPROXY_MAX - 1,
+	.attr_policy	= obj_synproxy_attr_policy,
 	.set		= nftnl_obj_synproxy_set,
 	.get		= nftnl_obj_synproxy_get,
 	.parse		= nftnl_obj_synproxy_parse,

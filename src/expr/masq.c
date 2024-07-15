@@ -34,16 +34,14 @@ nftnl_expr_masq_set(struct nftnl_expr *e, uint16_t type,
 
 	switch (type) {
 	case NFTNL_EXPR_MASQ_FLAGS:
-		memcpy(&masq->flags, data, sizeof(masq->flags));
+		memcpy(&masq->flags, data, data_len);
 		break;
 	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
-		memcpy(&masq->sreg_proto_min, data, sizeof(masq->sreg_proto_min));
+		memcpy(&masq->sreg_proto_min, data, data_len);
 		break;
 	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
-		memcpy(&masq->sreg_proto_max, data, sizeof(masq->sreg_proto_max));
+		memcpy(&masq->sreg_proto_max, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -155,10 +153,17 @@ static int nftnl_expr_masq_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy masq_attr_policy[__NFTNL_EXPR_MASQ_MAX] = {
+	[NFTNL_EXPR_MASQ_FLAGS]         = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_MASQ_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_MASQ_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_masq = {
 	.name		= "masq",
 	.alloc_len	= sizeof(struct nftnl_expr_masq),
-	.max_attr	= NFTA_MASQ_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_MASQ_MAX - 1,
+	.attr_policy	= masq_attr_policy,
 	.set		= nftnl_expr_masq_set,
 	.get		= nftnl_expr_masq_get,
 	.parse		= nftnl_expr_masq_parse,

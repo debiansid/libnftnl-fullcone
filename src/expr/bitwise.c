@@ -39,31 +39,23 @@ nftnl_expr_bitwise_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_BITWISE_SREG:
-		memcpy(&bitwise->sreg, data, sizeof(bitwise->sreg));
+		memcpy(&bitwise->sreg, data, data_len);
 		break;
 	case NFTNL_EXPR_BITWISE_DREG:
-		memcpy(&bitwise->dreg, data, sizeof(bitwise->dreg));
+		memcpy(&bitwise->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_BITWISE_OP:
-		memcpy(&bitwise->op, data, sizeof(bitwise->op));
+		memcpy(&bitwise->op, data, data_len);
 		break;
 	case NFTNL_EXPR_BITWISE_LEN:
-		memcpy(&bitwise->len, data, sizeof(bitwise->len));
+		memcpy(&bitwise->len, data, data_len);
 		break;
 	case NFTNL_EXPR_BITWISE_MASK:
-		memcpy(&bitwise->mask.val, data, data_len);
-		bitwise->mask.len = data_len;
-		break;
+		return nftnl_data_cpy(&bitwise->mask, data, data_len);
 	case NFTNL_EXPR_BITWISE_XOR:
-		memcpy(&bitwise->xor.val, data, data_len);
-		bitwise->xor.len = data_len;
-		break;
+		return nftnl_data_cpy(&bitwise->xor, data, data_len);
 	case NFTNL_EXPR_BITWISE_DATA:
-		memcpy(&bitwise->data.val, data, data_len);
-		bitwise->data.len = data_len;
-		break;
-	default:
-		return -1;
+		return nftnl_data_cpy(&bitwise->data, data, data_len);
 	}
 	return 0;
 }
@@ -274,10 +266,21 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size,
 	return err;
 }
 
+static struct attr_policy bitwise_attr_policy[__NFTNL_EXPR_BITWISE_MAX] = {
+	[NFTNL_EXPR_BITWISE_SREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BITWISE_DREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BITWISE_LEN]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BITWISE_MASK] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+	[NFTNL_EXPR_BITWISE_XOR]  = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+	[NFTNL_EXPR_BITWISE_OP]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_BITWISE_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
+};
+
 struct expr_ops expr_ops_bitwise = {
 	.name		= "bitwise",
 	.alloc_len	= sizeof(struct nftnl_expr_bitwise),
-	.max_attr	= NFTA_BITWISE_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_BITWISE_MAX - 1,
+	.attr_policy	= bitwise_attr_policy,
 	.set		= nftnl_expr_bitwise_set,
 	.get		= nftnl_expr_bitwise_get,
 	.parse		= nftnl_expr_bitwise_parse,

@@ -185,6 +185,9 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
 			xfree(c->dev_array[i]);
 		xfree(c->dev_array);
 		break;
+	case NFTNL_CHAIN_USERDATA:
+		xfree(c->user.data);
+		break;
 	default:
 		return;
 	}
@@ -196,6 +199,7 @@ static uint32_t nftnl_chain_validate[NFTNL_CHAIN_MAX + 1] = {
 	[NFTNL_CHAIN_HOOKNUM]	= sizeof(uint32_t),
 	[NFTNL_CHAIN_PRIO]		= sizeof(int32_t),
 	[NFTNL_CHAIN_POLICY]		= sizeof(uint32_t),
+	[NFTNL_CHAIN_USE]		= sizeof(uint32_t),
 	[NFTNL_CHAIN_BYTES]		= sizeof(uint64_t),
 	[NFTNL_CHAIN_PACKETS]	= sizeof(uint64_t),
 	[NFTNL_CHAIN_HANDLE]		= sizeof(uint64_t),
@@ -216,21 +220,11 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
 
 	switch(attr) {
 	case NFTNL_CHAIN_NAME:
-		if (c->flags & (1 << NFTNL_CHAIN_NAME))
-			xfree(c->name);
-
-		c->name = strdup(data);
-		if (!c->name)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&c->name, &c->flags,
+					  attr, data, data_len);
 	case NFTNL_CHAIN_TABLE:
-		if (c->flags & (1 << NFTNL_CHAIN_TABLE))
-			xfree(c->table);
-
-		c->table = strdup(data);
-		if (!c->table)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&c->table, &c->flags,
+					  attr, data, data_len);
 	case NFTNL_CHAIN_HOOKNUM:
 		memcpy(&c->hooknum, data, sizeof(c->hooknum));
 		break;
@@ -256,21 +250,11 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
 		memcpy(&c->family, data, sizeof(c->family));
 		break;
 	case NFTNL_CHAIN_TYPE:
-		if (c->flags & (1 << NFTNL_CHAIN_TYPE))
-			xfree(c->type);
-
-		c->type = strdup(data);
-		if (!c->type)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&c->type, &c->flags,
+					  attr, data, data_len);
 	case NFTNL_CHAIN_DEV:
-		if (c->flags & (1 << NFTNL_CHAIN_DEV))
-			xfree(c->dev);
-
-		c->dev = strdup(data);
-		if (!c->dev)
-			return -1;
-		break;
+		return nftnl_set_str_attr(&c->dev, &c->flags,
+					  attr, data, data_len);
 	case NFTNL_CHAIN_DEVICES:
 		dev_array = (const char **)data;
 		while (dev_array[len] != NULL)

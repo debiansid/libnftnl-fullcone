@@ -39,19 +39,17 @@ nftnl_expr_ct_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_CT_KEY:
-		memcpy(&ct->key, data, sizeof(ct->key));
+		memcpy(&ct->key, data, data_len);
 		break;
 	case NFTNL_EXPR_CT_DIR:
-		memcpy(&ct->dir, data, sizeof(ct->dir));
+		memcpy(&ct->dir, data, data_len);
 		break;
 	case NFTNL_EXPR_CT_DREG:
-		memcpy(&ct->dreg, data, sizeof(ct->dreg));
+		memcpy(&ct->dreg, data, data_len);
 		break;
 	case NFTNL_EXPR_CT_SREG:
-		memcpy(&ct->sreg, data, sizeof(ct->sreg));
+		memcpy(&ct->sreg, data, data_len);
 		break;
-	default:
-		return -1;
 	}
 	return 0;
 }
@@ -250,10 +248,18 @@ nftnl_expr_ct_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy ct_attr_policy[__NFTNL_EXPR_CT_MAX] = {
+	[NFTNL_EXPR_CT_DREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_CT_KEY]  = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_CT_DIR]  = { .maxlen = sizeof(uint8_t) },
+	[NFTNL_EXPR_CT_SREG] = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_ct = {
 	.name		= "ct",
 	.alloc_len	= sizeof(struct nftnl_expr_ct),
-	.max_attr	= NFTA_CT_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_CT_MAX - 1,
+	.attr_policy	= ct_attr_policy,
 	.set		= nftnl_expr_ct_set,
 	.get		= nftnl_expr_ct_get,
 	.parse		= nftnl_expr_ct_parse,

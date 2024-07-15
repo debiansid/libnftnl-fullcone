@@ -36,17 +36,13 @@ nftnl_expr_cmp_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_CMP_SREG:
-		memcpy(&cmp->sreg, data, sizeof(cmp->sreg));
+		memcpy(&cmp->sreg, data, data_len);
 		break;
 	case NFTNL_EXPR_CMP_OP:
-		memcpy(&cmp->op, data, sizeof(cmp->op));
+		memcpy(&cmp->op, data, data_len);
 		break;
 	case NFTNL_EXPR_CMP_DATA:
-		memcpy(&cmp->data.val, data, data_len);
-		cmp->data.len = data_len;
-		break;
-	default:
-		return -1;
+		return nftnl_data_cpy(&cmp->data, data, data_len);
 	}
 	return 0;
 }
@@ -194,10 +190,17 @@ nftnl_expr_cmp_snprintf(char *buf, size_t remain,
 	return offset;
 }
 
+static struct attr_policy cmp_attr_policy[__NFTNL_EXPR_CMP_MAX] = {
+	[NFTNL_EXPR_CMP_SREG] = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_CMP_OP]   = { .maxlen = sizeof(uint32_t) },
+	[NFTNL_EXPR_CMP_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN }
+};
+
 struct expr_ops expr_ops_cmp = {
 	.name		= "cmp",
 	.alloc_len	= sizeof(struct nftnl_expr_cmp),
-	.max_attr	= NFTA_CMP_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_CMP_MAX - 1,
+	.attr_policy	= cmp_attr_policy,
 	.set		= nftnl_expr_cmp_set,
 	.get		= nftnl_expr_cmp_get,
 	.parse		= nftnl_expr_cmp_parse,

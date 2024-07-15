@@ -23,13 +23,13 @@ static int nftnl_expr_synproxy_set(struct nftnl_expr *e, uint16_t type,
 
 	switch(type) {
 	case NFTNL_EXPR_SYNPROXY_MSS:
-		memcpy(&synproxy->mss, data, sizeof(synproxy->mss));
+		memcpy(&synproxy->mss, data, data_len);
 		break;
 	case NFTNL_EXPR_SYNPROXY_WSCALE:
-		memcpy(&synproxy->wscale, data, sizeof(synproxy->wscale));
+		memcpy(&synproxy->wscale, data, data_len);
 		break;
 	case NFTNL_EXPR_SYNPROXY_FLAGS:
-		memcpy(&synproxy->flags, data, sizeof(synproxy->flags));
+		memcpy(&synproxy->flags, data, data_len);
 		break;
 	}
 	return 0;
@@ -90,13 +90,13 @@ nftnl_expr_synproxy_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
 
 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_MSS))
-		mnl_attr_put_u16(nlh, NFTNL_EXPR_SYNPROXY_MSS,
+		mnl_attr_put_u16(nlh, NFTA_SYNPROXY_MSS,
 				 htons(synproxy->mss));
 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_WSCALE))
-		mnl_attr_put_u8(nlh, NFTNL_EXPR_SYNPROXY_WSCALE,
+		mnl_attr_put_u8(nlh, NFTA_SYNPROXY_WSCALE,
 				synproxy->wscale);
 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_FLAGS))
-		mnl_attr_put_u32(nlh, NFTNL_EXPR_SYNPROXY_FLAGS,
+		mnl_attr_put_u32(nlh, NFTA_SYNPROXY_FLAGS,
 				 htonl(synproxy->flags));
 }
 
@@ -144,10 +144,17 @@ nftnl_expr_synproxy_snprintf(char *buf, size_t len,
 	return offset;
 }
 
+static struct attr_policy synproxy_attr_policy[__NFTNL_EXPR_SYNPROXY_MAX] = {
+	[NFTNL_EXPR_SYNPROXY_MSS]    = { .maxlen = sizeof(uint16_t) },
+	[NFTNL_EXPR_SYNPROXY_WSCALE] = { .maxlen = sizeof(uint8_t) },
+	[NFTNL_EXPR_SYNPROXY_FLAGS]  = { .maxlen = sizeof(uint32_t) },
+};
+
 struct expr_ops expr_ops_synproxy = {
 	.name		= "synproxy",
 	.alloc_len	= sizeof(struct nftnl_expr_synproxy),
-	.max_attr	= NFTA_SYNPROXY_MAX,
+	.nftnl_max_attr	= __NFTNL_EXPR_SYNPROXY_MAX - 1,
+	.attr_policy	= synproxy_attr_policy,
 	.set		= nftnl_expr_synproxy_set,
 	.get		= nftnl_expr_synproxy_get,
 	.parse		= nftnl_expr_synproxy_parse,
