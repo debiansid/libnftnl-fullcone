@@ -1,3 +1,11 @@
+libnftnl (1.2.8-1) UNRELEASED; urgency=medium
+
+  * [93cd513] New upstream version 1.2.8
+    + Incorrect validation of dynset netlink attribute from the kernel.
+    + Don't append a newline when printing a rule.
+
+ -- Jeremy Sowden <azazel@debian.org>  Thu, 03 Oct 2024 10:51:52 +0100
+
 libnftnl (1.2.7-1) unstable; urgency=medium
 
   * [e69ef93] New upstream version 1.2.7
