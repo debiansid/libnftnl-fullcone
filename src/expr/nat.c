@@ -1,11 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2012-2014 Pablo Neira Ayuso <pablo@netfilter.org>
  * (C) 2012 Intel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
  * Authors:
  * 	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
@@ -203,18 +199,6 @@ static inline const char *nat2str(uint16_t nat)
 		return "dnat";
 	default:
 		return "unknown";
-	}
-}
-
-static inline int nftnl_str2nat(const char *nat)
-{
-	if (strcmp(nat, "snat") == 0)
-		return NFT_NAT_SNAT;
-	else if (strcmp(nat, "dnat") == 0)
-		return NFT_NAT_DNAT;
-	else {
-		errno = EINVAL;
-		return -1;
 	}
 }
 

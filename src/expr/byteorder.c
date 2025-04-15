@@ -1,10 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
@@ -181,18 +177,6 @@ static const char *bo2str(uint32_t type)
 		return "unknown";
 
 	return expr_byteorder_str[type];
-}
-
-static inline int nftnl_str2ntoh(const char *op)
-{
-	if (strcmp(op, "ntoh") == 0)
-		return NFT_BYTEORDER_NTOH;
-	else if (strcmp(op, "hton") == 0)
-		return NFT_BYTEORDER_HTON;
-	else {
-		errno = EINVAL;
-		return -1;
-	}
 }
 
 static int

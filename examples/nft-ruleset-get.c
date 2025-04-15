@@ -1,14 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (c) 2013 Arturo Borrero Gonzalez <arturo@debian.org>
  *
  * based on previous code from:
  *
  * Copyright (c) 2013 Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
  */
 
 #include <stdlib.h>

@@ -17,6 +17,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      rule.c		\
 		      set.c		\
 		      set_elem.c	\
+		      str_array.c	\
 		      ruleset.c		\
 		      udata.c		\
 		      expr.c		\

@@ -13,6 +13,23 @@ static void print_err(const char *msg)
 	printf("\033[31mERROR:\e[0m %s\n", msg);
 }
 
+static void cmp_devices(const char * const *adevs,
+			const char * const *bdevs)
+{
+	int i;
+
+	if (!adevs && !bdevs)
+		return;
+	if (!!adevs ^ !!bdevs)
+		print_err("Flowtable devices mismatches");
+	for (i = 0; adevs[i] && bdevs[i]; i++) {
+		if (strcmp(adevs[i], bdevs[i]))
+			break;
+	}
+	if (adevs[i] || bdevs[i])
+		print_err("Flowtable devices mismatches");
+}
+
 static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtable *b)
 {
 	if (strcmp(nftnl_flowtable_get_str(a, NFTNL_FLOWTABLE_NAME),
@@ -44,10 +61,13 @@ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtabl
 	if (nftnl_flowtable_get_u64(a, NFTNL_FLOWTABLE_HANDLE) !=
 	    nftnl_flowtable_get_u64(b, NFTNL_FLOWTABLE_HANDLE))
 		print_err("Flowtable handle mismatches");
+	cmp_devices(nftnl_flowtable_get_array(a, NFTNL_FLOWTABLE_DEVICES),
+		    nftnl_flowtable_get_array(b, NFTNL_FLOWTABLE_DEVICES));
 }
 
 int main(int argc, char *argv[])
 {
+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
 	struct nftnl_flowtable *a, *b;
 	char buf[4096];
 	struct nlmsghdr *nlh;
@@ -66,6 +86,7 @@ int main(int argc, char *argv[])
 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_SIZE, 0x89016745);
 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_FLAGS, 0x45016723);
 	nftnl_flowtable_set_u64(a, NFTNL_FLOWTABLE_HANDLE, 0x2345016789);
+	nftnl_flowtable_set_array(a, NFTNL_FLOWTABLE_DEVICES, devs);
 
 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWFLOWTABLE, AF_INET,
 				    0, 1234);

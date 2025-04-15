@@ -1,11 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
  */
 
 #include <stdio.h>
@@ -26,6 +21,9 @@ static void print_err(const char *msg)
 
 static void cmp_nftnl_set(struct nftnl_set *a, struct nftnl_set *b)
 {
+	const uint8_t *data_a, *data_b;
+	uint32_t datalen_a, datalen_b;
+
 	if (strcmp(nftnl_set_get_str(a, NFTNL_SET_TABLE),
 		   nftnl_set_get_str(b, NFTNL_SET_TABLE)) != 0)
 		print_err("Set table mismatches");
@@ -50,11 +48,18 @@ static void cmp_nftnl_set(struct nftnl_set *a, struct nftnl_set *b)
 	if (strcmp(nftnl_set_get_str(a, NFTNL_SET_USERDATA),
 		   nftnl_set_get_str(b, NFTNL_SET_USERDATA)) != 0)
 		print_err("Set userdata mismatches");
+
+	data_a = nftnl_set_get_data(a, NFTNL_SET_DESC_CONCAT, &datalen_a);
+	data_b = nftnl_set_get_data(b, NFTNL_SET_DESC_CONCAT, &datalen_b);
+	if (datalen_a != datalen_b ||
+	    memcmp(data_a, data_b, datalen_a))
+		print_err("Set desc concat mismatches");
 }
 
 int main(int argc, char *argv[])
 {
 	struct nftnl_set *a, *b = NULL;
+	uint8_t field_lengths[16];
 	char buf[4096];
 	struct nlmsghdr *nlh;
 
@@ -72,6 +77,13 @@ int main(int argc, char *argv[])
 	nftnl_set_set_u32(a, NFTNL_SET_DATA_LEN, 0x12345678);
 	nftnl_set_set_u32(a, NFTNL_SET_FAMILY, 0x12345678);
 	nftnl_set_set_str(a, NFTNL_SET_USERDATA, "testing user data");
+
+	memset(field_lengths, 0xff, sizeof(field_lengths));
+	if (!nftnl_set_set_data(a, NFTNL_SET_DESC_CONCAT, field_lengths, 17))
+		print_err("oversized NFTNL_SET_DESC_CONCAT data accepted");
+	if (nftnl_set_set_data(a, NFTNL_SET_DESC_CONCAT, field_lengths, 16))
+		print_err("setting NFTNL_SET_DESC_CONCAT failed");
+
 
 	/* cmd extracted from include/linux/netfilter/nf_tables.h */
 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWSET, AF_INET, 0, 1234);

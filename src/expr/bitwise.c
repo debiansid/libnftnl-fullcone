@@ -1,10 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
@@ -23,6 +19,7 @@
 
 struct nftnl_expr_bitwise {
 	enum nft_registers	sreg;
+	enum nft_registers	sreg2;
 	enum nft_registers	dreg;
 	enum nft_bitwise_ops	op;
 	unsigned int		len;
@@ -40,6 +37,9 @@ nftnl_expr_bitwise_set(struct nftnl_expr *e, uint16_t type,
 	switch(type) {
 	case NFTNL_EXPR_BITWISE_SREG:
 		memcpy(&bitwise->sreg, data, data_len);
+		break;
+	case NFTNL_EXPR_BITWISE_SREG2:
+		memcpy(&bitwise->sreg2, data, sizeof(bitwise->sreg2));
 		break;
 	case NFTNL_EXPR_BITWISE_DREG:
 		memcpy(&bitwise->dreg, data, data_len);
@@ -70,6 +70,9 @@ nftnl_expr_bitwise_get(const struct nftnl_expr *e, uint16_t type,
 	case NFTNL_EXPR_BITWISE_SREG:
 		*data_len = sizeof(bitwise->sreg);
 		return &bitwise->sreg;
+	case NFTNL_EXPR_BITWISE_SREG2:
+		*data_len = sizeof(bitwise->sreg2);
+		return &bitwise->sreg2;
 	case NFTNL_EXPR_BITWISE_DREG:
 		*data_len = sizeof(bitwise->dreg);
 		return &bitwise->dreg;
@@ -102,6 +105,7 @@ static int nftnl_expr_bitwise_cb(const struct nlattr *attr, void *data)
 
 	switch(type) {
 	case NFTA_BITWISE_SREG:
+	case NFTA_BITWISE_SREG2:
 	case NFTA_BITWISE_DREG:
 	case NFTA_BITWISE_OP:
 	case NFTA_BITWISE_LEN:
@@ -127,6 +131,8 @@ nftnl_expr_bitwise_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 
 	if (e->flags & (1 << NFTNL_EXPR_BITWISE_SREG))
 		mnl_attr_put_u32(nlh, NFTA_BITWISE_SREG, htonl(bitwise->sreg));
+	if (e->flags & (1 << NFTNL_EXPR_BITWISE_SREG2))
+		mnl_attr_put_u32(nlh, NFTA_BITWISE_SREG2, htonl(bitwise->sreg2));
 	if (e->flags & (1 << NFTNL_EXPR_BITWISE_DREG))
 		mnl_attr_put_u32(nlh, NFTA_BITWISE_DREG, htonl(bitwise->dreg));
 	if (e->flags & (1 << NFTNL_EXPR_BITWISE_OP))
@@ -173,6 +179,10 @@ nftnl_expr_bitwise_parse(struct nftnl_expr *e, struct nlattr *attr)
 		bitwise->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_BITWISE_SREG]));
 		e->flags |= (1 << NFTNL_EXPR_BITWISE_SREG);
 	}
+	if (tb[NFTA_BITWISE_SREG2]) {
+		bitwise->sreg2 = ntohl(mnl_attr_get_u32(tb[NFTA_BITWISE_SREG2]));
+		e->flags |= (1 << NFTNL_EXPR_BITWISE_SREG2);
+	}
 	if (tb[NFTA_BITWISE_DREG]) {
 		bitwise->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_BITWISE_DREG]));
 		e->flags |= (1 << NFTNL_EXPR_BITWISE_DREG);
@@ -202,8 +212,8 @@ nftnl_expr_bitwise_parse(struct nftnl_expr *e, struct nlattr *attr)
 }
 
 static int
-nftnl_expr_bitwise_snprintf_bool(char *buf, size_t remain,
-				 const struct nftnl_expr_bitwise *bitwise)
+nftnl_expr_bitwise_snprintf_mask_xor(char *buf, size_t remain,
+				     const struct nftnl_expr_bitwise *bitwise)
 {
 	int offset = 0, ret;
 
@@ -245,6 +255,31 @@ nftnl_expr_bitwise_snprintf_shift(char *buf, size_t remain, const char *op,
 }
 
 static int
+nftnl_expr_bitwise_snprintf_bool(char *buf, size_t remain, const char *op,
+				 const struct nftnl_expr *e,
+				 const struct nftnl_expr_bitwise *bitwise)
+{
+	int offset = 0, ret;
+
+	ret = snprintf(buf, remain, "reg %u = ( reg %u %s ",
+		       bitwise->dreg, bitwise->sreg, op);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+
+	if (e->flags & (1 << NFTNL_EXPR_BITWISE_SREG2))
+		ret = snprintf(buf + offset, remain, "reg %u ", bitwise->sreg2);
+	else
+		ret = nftnl_data_reg_snprintf(buf + offset, remain,
+					      &bitwise->data,
+					      0, DATA_VALUE);
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+
+	ret = snprintf(buf + offset, remain, ") ");
+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+
+	return offset;
+}
+
+static int
 nftnl_expr_bitwise_snprintf(char *buf, size_t size,
 			    uint32_t flags, const struct nftnl_expr *e)
 {
@@ -252,14 +287,28 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size,
 	int err = -1;
 
 	switch (bitwise->op) {
-	case NFT_BITWISE_BOOL:
-		err = nftnl_expr_bitwise_snprintf_bool(buf, size, bitwise);
+	case NFT_BITWISE_MASK_XOR:
+		err = nftnl_expr_bitwise_snprintf_mask_xor(buf, size, bitwise);
 		break;
 	case NFT_BITWISE_LSHIFT:
-		err = nftnl_expr_bitwise_snprintf_shift(buf, size, "<<", bitwise);
+		err = nftnl_expr_bitwise_snprintf_shift(buf, size, "<<",
+							bitwise);
 		break;
 	case NFT_BITWISE_RSHIFT:
-		err = nftnl_expr_bitwise_snprintf_shift(buf, size, ">>", bitwise);
+		err = nftnl_expr_bitwise_snprintf_shift(buf, size, ">>",
+							bitwise);
+		break;
+	case NFT_BITWISE_AND:
+		err = nftnl_expr_bitwise_snprintf_bool(buf, size, "&", e,
+						       bitwise);
+		break;
+	case NFT_BITWISE_OR:
+		err = nftnl_expr_bitwise_snprintf_bool(buf, size, "|", e,
+						       bitwise);
+		break;
+	case NFT_BITWISE_XOR:
+		err = nftnl_expr_bitwise_snprintf_bool(buf, size, "^", e,
+						       bitwise);
 		break;
 	}
 

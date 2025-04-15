@@ -1,10 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
@@ -204,33 +200,6 @@ static const char *op2str(uint8_t op)
 	default:
 		return "";
 	}
-}
-
-static inline int str2exthdr_op(const char* str)
-{
-	if (!strcmp(str, "tcpopt"))
-		return NFT_EXTHDR_OP_TCPOPT;
-	if (!strcmp(str, "ipv4"))
-		return NFT_EXTHDR_OP_IPV4;
-
-	/* if str == "ipv6" or anything else */
-	return NFT_EXTHDR_OP_IPV6;
-}
-
-static inline int str2exthdr_type(const char *str)
-{
-	if (strcmp(str, "hopopts") == 0)
-		return IPPROTO_HOPOPTS;
-	else if (strcmp(str, "routing") == 0)
-		return IPPROTO_ROUTING;
-	else if (strcmp(str, "fragment") == 0)
-		return IPPROTO_FRAGMENT;
-	else if (strcmp(str, "dstopts") == 0)
-		return IPPROTO_DSTOPTS;
-	else if (strcmp(str, "mh") == 0)
-		return IPPROTO_MH;
-
-	return -1;
 }
 
 static int

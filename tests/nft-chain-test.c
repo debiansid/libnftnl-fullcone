@@ -1,11 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
  */
 
 #include <stdio.h>
@@ -23,9 +18,25 @@ static void print_err(const char *msg)
 	printf("\033[31mERROR:\e[0m %s\n", msg);
 }
 
+static void cmp_devices(const char * const *adevs,
+			const char * const *bdevs)
+{
+	int i;
+
+	if (!adevs && !bdevs)
+		return;
+	if (!!adevs ^ !!bdevs)
+		print_err("Chain devices mismatches");
+	for (i = 0; adevs[i] && bdevs[i]; i++) {
+		if (strcmp(adevs[i], bdevs[i]))
+			break;
+	}
+	if (adevs[i] || bdevs[i])
+		print_err("Chain devices mismatches");
+}
+
 static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
 {
-
 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
 		   nftnl_chain_get_str(b, NFTNL_CHAIN_NAME)) != 0)
 		print_err("Chain name mismatches");
@@ -59,13 +70,17 @@ static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TYPE),
 		   nftnl_chain_get_str(b, NFTNL_CHAIN_TYPE)) != 0)
 		print_err("Chain type mismatches");
-	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
+	if (nftnl_chain_is_set(a, NFTNL_CHAIN_DEV) &&
+	    strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
 		   nftnl_chain_get_str(b, NFTNL_CHAIN_DEV)) != 0)
 		print_err("Chain device mismatches");
+	cmp_devices(nftnl_chain_get_array(a, NFTNL_CHAIN_DEVICES),
+		    nftnl_chain_get_array(b, NFTNL_CHAIN_DEVICES));
 }
 
 int main(int argc, char *argv[])
 {
+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
 	struct nftnl_chain *a, *b;
 	char buf[4096];
 	struct nlmsghdr *nlh;
@@ -89,6 +104,19 @@ int main(int argc, char *argv[])
 	nftnl_chain_set_str(a, NFTNL_CHAIN_DEV, "eth0");
 
 	/* cmd extracted from include/linux/netfilter/nf_tables.h */
+	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET, 0, 1234);
+	nftnl_chain_nlmsg_build_payload(nlh, a);
+
+	if (nftnl_chain_nlmsg_parse(nlh, b) < 0)
+		print_err("parsing problems");
+
+	cmp_nftnl_chain(a, b);
+
+	/* repeat test with multiple devices */
+
+	nftnl_chain_unset(a, NFTNL_CHAIN_DEV);
+	nftnl_chain_set_array(a, NFTNL_CHAIN_DEVICES, devs);
+
 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET, 0, 1234);
 	nftnl_chain_nlmsg_build_payload(nlh, a);
 

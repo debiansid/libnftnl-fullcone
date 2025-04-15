@@ -1,10 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
  */
@@ -189,8 +185,10 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
 			return -1;
 
 		memcpy(&s->desc.field_len, data, data_len);
-		while (s->desc.field_len[++s->desc.field_count]) {
-			if (s->desc.field_count >= NFT_REG32_COUNT)
+		for (s->desc.field_count = 0;
+		     s->desc.field_count < NFT_REG32_COUNT;
+		     s->desc.field_count++) {
+			if (!s->desc.field_len[s->desc.field_count])
 				break;
 		}
 		break;
