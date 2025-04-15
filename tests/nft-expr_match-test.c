@@ -1,11 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
  */
 
 #include <stdio.h>
@@ -59,7 +54,7 @@ int main(int argc, char *argv[])
 	char buf[4096];
 	struct nftnl_expr_iter *iter_a, *iter_b;
 	struct nftnl_expr *rule_a, *rule_b;
-	char data[16] = "0123456789abcdef";
+	char data[] = "0123456789abcdef";
 
 	a = nftnl_rule_alloc();
 	b = nftnl_rule_alloc();

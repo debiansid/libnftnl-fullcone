@@ -135,20 +135,20 @@ libnftnl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libnftnl_la_OBJECTS = utils.lo batch.lo flowtable.lo common.lo \
 	gen.lo table.lo trace.lo chain.lo object.lo rule.lo set.lo \
-	set_elem.lo ruleset.lo udata.lo expr.lo expr_ops.lo \
-	expr/bitwise.lo expr/byteorder.lo expr/cmp.lo expr/range.lo \
-	expr/connlimit.lo expr/counter.lo expr/ct.lo expr/data_reg.lo \
-	expr/dup.lo expr/exthdr.lo expr/flow_offload.lo expr/fib.lo \
-	expr/fwd.lo expr/last.lo expr/limit.lo expr/log.lo \
-	expr/lookup.lo expr/dynset.lo expr/immediate.lo expr/inner.lo \
-	expr/match.lo expr/meta.lo expr/numgen.lo expr/nat.lo \
-	expr/tproxy.lo expr/objref.lo expr/payload.lo expr/queue.lo \
-	expr/quota.lo expr/reject.lo expr/rt.lo expr/target.lo \
-	expr/tunnel.lo expr/masq.lo expr/redir.lo expr/hash.lo \
-	expr/socket.lo expr/synproxy.lo expr/osf.lo expr/xfrm.lo \
-	obj/counter.lo obj/ct_helper.lo obj/quota.lo obj/tunnel.lo \
-	obj/limit.lo obj/synproxy.lo obj/ct_timeout.lo obj/secmark.lo \
-	obj/ct_expect.lo
+	set_elem.lo str_array.lo ruleset.lo udata.lo expr.lo \
+	expr_ops.lo expr/bitwise.lo expr/byteorder.lo expr/cmp.lo \
+	expr/range.lo expr/connlimit.lo expr/counter.lo expr/ct.lo \
+	expr/data_reg.lo expr/dup.lo expr/exthdr.lo \
+	expr/flow_offload.lo expr/fib.lo expr/fwd.lo expr/last.lo \
+	expr/limit.lo expr/log.lo expr/lookup.lo expr/dynset.lo \
+	expr/immediate.lo expr/inner.lo expr/match.lo expr/meta.lo \
+	expr/numgen.lo expr/nat.lo expr/tproxy.lo expr/objref.lo \
+	expr/payload.lo expr/queue.lo expr/quota.lo expr/reject.lo \
+	expr/rt.lo expr/target.lo expr/tunnel.lo expr/masq.lo \
+	expr/redir.lo expr/hash.lo expr/socket.lo expr/synproxy.lo \
+	expr/osf.lo expr/xfrm.lo obj/counter.lo obj/ct_helper.lo \
+	obj/quota.lo obj/tunnel.lo obj/limit.lo obj/synproxy.lo \
+	obj/ct_timeout.lo obj/secmark.lo obj/ct_expect.lo
 libnftnl_la_OBJECTS = $(am_libnftnl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -178,33 +178,33 @@ am__depfiles_remade = ./$(DEPDIR)/batch.Plo ./$(DEPDIR)/chain.Plo \
 	./$(DEPDIR)/gen.Plo ./$(DEPDIR)/object.Plo \
 	./$(DEPDIR)/rule.Plo ./$(DEPDIR)/ruleset.Plo \
 	./$(DEPDIR)/set.Plo ./$(DEPDIR)/set_elem.Plo \
-	./$(DEPDIR)/table.Plo ./$(DEPDIR)/trace.Plo \
-	./$(DEPDIR)/udata.Plo ./$(DEPDIR)/utils.Plo \
-	expr/$(DEPDIR)/bitwise.Plo expr/$(DEPDIR)/byteorder.Plo \
-	expr/$(DEPDIR)/cmp.Plo expr/$(DEPDIR)/connlimit.Plo \
-	expr/$(DEPDIR)/counter.Plo expr/$(DEPDIR)/ct.Plo \
-	expr/$(DEPDIR)/data_reg.Plo expr/$(DEPDIR)/dup.Plo \
-	expr/$(DEPDIR)/dynset.Plo expr/$(DEPDIR)/exthdr.Plo \
-	expr/$(DEPDIR)/fib.Plo expr/$(DEPDIR)/flow_offload.Plo \
-	expr/$(DEPDIR)/fwd.Plo expr/$(DEPDIR)/hash.Plo \
-	expr/$(DEPDIR)/immediate.Plo expr/$(DEPDIR)/inner.Plo \
-	expr/$(DEPDIR)/last.Plo expr/$(DEPDIR)/limit.Plo \
-	expr/$(DEPDIR)/log.Plo expr/$(DEPDIR)/lookup.Plo \
-	expr/$(DEPDIR)/masq.Plo expr/$(DEPDIR)/match.Plo \
-	expr/$(DEPDIR)/meta.Plo expr/$(DEPDIR)/nat.Plo \
-	expr/$(DEPDIR)/numgen.Plo expr/$(DEPDIR)/objref.Plo \
-	expr/$(DEPDIR)/osf.Plo expr/$(DEPDIR)/payload.Plo \
-	expr/$(DEPDIR)/queue.Plo expr/$(DEPDIR)/quota.Plo \
-	expr/$(DEPDIR)/range.Plo expr/$(DEPDIR)/redir.Plo \
-	expr/$(DEPDIR)/reject.Plo expr/$(DEPDIR)/rt.Plo \
-	expr/$(DEPDIR)/socket.Plo expr/$(DEPDIR)/synproxy.Plo \
-	expr/$(DEPDIR)/target.Plo expr/$(DEPDIR)/tproxy.Plo \
-	expr/$(DEPDIR)/tunnel.Plo expr/$(DEPDIR)/xfrm.Plo \
-	obj/$(DEPDIR)/counter.Plo obj/$(DEPDIR)/ct_expect.Plo \
-	obj/$(DEPDIR)/ct_helper.Plo obj/$(DEPDIR)/ct_timeout.Plo \
-	obj/$(DEPDIR)/limit.Plo obj/$(DEPDIR)/quota.Plo \
-	obj/$(DEPDIR)/secmark.Plo obj/$(DEPDIR)/synproxy.Plo \
-	obj/$(DEPDIR)/tunnel.Plo
+	./$(DEPDIR)/str_array.Plo ./$(DEPDIR)/table.Plo \
+	./$(DEPDIR)/trace.Plo ./$(DEPDIR)/udata.Plo \
+	./$(DEPDIR)/utils.Plo expr/$(DEPDIR)/bitwise.Plo \
+	expr/$(DEPDIR)/byteorder.Plo expr/$(DEPDIR)/cmp.Plo \
+	expr/$(DEPDIR)/connlimit.Plo expr/$(DEPDIR)/counter.Plo \
+	expr/$(DEPDIR)/ct.Plo expr/$(DEPDIR)/data_reg.Plo \
+	expr/$(DEPDIR)/dup.Plo expr/$(DEPDIR)/dynset.Plo \
+	expr/$(DEPDIR)/exthdr.Plo expr/$(DEPDIR)/fib.Plo \
+	expr/$(DEPDIR)/flow_offload.Plo expr/$(DEPDIR)/fwd.Plo \
+	expr/$(DEPDIR)/hash.Plo expr/$(DEPDIR)/immediate.Plo \
+	expr/$(DEPDIR)/inner.Plo expr/$(DEPDIR)/last.Plo \
+	expr/$(DEPDIR)/limit.Plo expr/$(DEPDIR)/log.Plo \
+	expr/$(DEPDIR)/lookup.Plo expr/$(DEPDIR)/masq.Plo \
+	expr/$(DEPDIR)/match.Plo expr/$(DEPDIR)/meta.Plo \
+	expr/$(DEPDIR)/nat.Plo expr/$(DEPDIR)/numgen.Plo \
+	expr/$(DEPDIR)/objref.Plo expr/$(DEPDIR)/osf.Plo \
+	expr/$(DEPDIR)/payload.Plo expr/$(DEPDIR)/queue.Plo \
+	expr/$(DEPDIR)/quota.Plo expr/$(DEPDIR)/range.Plo \
+	expr/$(DEPDIR)/redir.Plo expr/$(DEPDIR)/reject.Plo \
+	expr/$(DEPDIR)/rt.Plo expr/$(DEPDIR)/socket.Plo \
+	expr/$(DEPDIR)/synproxy.Plo expr/$(DEPDIR)/target.Plo \
+	expr/$(DEPDIR)/tproxy.Plo expr/$(DEPDIR)/tunnel.Plo \
+	expr/$(DEPDIR)/xfrm.Plo obj/$(DEPDIR)/counter.Plo \
+	obj/$(DEPDIR)/ct_expect.Plo obj/$(DEPDIR)/ct_helper.Plo \
+	obj/$(DEPDIR)/ct_timeout.Plo obj/$(DEPDIR)/limit.Plo \
+	obj/$(DEPDIR)/quota.Plo obj/$(DEPDIR)/secmark.Plo \
+	obj/$(DEPDIR)/synproxy.Plo obj/$(DEPDIR)/tunnel.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -419,6 +419,7 @@ libnftnl_la_SOURCES = utils.c		\
 		      rule.c		\
 		      set.c		\
 		      set_elem.c	\
+		      str_array.c	\
 		      ruleset.c		\
 		      udata.c		\
 		      expr.c		\
@@ -631,6 +632,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ruleset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set_elem.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/str_array.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trace.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/udata.Plo@am__quote@ # am--include-marker
@@ -866,6 +868,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ruleset.Plo
 	-rm -f ./$(DEPDIR)/set.Plo
 	-rm -f ./$(DEPDIR)/set_elem.Plo
+	-rm -f ./$(DEPDIR)/str_array.Plo
 	-rm -f ./$(DEPDIR)/table.Plo
 	-rm -f ./$(DEPDIR)/trace.Plo
 	-rm -f ./$(DEPDIR)/udata.Plo
@@ -976,6 +979,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ruleset.Plo
 	-rm -f ./$(DEPDIR)/set.Plo
 	-rm -f ./$(DEPDIR)/set_elem.Plo
+	-rm -f ./$(DEPDIR)/str_array.Plo
 	-rm -f ./$(DEPDIR)/table.Plo
 	-rm -f ./$(DEPDIR)/trace.Plo
 	-rm -f ./$(DEPDIR)/udata.Plo

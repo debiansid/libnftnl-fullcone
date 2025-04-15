@@ -1,10 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (c) 2016 Anders K. Pedersen <akp@cohaesio.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  */
 
 #include <stdio.h>
@@ -124,19 +120,6 @@ static const char *rt_key2str(uint8_t key)
 		return rt_key2str_array[key];
 
 	return "unknown";
-}
-
-static inline int str2rt_key(const char *str)
-{
-	int i;
-
-	for (i = 0; i < NFT_RT_MAX; i++) {
-		if (strcmp(str, rt_key2str_array[i]) == 0)
-			return i;
-	}
-
-	errno = EINVAL;
-	return -1;
 }
 
 static int

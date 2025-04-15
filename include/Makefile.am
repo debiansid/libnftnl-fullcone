@@ -11,5 +11,6 @@ noinst_HEADERS = internal.h	\
 		 expr.h		\
 		 rule.h		\
 		 set_elem.h	\
+		 str_array.h	\
 		 udata.h	\
 		 utils.h
