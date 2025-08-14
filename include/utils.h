@@ -1,6 +1,7 @@
 #ifndef LIBNFTNL_UTILS_H
 #define LIBNFTNL_UTILS_H 1
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

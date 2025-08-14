@@ -59,6 +59,8 @@ void nftnl_set_free(const struct nftnl_set *s)
 		list_del(&elem->head);
 		nftnl_set_elem_free(elem);
 	}
+
+	xfree(s->type);
 	xfree(s);
 }
 
@@ -97,6 +99,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
 	case NFTNL_SET_DESC_CONCAT:
 	case NFTNL_SET_TIMEOUT:
 	case NFTNL_SET_GC_INTERVAL:
+	case NFTNL_SET_COUNT:
 		break;
 	case NFTNL_SET_USERDATA:
 		xfree(s->user.data);
@@ -129,6 +132,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] = {
 	[NFTNL_SET_DESC_SIZE]	= sizeof(uint32_t),
 	[NFTNL_SET_TIMEOUT]		= sizeof(uint64_t),
 	[NFTNL_SET_GC_INTERVAL]	= sizeof(uint32_t),
+	[NFTNL_SET_COUNT]	= sizeof(uint32_t),
 };
 
 EXPORT_SYMBOL(nftnl_set_set_data);
@@ -197,6 +201,9 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
 		break;
 	case NFTNL_SET_GC_INTERVAL:
 		memcpy(&s->gc_interval, data, sizeof(s->gc_interval));
+		break;
+	case NFTNL_SET_COUNT:
+		memcpy(&s->elemcount, data, sizeof(s->elemcount));
 		break;
 	case NFTNL_SET_USERDATA:
 		if (s->flags & (1 << NFTNL_SET_USERDATA))
@@ -304,6 +311,9 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
 	case NFTNL_SET_GC_INTERVAL:
 		*data_len = sizeof(uint32_t);
 		return &s->gc_interval;
+	case NFTNL_SET_COUNT:
+		*data_len = sizeof(uint32_t);
+		return &s->elemcount;
 	case NFTNL_SET_USERDATA:
 		*data_len = s->user.len;
 		return s->user.data;
@@ -380,6 +390,8 @@ struct nftnl_set *nftnl_set_clone(const struct nftnl_set *set)
 
 		list_add_tail(&newelem->head, &newset->element_list);
 	}
+
+	newset->type = NULL;
 
 	return newset;
 err:
@@ -523,6 +535,7 @@ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
 	switch(type) {
 	case NFTA_SET_TABLE:
 	case NFTA_SET_NAME:
+	case NFTA_SET_TYPE:
 		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
 			abi_breakage();
 		break;
@@ -538,6 +551,7 @@ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
 	case NFTA_SET_ID:
 	case NFTA_SET_POLICY:
 	case NFTA_SET_GC_INTERVAL:
+	case NFTA_SET_COUNT:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
@@ -738,6 +752,16 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
 		s->flags |= (1 << NFTNL_SET_EXPRESSIONS);
 	}
 
+	if (tb[NFTA_SET_TYPE]) {
+		xfree(s->type);
+		s->type = strdup(mnl_attr_get_str(tb[NFTA_SET_TYPE]));
+	}
+
+	if (tb[NFTA_SET_COUNT]) {
+		s->elemcount = ntohl(mnl_attr_get_u32(tb[NFTA_SET_COUNT]));
+		s->flags |= (1 << NFTNL_SET_COUNT);
+	}
+
 	s->family = nfg->nfgen_family;
 	s->flags |= (1 << NFTNL_SET_FAMILY);
 
@@ -799,6 +823,16 @@ static int nftnl_set_snprintf_default(char *buf, size_t remain,
 
 	if (s->flags & (1 << NFTNL_SET_DESC_SIZE)) {
 		ret = snprintf(buf + offset, remain, " size %u", s->desc.size);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+	}
+
+	if (s->type) {
+		ret = snprintf(buf + offset, remain, " backend %s", s->type);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+	}
+
+	if (s->elemcount) {
+		ret = snprintf(buf + offset, remain, " count %u", s->elemcount);
 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 	}
 

@@ -44,6 +44,12 @@ struct nftnl_trace {
 	uint32_t policy;
 	uint16_t iiftype;
 	uint16_t oiftype;
+	struct {
+		uint16_t dir;
+		uint32_t id;
+		uint32_t state;
+		uint32_t status;
+	} ct;
 
 	uint32_t flags;
 };
@@ -88,6 +94,10 @@ static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
                 if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
 			abi_breakage();
 		break;
+	case NFTA_TRACE_CT_DIRECTION:
+		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
+			abi_breakage();
+		break;
 	case NFTA_TRACE_IIFTYPE:
 	case NFTA_TRACE_OIFTYPE:
 		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
@@ -100,6 +110,9 @@ static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
 	case NFTA_TRACE_POLICY:
 	case NFTA_TRACE_NFPROTO:
 	case NFTA_TRACE_TYPE:
+	case NFTA_TRACE_CT_ID:
+	case NFTA_TRACE_CT_STATE:
+	case NFTA_TRACE_CT_STATUS:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
@@ -190,6 +203,18 @@ const void *nftnl_trace_get_data(const struct nftnl_trace *trace,
 	case NFTNL_TRACE_POLICY:
 		*data_len = sizeof(uint32_t);
 		return &trace->policy;
+	case NFTNL_TRACE_CT_DIRECTION:
+		*data_len = sizeof(uint16_t);
+		return &trace->ct.dir;
+	case NFTNL_TRACE_CT_ID:
+		*data_len = sizeof(uint32_t);
+		return &trace->ct.id;
+	case NFTNL_TRACE_CT_STATE:
+		*data_len = sizeof(uint32_t);
+		return &trace->ct.state;
+	case NFTNL_TRACE_CT_STATUS:
+		*data_len = sizeof(uint32_t);
+		return &trace->ct.status;
 	case __NFTNL_TRACE_MAX:
 		break;
 	}
@@ -417,6 +442,27 @@ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
 	if (tb[NFTA_TRACE_MARK]) {
 		t->mark = ntohl(mnl_attr_get_u32(tb[NFTA_TRACE_MARK]));
 		t->flags |= (1 << NFTNL_TRACE_MARK);
+	}
+
+	if (tb[NFTA_TRACE_CT_DIRECTION]) {
+		t->ct.dir = mnl_attr_get_u8(tb[NFTA_TRACE_CT_DIRECTION]);
+		t->flags |= (1 << NFTNL_TRACE_CT_DIRECTION);
+	}
+
+	if (tb[NFTA_TRACE_CT_ID]) {
+		/* NFT_CT_ID is expected to be in big endian */
+		t->ct.id = mnl_attr_get_u32(tb[NFTA_TRACE_CT_ID]);
+		t->flags |= (1 << NFTNL_TRACE_CT_ID);
+	}
+
+	if (tb[NFTA_TRACE_CT_STATE]) {
+		t->ct.state = ntohl(mnl_attr_get_u32(tb[NFTA_TRACE_CT_STATE]));
+		t->flags |= (1 << NFTNL_TRACE_CT_STATE);
+	}
+
+	if (tb[NFTA_TRACE_CT_STATUS]) {
+		t->ct.status = ntohl(mnl_attr_get_u32(tb[NFTA_TRACE_CT_STATUS]));
+		t->flags |= (1 << NFTNL_TRACE_CT_STATUS);
 	}
 
 	return 0;

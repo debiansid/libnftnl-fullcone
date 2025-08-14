@@ -11,6 +11,7 @@ struct nftnl_set {
 	uint32_t		set_flags;
 	const char		*table;
 	const char		*name;
+	const char		*type;
 	uint64_t		handle;
 	uint32_t		key_type;
 	uint32_t		key_len;
@@ -31,6 +32,7 @@ struct nftnl_set {
 	struct list_head	element_list;
 
 	uint32_t		flags;
+	uint32_t		elemcount;
 	uint32_t		gc_interval;
 	uint64_t		timeout;
 	struct list_head	expr_list;
