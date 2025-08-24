@@ -1,8 +1,10 @@
-libnftnl (1.3.0-1) UNRELEASED; urgency=medium
+libnftnl (1.3.0-1) unstable; urgency=medium
 
   * [ae9ae2a] New upstream version 1.3.0
+  * [776668b] d/control: bump Standards-Version to 4.7.2
+  * [7216b43] d/u/signing-key.asc: minimize key
 
- -- Jeremy Sowden <azazel@debian.org>  Thu, 14 Aug 2025 17:33:51 +0100
+ -- Jeremy Sowden <azazel@debian.org>  Sun, 24 Aug 2025 15:22:03 +0100
 
 libnftnl (1.2.9-1) unstable; urgency=medium
 
