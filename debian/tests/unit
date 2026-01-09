@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Aborts on non-zero exit status
+set -eux
+
+# find the multiarch lib directory
+libdir="/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+echo "libdir: ${libdir}"
+
+# remove the library files built from source
+(cd src/.libs && rm -f libnftnl.so)
+
+# copy the library files from the installed debian package
+cp "${libdir}/libnftnl.so" ./src/.libs
+
+# Run upstream tests
+(cd tests && make clean && make check)
