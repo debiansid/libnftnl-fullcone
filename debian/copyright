@@ -38,6 +38,10 @@ Copyright: 2012-2014 Pablo Neira Ayuso <pablo@netfilter.org>
            2012 Intel Corporation
 License: GPL-2+
 
+Files: src/obj/connlimit.c
+Copyright: 2025 Fernando Fernandez Mancera <fmancera@suse.de>
+License: GPL-2+
+
 Files: examples/nft-ruleset-get.c
 Copyright: 2013 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 License: GPL-2
