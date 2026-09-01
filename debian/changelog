@@ -1,3 +1,28 @@
+libnftnl (1.3.2-1) UNRELEASED; urgency=medium
+
+  [ Sahithi Akunuri ]
+  * [7d37409] Enable autopkgtest : Add necessary files to enable autopkgtest
+
+  [ Jeremy Sowden ]
+  * [a0ec461] d/gbp.conf: import-orig: set `upstream-vcs-tag`
+  * [d426312] New upstream version 1.3.2
+    + Support for connlimit stateful objects
+    + Fix compilation of examples for musl libc
+    + Validate geneve class and type attribute size in setter
+    + Validate kernel does not provide too long geneve data attribute
+    + Remove internal nftnl_set{,_elem}_clone() function
+    + Do not print userdata content through snprintf API
+    + Enhancements for the snprint API to display data according to
+      size and byteorder, this includes new functions
+      nftnl_{expr,set_elem}_set_imm() to decorate the data.
+    + Remove a trailing whitespace in snprintf() API for
+      expressions.
+    + More improvements for the snprintf() API for set elements:
+      no colon is printed if data is not provided, print object names
+      in maps and print flags only if non-zero.
+
+ -- Jeremy Sowden <azazel@debian.org>  Tue, 01 Sep 2026 08:49:55 +0100
+
 libnftnl (1.3.1-1) unstable; urgency=medium
 
   * [cdcff3a] d/watch: convert to version 5
