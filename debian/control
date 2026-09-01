@@ -1,5 +1,4 @@
 Source: libnftnl
-Priority: optional
 Maintainer: Debian Netfilter Packaging Team <team+pkg-netfilter-team@tracker.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>,
            Jeremy Sowden <azazel@debian.org>
