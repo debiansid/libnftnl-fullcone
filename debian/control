@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Debian Netfilter Packaging Team <team+pkg-netfilter-team@tracker.debian.org>
 Uploaders: Arturo Borrero Gonzalez <arturo@debian.org>,
            Jeremy Sowden <azazel@debian.org>
-Build-Depends: debhelper-compat (= 13), libmnl-dev, libtool, pkgconf
+Build-Depends: debhelper-compat (= 14), libmnl-dev, libtool, pkgconf
 Build-Depends-Indep: doxygen <!nodoc>, graphviz <!nodoc>
 Rules-Requires-Root: no
 Standards-Version: 4.7.4
