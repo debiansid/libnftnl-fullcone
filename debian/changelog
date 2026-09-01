@@ -1,4 +1,4 @@
-libnftnl (1.3.2-1) UNRELEASED; urgency=medium
+libnftnl (1.3.2-1) unstable; urgency=medium
 
   [ Sahithi Akunuri ]
   * [7d37409] Enable autopkgtest : Add necessary files to enable autopkgtest
@@ -20,8 +20,15 @@ libnftnl (1.3.2-1) UNRELEASED; urgency=medium
     + More improvements for the snprintf() API for set elements:
       no colon is printed if data is not provided, print object names
       in maps and print flags only if non-zero.
+  * [847ce61] d/libnftnl11.symbols: add new symbols
+  * [be43bf0] d/control: bump Standards-Version to 4.7.4
+  * [eea2406] d/control: bump debhelper-compat to 14
+  * [f6dd625] d/control: remove substvars handled by debhelper at compat 14
+  * [9e068a2] d/control: remove default `Priority` field
+  * [080b85f] d/control: remove default `Rules-Requires-Root` field
+  * [62493f8] d/copyright: add src/obj/connlimit.c
 
- -- Jeremy Sowden <azazel@debian.org>  Tue, 01 Sep 2026 08:49:55 +0100
+ -- Jeremy Sowden <azazel@debian.org>  Tue, 01 Sep 2026 11:25:59 +0100
 
 libnftnl (1.3.1-1) unstable; urgency=medium
 
