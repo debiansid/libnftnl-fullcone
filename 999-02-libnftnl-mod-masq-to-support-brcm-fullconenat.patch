@@ -1,7 +1,7 @@
-From: debiansid <wong.syrone@gmail.com>
+From: debiansid <9624961+debiansid@users.noreply.github.com>
 Subject: [PATCH 2/2] libnftnl: support Broadcom fullcone via masquerade
 
-Signed-off-by: debiansid <wong.syrone@gmail.com>
+Signed-off-by: debiansid <9624961+debiansid@users.noreply.github.com>
 ---
 diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
 index ae63b8f..cf57de9 100644
