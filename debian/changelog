@@ -1,5 +1,9 @@
 libnftnl (1.3.2-1) unstable; urgency=medium
 
+  [ debiansid ]
+  * Add Fullcone NAT expression support.
+  * Support Broadcom Fullcone NAT through the masquerade expression.
+
   [ Sahithi Akunuri ]
   * [7d37409] Enable autopkgtest : Add necessary files to enable autopkgtest
 
